@@ -91,7 +91,7 @@ export default function Home() {
 
           <section className="flex-1 px-6 pb-12 md:px-12 lg:grid lg:grid-cols-2 lg:items-end lg:px-16 lg:pb-16">
             <div className="flex flex-col justify-end">
-              <AnimatedHeading text={`Shaping tomorrow\nwith vision and action.`} />
+              <AnimatedHeading text={`Chưa Tày Đâu\n Độ MIXI`} />
 
               <FadeIn delay={800} duration={1000}>
                 <p className="mb-5 max-w-xl text-base text-gray-300 md:text-lg">
