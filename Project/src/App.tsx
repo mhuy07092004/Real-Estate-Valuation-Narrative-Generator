@@ -1,34 +1,52 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
+import { gsap, useGSAP } from './lib/gsap'
 import './App.css'
 
 function App() {
   const [count, setCount] = useState(0)
+  const introScopeRef = useRef<HTMLDivElement>(null)
+
+  useGSAP(
+    () => {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+      gsap.from(introScopeRef.current?.querySelectorAll('[data-gsap-intro]') ?? [], {
+        opacity: 0,
+        y: 18,
+        duration: 0.55,
+        stagger: 0.08,
+        ease: 'power2.out',
+      })
+    },
+    { scope: introScopeRef },
+  )
 
   return (
-    <>
+    <div ref={introScopeRef} className="contents">
       <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+          <div className="hero" data-gsap-intro>
+            <img src={heroImg} className="base" width="170" height="179" alt="" />
+            <img src={reactLogo} className="framework" alt="React logo" />
+            <img src={viteLogo} className="vite" alt="Vite logo" />
+          </div>
+          <div data-gsap-intro>
+            <h1>Get started</h1>
+            <p>
+              Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+            </p>
+          </div>
+          <button
+            type="button"
+            className="counter"
+            data-gsap-intro
+            onClick={() => setCount((count) => count + 1)}
+          >
+            Count is {count}
+          </button>
+        </section>
 
       <div className="ticks"></div>
 
@@ -115,7 +133,7 @@ function App() {
 
       <div className="ticks"></div>
       <section id="spacer"></section>
-    </>
+    </div>
   )
 }
 
