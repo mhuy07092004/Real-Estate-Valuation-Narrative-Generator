@@ -1,6 +1,6 @@
 # CSIT321 — Web project
 
-Full-stack web app (React frontend + Node-style backend layout). This README explains **where to add or edit files** so the team keeps a predictable structure instead of scattering code.
+Full-stack web app (React frontend + **Python** backend). This README explains **where to add or edit files** so the team keeps a predictable structure instead of scattering code.
 
 ## Frontend stack
 
@@ -25,7 +25,7 @@ npm run lint
 npm run preview  # serve the production build locally
 ```
 
-The backend folder does not yet ship with its own `package.json`. When you bootstrap the API (Express, Fastify, etc.), keep source and run scripts **inside** `backend/` and extend the [Backend API](#backend-api) section below accordingly.
+**Backend (Python)** is scaffolded under `backend/` without a toolchain committed yet. When you bootstrap it (e.g. [FastAPI](https://fastapi.tiangolo.com/), [Flask](https://flask.palletsprojects.com/), [Django](https://www.djangoproject.com/) REST), keep all API code **inside** `backend/` (`pyproject.toml` / `requirements.txt`, optional `venv/`, `.env` — see `.gitignore`). Extend the [Backend API](#backend-api) section when you finalize layout and scripts (e.g. `uvicorn`, `pytest`).
 
 ---
 
@@ -35,7 +35,7 @@ The backend folder does not yet ship with its own `package.json`. When you boots
 Project/
 ├── public/              # Static assets copied as-is (favicon, icons.svg, …)
 ├── src/                 # Frontend application code
-├── backend/             # API (folder scaffold; runtime not required yet)
+├── backend/             # Python API (folder scaffold; add venv/pyproject/requirements locally)
 ├── index.html
 ├── vite.config.ts
 ├── package.json
@@ -77,23 +77,23 @@ Project/
 
 ## Backend API
 
-Intended layout for a REST-style Node service (adapt to your framework as needed):
+Intended layout for a **REST-style Python** service. Names map cleanly to stacks like FastAPI or Flask (with blueprints); adjust naming if Django’s `apps/` layout fits your course brief better.
 
 | Folder | Contents |
 |--------|----------|
-| **`src/config/`** | Environment variables, database connection, server settings. |
-| **`src/routes/`** | Route definitions wired to controllers. |
-| **`src/controllers/`** | Request/response handling; delegate to services. |
-| **`src/services/`** | Business logic. |
-| **`src/models/`** | Data access / ORM models / repositories. |
-| **`src/middleware/`** | Auth, logging, error handling, etc. |
-| **`src/validators/`** | Request validation schemas (Zod, Joi, …). |
-| **`src/utils/`** | Pure helper functions. |
-| **`src/types/`** | Server-side TypeScript types. |
-| **`tests/unit/`** | Unit tests. |
-| **`tests/integration/`** | API or database integration tests. |
+| **`src/config/`** | Settings from env vars (`DATABASE_URL`, secrets), DB engine/session factory, optional `settings.py` / Pydantic `BaseSettings`. |
+| **`src/routes/`** | URL routing: mount APIRouter / blueprints, path prefixes. |
+| **`src/controllers/`** | Thin HTTP layer: parse input, call services, return responses (often small functions or router endpoint bodies). |
+| **`src/services/`** | Domain and application logic — keep it framework-agnostic where possible. |
+| **`src/models/`** | ORM entities (SQLAlchemy, Tortoise, etc.) or repository-style DB access. |
+| **`src/middleware/`** | Cross-cutting behaviour: auth, logging, CORS setup hooks, exception handlers (as your framework exposes them). |
+| **`src/validators/`** | Request/response shapes: **Pydantic** models, Marshmallow schemas, etc. (rename to `schemas/` if the team prefers that convention). |
+| **`src/utils/`** | Pure helpers (formatting, small algorithms) with no I/O hidden inside. |
+| **`src/types/`** | Shared `typing` aliases, protocols, enums — not duplicate Pydantic models unless you need internals-only types. |
+| **`tests/unit/`** | Tests for services, validators, utilities (e.g. `pytest`). |
+| **`tests/integration/`** | Tests hitting the HTTP app or DB (e.g. `TestClient`, real or test containers). |
 
-**Rule of thumb:** keep controllers thin; heavy work belongs in `services/`. Do not scatter SQL or external API logic outside `models/` and `services/`.
+**Rule of thumb:** keep `controllers/` (or router handlers) thin; heavy logic lives in `services/`. Avoid raw SQL or third-party HTTP calls scattered outside `models/` and `services/`.
 
 ---
 
@@ -102,9 +102,10 @@ Intended layout for a REST-style Node service (adapt to your framework as needed
 - [Vite + React](https://vite.dev/guide/)
 - [Tailwind CSS v4 with Vite](https://tailwindcss.com/docs/installation/using-vite)
 - [GSAP React — useGSAP](https://greensock.com/docs/v3/React)
+- [FastAPI](https://fastapi.tiangolo.com/) / [Python packaging](https://packaging.python.org/)
 
 ---
 
 ## Contributing
 
-Before merging: run `npm run build` and `npm run lint`. Place new files according to the tables above; if something is unclear, open an issue or PR and **update this README** together with any structural change.
+Before merging: run `npm run build` and `npm run lint` for the frontend. When the Python API is wired up, add and document checks (e.g. `pytest`, `ruff`, `mypy`) here. Place new files according to the tables above; if something is unclear, open an issue or PR and **update this README** together with any structural change.
