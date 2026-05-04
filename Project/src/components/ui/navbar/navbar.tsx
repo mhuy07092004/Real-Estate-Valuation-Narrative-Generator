@@ -52,11 +52,13 @@ export function Navbar({
   )
 
   return (
-    <header className={`px-4 pt-4 md:px-12 md:pt-6 lg:px-16 ${className ?? ''}`}>
+    <header
+      className={`px-[max(1rem,env(safe-area-inset-left))] pt-[max(1rem,env(safe-area-inset-top))] md:px-12 md:pt-6 lg:px-16 ${className ?? ''}`}
+    >
       <nav className="rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-2 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
         {/* Top bar */}
         <div className="flex items-center justify-between">
-          <div className="text-2xl font-semibold tracking-tight">{logo}</div>
+          <div className="text-xl font-semibold tracking-tight sm:text-2xl">{logo}</div>
 
           {/* Desktop links */}
           <div className="hidden items-center gap-8 text-sm md:flex">

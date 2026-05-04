@@ -73,7 +73,7 @@ export type FooterProps = {
 export function Footer({ data = mockFooterData, className }: FooterProps) {
   return (
     <footer
-      className={`border-t border-white/[0.08] bg-[#050505] px-6 pb-14 pt-14 md:px-12 lg:px-16 ${className ?? ''}`}
+      className={`border-t border-white/[0.08] bg-[#050505] px-[max(1.5rem,env(safe-area-inset-left))] pb-[max(3.5rem,env(safe-area-inset-bottom))] pt-14 md:px-12 lg:px-16 ${className ?? ''}`}
     >
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-12 lg:gap-10">
