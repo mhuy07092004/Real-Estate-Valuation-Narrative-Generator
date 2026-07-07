@@ -2,10 +2,6 @@ import type { Config } from 'tailwindcss'
 
 export default {
   theme: {
-    extend: {
-      fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-      },
-    },
+    extend: {},
   },
 } satisfies Config

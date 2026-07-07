@@ -1,126 +1,75 @@
-import { useState } from 'react'
-import type { ReactNode } from 'react'
+import logoIcon from '../../../assets/icon.svg'
+import { Button } from '../button/button'
 
-export type NavbarLink = {
-  label: string
-  href: string
-}
+const NAV_ITEMS = [
+  { label: 'Platform', href: '#platform' },
+  { label: 'Features', href: '#features' },
+  { label: 'About', href: '#about' },
+  { label: 'Resources', href: '#resources' },
+  { label: 'Plans', href: '#plans' },
+] as const
 
-export type NavbarProps = {
-  logo?: ReactNode
-  links?: NavbarLink[]
-  ctaLabel?: string
-  onCtaClick?: () => void
-  /** Use when navigating with react-router etc. */
-  ctaHref?: string
-  className?: string
-}
-
-const DEFAULT_LINKS: NavbarLink[] = [
-  { label: 'Home', href: '#' },
-  { label: 'Investing', href: '#' },
-  { label: 'Building', href: '#' },
-  { label: 'Advisory', href: '#' },
-]
-
-export function Navbar({
-  logo = 'Relaive',
-  links = DEFAULT_LINKS,
-  ctaLabel = 'Start a Chat',
-  onCtaClick,
-  ctaHref,
-  className,
-}: NavbarProps) {
-  const [menuOpen, setMenuOpen] = useState(false)
-
-  const ctaElement = ctaHref ? (
-    <a
-      href={ctaHref}
-      onClick={onCtaClick}
-      className="rounded-lg bg-white px-6 py-2 text-sm font-medium text-black transition-colors hover:bg-gray-100"
-    >
-      {ctaLabel}
-    </a>
-  ) : (
-    <button
-      type="button"
-      onClick={onCtaClick}
-      className="rounded-lg bg-white px-6 py-2 text-sm font-medium text-black transition-colors hover:bg-gray-100"
-    >
-      {ctaLabel}
-    </button>
-  )
-
+function ChevronDown() {
   return (
-    <header
-      className={`px-[max(1rem,env(safe-area-inset-left))] pt-[max(1rem,env(safe-area-inset-top))] md:px-12 md:pt-6 lg:px-16 ${className ?? ''}`}
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      fill="none"
+      aria-hidden="true"
+      className="ml-1 shrink-0"
     >
-      <nav className="rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-2 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
-        {/* Top bar */}
-        <div className="flex items-center justify-between">
-          <div className="text-xl font-semibold tracking-tight sm:text-2xl">{logo}</div>
+      <path
+        d="M2 4L6 8L10 4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
 
-          {/* Desktop links */}
-          <div className="hidden items-center gap-8 text-sm md:flex">
-            {links.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="transition-colors hover:text-gray-300"
-              >
-                {link.label}
-              </a>
-            ))}
+export function Navbar() {
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-black/5 bg-white">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        {/* Logo */}
+        <a href="/" className="flex items-center gap-2.5 shrink-0">
+          <img src={logoIcon} alt="Relaive icon" className="h-9 w-9" />
+          <div className="flex flex-col leading-tight">
+            <span className="text-lg font-bold text-relaive-navy tracking-tight">
+              Relaive
+            </span>
+            <span className="text-[10px] text-relaive-gray">
+              Real-estate AI Evaluation
+            </span>
           </div>
+        </a>
 
-          {/* Desktop CTA */}
-          <div className="hidden md:block">{ctaElement}</div>
-
-          {/* Mobile hamburger */}
-          <button
-            type="button"
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((prev) => !prev)}
-            className="flex h-9 w-9 flex-col items-center justify-center gap-1.5 rounded-lg transition-colors hover:bg-white/10 md:hidden"
-          >
-            <span
-              className={`block h-0.5 w-5 rounded-full bg-white transition-all duration-300 ${
-                menuOpen ? 'translate-y-2 rotate-45' : ''
-              }`}
-            />
-            <span
-              className={`block h-0.5 w-5 rounded-full bg-white transition-all duration-300 ${
-                menuOpen ? 'opacity-0' : ''
-              }`}
-            />
-            <span
-              className={`block h-0.5 w-5 rounded-full bg-white transition-all duration-300 ${
-                menuOpen ? '-translate-y-2 -rotate-45' : ''
-              }`}
-            />
-          </button>
-        </div>
-
-        {/* Mobile dropdown */}
-        <div
-          className={`overflow-hidden transition-all duration-300 md:hidden ${
-            menuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-          }`}
-        >
-          <div className="flex flex-col gap-1 border-t border-white/10 pb-2 pt-3">
-            {links.map((link) => (
+        {/* Nav links — hidden on small screens */}
+        <ul className="hidden md:flex items-center gap-6">
+          {NAV_ITEMS.map(({ label, href }) => (
+            <li key={label}>
               <a
-                key={link.label}
-                href={link.href}
-                onClick={() => setMenuOpen(false)}
-                className="rounded-lg px-3 py-2 text-sm transition-colors hover:bg-white/10 hover:text-gray-300"
+                href={href}
+                className="flex items-center text-sm font-medium text-relaive-navy/80 hover:text-relaive-primary transition-colors"
               >
-                {link.label}
+                {label}
+                <ChevronDown />
               </a>
-            ))}
-            <div className="mt-2 px-3">{ctaElement}</div>
-          </div>
+            </li>
+          ))}
+        </ul>
+
+        {/* Actions */}
+        <div className="flex items-center gap-4">
+          <Button variant="primary" size="sm">
+            Sign in
+          </Button>
+          <Button variant="link" href="#signup" className="text-sm font-semibold">
+            Sign up
+          </Button>
         </div>
       </nav>
     </header>
