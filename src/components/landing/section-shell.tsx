@@ -20,7 +20,7 @@ export function SectionShell({
   return (
     <section
       id={id}
-      className="scroll-mt-20 border-t border-black/5 bg-relaive-surface px-6 py-24"
+      className="scroll-mt-20 border-t border-black/5 bg-white px-6 py-24"
     >
       <div className={`mx-auto flex flex-col gap-10 ${containerClassName}`}>
         <div className="flex flex-col gap-3 text-center">
