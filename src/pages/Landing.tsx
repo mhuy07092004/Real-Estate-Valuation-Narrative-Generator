@@ -2,6 +2,7 @@ import { AboutSection } from '../components/sections/about-section'
 import { FeaturesSection } from '../components/sections/features-section'
 import { PlatformSection } from '../components/sections/platform-section'
 import { Navbar } from '../components/ui/navbar/navbar'
+import { Footer } from '../components/ui/footer/footer'
 import { Button } from '../components/ui/button/button'
 
 const METRICS = [
@@ -67,6 +68,7 @@ export default function Landing() {
       <PlatformSection />
       <FeaturesSection />
       <AboutSection />
+      <Footer />
     </div>
   )
 }
