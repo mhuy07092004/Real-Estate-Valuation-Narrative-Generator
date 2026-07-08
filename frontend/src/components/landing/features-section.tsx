@@ -165,8 +165,8 @@ export function FeaturesSection() {
   return (
     <SectionShell
       id="features"
-      eyebrow="Features"
-      title="Features"
+      eyebrow=""
+      title="Premium Intelligence Suite"
       description="Everything you need for explainable, AI-powered property valuation and market intelligence."
       containerClassName="max-w-6xl"
     >
