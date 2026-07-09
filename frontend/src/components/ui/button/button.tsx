@@ -1,6 +1,6 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes } from 'react'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'link'
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'link' | 'outline'
 export type ButtonSize = 'sm' | 'md' | 'lg'
 
 const BASE =
@@ -15,6 +15,8 @@ const VARIANT_MAP: Record<ButtonVariant, string> = {
     'bg-transparent text-relaive-navy hover:bg-relaive-navy/10',
   link:
     'bg-transparent text-relaive-navy font-semibold underline-offset-4 hover:underline p-0',
+  outline:
+    'bg-white text-relaive-navy border border-black/10 hover:bg-relaive-navy/5',
 }
 
 const SIZE_MAP: Record<ButtonSize, string> = {

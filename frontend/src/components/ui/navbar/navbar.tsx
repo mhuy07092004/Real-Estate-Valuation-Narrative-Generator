@@ -64,7 +64,7 @@ export function Navbar() {
 
         {/* Actions */}
         <div className="flex items-center gap-4">
-          <Button variant="primary" size="sm">
+          <Button variant="primary" size="sm" href="/signin">
             Sign in
           </Button>
           <Button variant="link" href="#signup" className="text-sm font-semibold">
