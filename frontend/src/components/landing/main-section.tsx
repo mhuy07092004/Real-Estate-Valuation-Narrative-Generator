@@ -28,7 +28,7 @@ export function MainSection() {
         <Button variant="primary" size="md">
           Start Demo Valuation
         </Button>
-        <Button variant="secondary" size="md">
+        <Button variant="secondary" size="md" href="/signup">
           Explore Plans
         </Button>
       </div>

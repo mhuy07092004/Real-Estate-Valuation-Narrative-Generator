@@ -67,7 +67,7 @@ export function Navbar() {
           <Button variant="primary" size="sm" href="/signin">
             Sign in
           </Button>
-          <Button variant="link" href="#signup" className="text-sm font-semibold">
+          <Button variant="link" href="/signup" className="text-sm font-semibold">
             Sign up
           </Button>
         </div>

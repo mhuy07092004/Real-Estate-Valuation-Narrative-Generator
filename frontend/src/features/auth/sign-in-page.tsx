@@ -11,7 +11,7 @@ export function SignInPage() {
         footer={
           <span>
             Don&apos;t have account yet?{' '}
-            <Button variant="link" href="#signup" className="text-relaive-primary">
+            <Button variant="link" href="/signup" className="text-relaive-primary">
               Sign up
             </Button>
           </span>

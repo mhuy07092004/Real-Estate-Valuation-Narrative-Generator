@@ -100,12 +100,12 @@ export function Footer() {
             Join the future of property intelligence
           </p>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
-            <Button variant="primary" size="md">
+            <Button variant="primary" size="md" href="/signup">
               Start Free
             </Button>
             <Button
               variant="link"
-              href="#signup"
+              href="/signup"
               className="rounded-lg border border-white/20 bg-white/5 px-6 py-3 text-sm font-semibold text-white no-underline hover:bg-white/10 hover:no-underline hover:text-white"
             >
               Create Account
