@@ -105,9 +105,11 @@ export function ForgotPassForm() {
           Continue
         </Button>
 
-        <Button type="button" variant="outline" size="lg" className="w-full">
-          Try another way
-        </Button>
+        <div className="flex items-center justify-end text-sm">
+          <Button type="button" variant="link" className="text-relaive-primary">
+            Try another way
+          </Button>
+        </div>
       </form>
 
       <SocialLoginDivider />
