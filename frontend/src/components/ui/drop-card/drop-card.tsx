@@ -98,7 +98,7 @@ export function DropCard({
   const [standaloneOpen, setStandaloneOpen] = useState(defaultOpen)
 
   const open = group ? group.isOpen(cardId) : standaloneOpen
-  const expandable = Boolean(children)
+  const expandable = Boolean(description || children)
 
   const handleToggle = () => {
     if (!expandable) {
@@ -124,7 +124,7 @@ export function DropCard({
         aria-expanded={expandable ? open : undefined}
         aria-controls={expandable ? `${cardId}-content` : undefined}
         disabled={!expandable}
-        className={`flex w-full items-start gap-4 rounded-2xl p-4 text-left transition-colors sm:p-5 ${
+        className={`flex w-full items-center gap-4 rounded-2xl p-4 text-left transition-colors sm:p-5 ${
           expandable
             ? 'cursor-pointer hover:bg-slate-100/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary focus-visible:ring-offset-2'
             : 'cursor-default'
@@ -134,10 +134,9 @@ export function DropCard({
           {icon}
         </div>
 
-        <div className="min-w-0 flex-1 pt-0.5">
-          <h4 className="text-sm font-semibold text-relaive-navy sm:text-base">{title}</h4>
-          <p className="mt-1 text-sm leading-relaxed text-relaive-gray">{description}</p>
-        </div>
+        <h4 className="min-w-0 flex-1 text-sm font-semibold text-relaive-navy sm:text-base">
+          {title}
+        </h4>
 
         {expandable ? <ChevronIcon open={open} /> : null}
       </button>
@@ -146,9 +145,12 @@ export function DropCard({
         <div
           id={`${cardId}-content`}
           hidden={!open}
-          className="border-t border-black/5 px-4 pb-4 pt-0 sm:px-5 sm:pb-5"
+          className="px-4 pb-4 sm:px-5 sm:pb-5"
         >
-          <div className="pt-3 text-sm leading-relaxed text-relaive-gray">{children}</div>
+          <div className="ml-14 text-sm leading-relaxed text-relaive-gray">
+            {description ? <p>{description}</p> : null}
+            {children ? <div className={description ? 'mt-2' : ''}>{children}</div> : null}
+          </div>
         </div>
       ) : null}
     </article>
