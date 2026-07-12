@@ -20,6 +20,17 @@ body {
   overflow-x: clip;
 }
 
+/* Lenis takes over smooth scrolling; disable native smooth-scroll so the
+   two don't fight over the same scroll position. */
+html.lenis,
+html.lenis body {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
