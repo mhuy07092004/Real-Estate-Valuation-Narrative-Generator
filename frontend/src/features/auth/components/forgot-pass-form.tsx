@@ -1,4 +1,3 @@
-import { useState, type FormEvent } from 'react'
 import { Button } from '../../../components/ui/button/button'
 import { Input } from '../../../components/ui/input/input'
 
@@ -7,46 +6,6 @@ function MailIcon() {
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <path
         d="M2 4L7.29 8.06a1.2 1.2 0 0 0 1.42 0L14 4M2.667 3h10.666c.737 0 1.334.597 1.334 1.333v7.334c0 .736-.597 1.333-1.334 1.333H2.667c-.736 0-1.334-.597-1.334-1.333V4.333C1.333 3.597 1.93 3 2.667 3Z"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
-function ShieldIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path
-        d="M8 1.667 13.333 3.5v4c0 3.5-2.667 5.667-5.333 6.833C5.333 13.167 2.667 11 2.667 7.5v-4L8 1.667Z"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
-function EyeIcon({ visible }: { visible: boolean }) {
-  if (visible) {
-    return (
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-        <path
-          d="M1.333 8S3.556 3 8 3s6.667 5 6.667 5-2.223 5-6.667 5-6.667-5-6.667-5Z"
-          stroke="currentColor"
-          strokeWidth="1.3"
-          strokeLinejoin="round"
-        />
-        <circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.3" />
-      </svg>
-    )
-  }
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path
-        d="M2 2l12 12M6.6 6.62A2 2 0 0 0 8 10a2 2 0 0 0 1.4-3.38M4.02 4.03C2.3 5.24 1.333 8 1.333 8s2.223 5 6.667 5c1.19 0 2.222-.267 3.1-.7M9.86 3.24A6.9 6.9 0 0 0 8 3c-.36 0-.7.02-1.03.06M14.667 8s-.63 1.42-1.87 2.68"
         stroke="currentColor"
         strokeWidth="1.3"
         strokeLinecap="round"
@@ -93,7 +52,6 @@ function MicrosoftIcon() {
 const SOCIAL_PROVIDERS = [
   { id: 'google', label: 'Google', icon: GoogleIcon },
   { id: 'microsoft', label: 'Microsoft', icon: MicrosoftIcon },
-  // Add more providers here, e.g. { id: 'facebook', label: 'Facebook', icon: FacebookIcon }
 ] as const
 
 function SocialLoginDivider() {
@@ -119,23 +77,17 @@ function SocialLoginButtons() {
   )
 }
 
-export function SignInForm() {
-  const [showPassword, setShowPassword] = useState(false)
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-  }
-
+export function ForgotPassForm() {
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-relaive-navy">Welcome back - Sign in</h1>
+        <h1 className="text-2xl font-bold text-relaive-navy">Forgot your password?</h1>
         <p className="mt-2 text-sm text-relaive-gray">
-          Continue your property intelligence workflow
+          Enter your email to recover your account
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <form className="flex flex-col gap-5">
         <Input
           id="email"
           type="email"
@@ -145,45 +97,16 @@ export function SignInForm() {
           autoComplete="email"
         />
 
-        <Input
-          id="password"
-          type={showPassword ? 'text' : 'password'}
-          label="Password"
-          placeholder="Enter your password"
-          startIcon={<ShieldIcon />}
-          autoComplete="current-password"
-          endIcon={
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="pointer-events-auto focus-visible:outline-none"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              <EyeIcon visible={showPassword} />
-            </button>
-          }
-        />
-
-        <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2 text-relaive-navy">
-            <input
-              type="checkbox"
-              defaultChecked
-              className="h-4 w-4 rounded border-black/20 text-relaive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
-            />
-            Remember me
-          </label>
-          <Button variant="link" href="/forgot-password" className="text-relaive-primary">
-            Forgot password?
-          </Button>
-        </div>
-
         <Button
           type="submit"
           size="lg"
           className="w-full bg-gradient-to-r from-relaive-primary to-relaive-secondary hover:opacity-90"
         >
-          Sign in
+          Continue
+        </Button>
+
+        <Button type="button" variant="outline" size="lg" className="w-full">
+          Try another way
         </Button>
       </form>
 
