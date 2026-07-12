@@ -45,7 +45,7 @@ function CheckIcon() {
       aria-hidden="true"
       className="shrink-0"
     >
-      <circle cx="9" cy="9" r="9" fill="currentColor" fillOpacity="0.15" />
+      <circle cx="9" cy="9" r="8" fill="white" stroke="currentColor" strokeWidth="1.5" />
       <path
         d="M5.5 9L7.5 11L12.5 6.5"
         stroke="currentColor"
