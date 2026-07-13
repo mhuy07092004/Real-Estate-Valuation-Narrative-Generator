@@ -4,7 +4,7 @@ export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'link' | 'outlin
 export type ButtonSize = 'sm' | 'md' | 'lg'
 
 const BASE =
-  'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary disabled:opacity-50 disabled:pointer-events-none'
+  'inline-flex items-center justify-center font-button font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary disabled:opacity-50 disabled:pointer-events-none'
 
 const VARIANT_MAP: Record<ButtonVariant, string> = {
   primary:
