@@ -35,13 +35,13 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-black/5 bg-white">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         {/* Logo */}
-        <a href="/" className="flex items-center gap-2.5 shrink-0">
-          <img src={logoIcon} alt="Relaive icon" className="h-9 w-9" />
+        <a href="/" className="flex items-center gap-3 shrink-0">
+          <img src={logoIcon} alt="Relaive icon" className="h-12 w-12" />
           <div className="flex flex-col leading-tight">
-            <span className="text-lg font-bold text-relaive-navy tracking-tight">
+            <span className="font-logo text-2xl font-bold text-relaive-navy tracking-tight">
               Relaive
             </span>
-            <span className="text-[10px] text-relaive-gray">
+            <span className="text-xs text-relaive-gray">
               Real-estate AI Evaluation
             </span>
           </div>
