@@ -6,7 +6,7 @@ const NAV_ITEMS = [
   { label: 'Features', href: '#features' },
   { label: 'About', href: '#about' },
   { label: 'Resources', href: '#resources' },
-  { label: 'Plans', href: '#plans' },
+  { label: 'Plans', href: '/plans' },
 ] as const
 
 function ChevronDown() {

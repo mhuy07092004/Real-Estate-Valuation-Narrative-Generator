@@ -3,7 +3,7 @@ import { Button } from '../button/button'
 
 const PRODUCT_LINKS = [
   { label: 'Features', href: '#features' },
-  { label: 'Pricing', href: '#plans' },
+  { label: 'Pricing', href: '/plans' },
   { label: 'API', href: '#api' },
   { label: 'Integrations', href: '#integrations' },
 ] as const
