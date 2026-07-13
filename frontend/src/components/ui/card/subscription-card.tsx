@@ -101,13 +101,13 @@ function ChevronRight() {
 const BADGE_STYLES: Record<BadgeTone, string> = {
   default: 'bg-relaive-primary/10 text-relaive-primary',
   popular: 'bg-relaive-primary text-white',
-  enterprise: 'bg-amber-500/20 text-amber-300',
+  enterprise: 'bg-gradient-to-r from-[#F0B100] to-[#D08700] text-white',
 }
 
 const PRIMARY_CTA_STYLES: Record<PrimaryCtaStyle, string> = {
   primary: '',
   soft: 'bg-relaive-primary/10 text-relaive-primary hover:bg-relaive-primary/20 border-0',
-  gold: 'bg-[#d97706] text-white hover:bg-[#b45309] border-0',
+  gold: 'bg-gradient-to-r from-[#F0B100] to-[#D08700] text-white hover:opacity-90 border-0',
 }
 
 export function SubscriptionCard({
@@ -129,7 +129,7 @@ export function SubscriptionCard({
 
   const cardClassName = [
     isDark
-      ? 'border-white/10 bg-[#1e293b] text-white shadow-[0_8px_32px_rgba(15,23,42,0.35)]'
+      ? 'border-white/10 bg-gradient-to-br from-[#102132f2] to-[#1c2a38f2] text-white shadow-[0_8px_32px_rgba(15,23,42,0.35)]'
       : '',
     highlighted ? 'ring-2 ring-relaive-primary/40 shadow-[0_8px_32px_rgba(84,148,182,0.18)]' : '',
   ]
@@ -142,7 +142,7 @@ export function SubscriptionCard({
         <div
           className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
             isDark
-              ? 'bg-white/10 text-amber-400'
+              ? 'bg-gradient-to-r from-[#F0B100] to-[#D08700] text-white'
               : 'bg-relaive-primary/10 text-relaive-primary'
           }`}
         >
@@ -182,22 +182,20 @@ export function SubscriptionCard({
 
       <div className="mt-auto flex flex-col gap-2 pt-6">
         <Button
-          variant={primaryCtaStyle === 'primary' || primaryCtaStyle === 'gold' ? 'primary' : 'outline'}
+          variant={
+            primaryCtaStyle === 'primary'
+              ? 'primary'
+              : primaryCtaStyle === 'gold'
+                ? 'ghost'
+                : 'outline'
+          }
           href={primaryCta.href}
           className={`w-full ${PRIMARY_CTA_STYLES[primaryCtaStyle]}`}
         >
           {primaryCta.label}
           <ChevronRight />
         </Button>
-        <Button
-          variant="outline"
-          href={secondaryCta.href}
-          className={`w-full ${
-            isDark
-              ? 'border-white/20 bg-transparent text-white hover:bg-white/10'
-              : ''
-          }`}
-        >
+        <Button variant="outline" href={secondaryCta.href} className="w-full">
           {secondaryCta.label}
         </Button>
       </div>
