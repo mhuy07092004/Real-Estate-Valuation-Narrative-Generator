@@ -40,11 +40,30 @@ export function Navbar() {
 
   function scrollToSection(sectionId: string) {
     if (location.pathname === '/') {
-      // Already on landing — smooth scroll
+      // Try to find the element directly first
       const el = document.getElementById(sectionId)
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        return
       }
+
+      // Element not in DOM yet — LazyMount hasn't rendered it.
+      // Scroll to the very bottom to force all lazy sections to mount,
+      // then scroll to the target after they appear.
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
+
+      let attempts = 0
+      const maxAttempts = 10
+      const poll = setInterval(() => {
+        attempts++
+        const target = document.getElementById(sectionId)
+        if (target) {
+          clearInterval(poll)
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        } else if (attempts >= maxAttempts) {
+          clearInterval(poll)
+        }
+      }, 150)
     } else {
       // Navigate to landing then scroll after render
       navigate(`/#${sectionId}`)
