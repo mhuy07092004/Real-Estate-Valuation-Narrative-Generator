@@ -25,6 +25,7 @@ export type SubscriptionCardProps = {
   primaryCtaStyle?: PrimaryCtaStyle
   highlighted?: boolean
   variant?: CardVariant
+  billingPeriod?: 'monthly' | 'annually'
 }
 
 function CheckIcon({ className = '' }: { className?: string }) {
@@ -124,6 +125,7 @@ export function SubscriptionCard({
   primaryCtaStyle = 'soft',
   highlighted = false,
   variant = 'light',
+  billingPeriod = 'monthly',
 }: SubscriptionCardProps) {
   const isDark = variant === 'dark'
 
@@ -168,14 +170,33 @@ export function SubscriptionCard({
       )}
 
       <div className="mt-5">
-        <p className={`text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-relaive-navy'}`}>
-          {price}
-          {priceSuffix ? (
-            <span className={`ml-1 text-base font-medium ${isDark ? 'text-white/60' : 'text-relaive-gray'}`}>
-              {priceSuffix}
-            </span>
-          ) : null}
-        </p>
+        {billingPeriod === 'annually' && price !== 'Free' && price !== 'Contact Us' ? (
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <span className="text-lg text-relaive-gray line-through decoration-1">{price}</span>
+              <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs font-semibold text-green-700">
+                Save 20%
+              </span>
+            </div>
+            <p className={`text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-relaive-navy'}`}>
+              ${(parseFloat(price.replace('$', '')) * 0.8).toFixed(1)}
+              {priceSuffix ? (
+                <span className={`ml-1 text-base font-medium ${isDark ? 'text-white/60' : 'text-relaive-gray'}`}>
+                  {priceSuffix}
+                </span>
+              ) : null}
+            </p>
+          </div>
+        ) : (
+          <p className={`text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-relaive-navy'}`}>
+            {price}
+            {priceSuffix ? (
+              <span className={`ml-1 text-base font-medium ${isDark ? 'text-white/60' : 'text-relaive-gray'}`}>
+                {priceSuffix}
+              </span>
+            ) : null}
+          </p>
+        )}
       </div>
 
       <SubscriptionFeatureList items={features} variant={variant} />

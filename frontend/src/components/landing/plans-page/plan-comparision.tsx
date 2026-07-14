@@ -1,9 +1,10 @@
+import { useState, type ReactNode } from 'react'
 import { Button } from '../../ui/button/button'
 
 const PLAN_NAMES = ['Starter', 'Professional', 'Investor Pro', 'Team Workspace'] as const
 
 type CellValue =
-  | { type: 'text'; value: string }
+  | { type: 'text'; value: ReactNode }
   | { type: 'check' }
   | { type: 'dash' }
 
@@ -131,14 +132,38 @@ function ComparisonCell({ cell }: { cell: CellValue }) {
   return <span className="text-sm text-relaive-navy">{cell.value}</span>
 }
 
-const COMPARISON_ROWS: ComparisonRow[] = [
+const getComparisonRows = (billingPeriod: 'monthly' | 'annually'): ComparisonRow[] => [
   {
     feature: 'Price',
     values: [
       { type: 'text', value: 'Free' },
-      { type: 'text', value: '$79/month' },
-      { type: 'text', value: '$129/month' },
-      { type: 'text', value: '$299/month' },
+      { type: 'text', value: billingPeriod === 'annually' ? (
+          <div className="flex flex-col items-center gap-0.5">
+            <span className="text-xs text-relaive-gray line-through">$79/month</span>
+            <div className="flex items-center gap-1">
+              <span>$63.2/month</span>
+              <span className="rounded bg-green-100 px-1 py-0.5 text-[10px] font-semibold text-green-700 whitespace-nowrap">Save 20%</span>
+            </div>
+          </div>
+        ) : '$79/month' },
+      { type: 'text', value: billingPeriod === 'annually' ? (
+          <div className="flex flex-col items-center gap-0.5">
+            <span className="text-xs text-relaive-gray line-through">$129/month</span>
+            <div className="flex items-center gap-1">
+              <span>$103.2/month</span>
+              <span className="rounded bg-green-100 px-1 py-0.5 text-[10px] font-semibold text-green-700 whitespace-nowrap">Save 20%</span>
+            </div>
+          </div>
+        ) : '$129/month' },
+      { type: 'text', value: billingPeriod === 'annually' ? (
+          <div className="flex flex-col items-center gap-0.5">
+            <span className="text-xs text-relaive-gray line-through">$299/month</span>
+            <div className="flex items-center gap-1">
+              <span>$239.2/month</span>
+              <span className="rounded bg-green-100 px-1 py-0.5 text-[10px] font-semibold text-green-700 whitespace-nowrap">Save 20%</span>
+            </div>
+          </div>
+        ) : '$299/month' },
     ],
   },
   {
@@ -224,9 +249,11 @@ const VALUE_PROPS = [
   { icon: <SparkleIcon />, text: 'Generate reports in under 30 seconds' },
   { icon: <BarChartIcon />, text: 'AI-assisted market analysis' },
   { icon: <ShieldIcon />, text: 'Explainable valuation confidence' },
-] as const
+]
 
 export function PlanComparison() {
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annually'>('monthly')
+
   return (
     <section
       id="plan-comparison"
@@ -245,6 +272,35 @@ export function PlanComparison() {
           </p>
         </div>
 
+        <div className="mt-8 flex justify-center">
+          <div
+            className="relative inline-flex rounded-full border border-black/5 bg-white/80 p-1 shadow-sm"
+            role="group"
+            aria-label="Billing period"
+          >
+            <div
+              className="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-full bg-relaive-secondary/25 transition-transform duration-300 ease-out"
+              style={{
+                transform: billingPeriod === 'monthly' ? 'translateX(0)' : 'translateX(100%)',
+              }}
+            />
+            {(['monthly', 'annually'] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setBillingPeriod(option)}
+                className={`relative z-10 rounded-full px-6 py-2 text-sm font-medium capitalize transition-colors duration-300 ${
+                  billingPeriod === option
+                    ? 'text-relaive-navy'
+                    : 'text-relaive-gray hover:text-relaive-navy'
+                }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="mt-12 overflow-x-auto">
           <table className="w-full min-w-[720px] border-collapse">
             <thead>
@@ -261,7 +317,7 @@ export function PlanComparison() {
               </tr>
             </thead>
             <tbody>
-              {COMPARISON_ROWS.map((row) => (
+              {getComparisonRows(billingPeriod).map((row) => (
                 <tr key={row.feature} className="border-b border-black/5">
                   <td className="py-4 pr-4 text-left text-sm font-medium text-relaive-navy">
                     {row.feature}

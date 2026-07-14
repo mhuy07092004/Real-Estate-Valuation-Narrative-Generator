@@ -4,7 +4,7 @@ import {
   type SubscriptionCardProps,
 } from '../../ui/card/subscription-card'
 
-type BillingPeriod = 'monthly' | 'yearly'
+type BillingPeriod = 'monthly' | 'annually'
 
 function LightningIcon() {
   return (
@@ -212,18 +212,24 @@ function BillingToggle({
   return (
     <div className="flex justify-center">
       <div
-        className="inline-flex rounded-full border border-black/5 bg-white/80 p-1 shadow-sm"
+        className="relative inline-flex rounded-full border border-black/5 bg-white/80 p-1 shadow-sm"
         role="group"
         aria-label="Billing period"
       >
-        {(['monthly', 'yearly'] as const).map((option) => (
+        <div
+          className="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-full bg-relaive-secondary/25 transition-transform duration-300 ease-out"
+          style={{
+            transform: period === 'monthly' ? 'translateX(0)' : 'translateX(100%)',
+          }}
+        />
+        {(['monthly', 'annually'] as const).map((option) => (
           <button
             key={option}
             type="button"
             onClick={() => onChange(option)}
-            className={`rounded-full px-6 py-2 text-sm font-medium capitalize transition-colors ${
+            className={`relative z-10 rounded-full px-6 py-2 text-sm font-medium capitalize transition-colors duration-300 ${
               period === option
-                ? 'bg-relaive-secondary/25 text-relaive-navy'
+                ? 'text-relaive-navy'
                 : 'text-relaive-gray hover:text-relaive-navy'
             }`}
           >
@@ -268,13 +274,13 @@ export function PlanPrice() {
       <section className="mx-auto max-w-7xl px-6 pb-16" aria-label={`${billingPeriod} plans`}>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {topRowPlans.map((plan) => (
-            <SubscriptionCard key={plan.title} {...plan} />
+            <SubscriptionCard key={plan.title} {...plan} billingPeriod={billingPeriod} />
           ))}
         </div>
 
         <div className="mx-auto mt-6 grid max-w-3xl grid-cols-1 gap-6 md:grid-cols-2">
           {bottomRowPlans.map((plan) => (
-            <SubscriptionCard key={plan.title} {...plan} />
+            <SubscriptionCard key={plan.title} {...plan} billingPeriod={billingPeriod} />
           ))}
         </div>
       </section>
