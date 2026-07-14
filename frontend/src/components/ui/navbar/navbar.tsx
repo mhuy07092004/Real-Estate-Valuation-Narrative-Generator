@@ -1,11 +1,15 @@
+import { useLocation, useNavigate } from 'react-router-dom'
 import logoIcon from '../../../assets/icon.svg'
 import { Button } from '../button/button'
 
 const NAV_ITEMS = [
-  { label: 'Platform', href: '#platform' },
-  { label: 'Features', href: '#features' },
-  { label: 'About', href: '#about' },
-  { label: 'Resources', href: '#resources' },
+  { label: 'Platform', sectionId: 'platform' },
+  { label: 'Features', sectionId: 'features' },
+  { label: 'About', sectionId: 'about' },
+  { label: 'Resources', sectionId: 'resources' },
+] as const
+
+const ROUTE_ITEMS = [
   { label: 'Plans', href: '/plans' },
 ] as const
 
@@ -31,6 +35,22 @@ function ChevronDown() {
 }
 
 export function Navbar() {
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  function scrollToSection(sectionId: string) {
+    if (location.pathname === '/') {
+      // Already on landing — smooth scroll
+      const el = document.getElementById(sectionId)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    } else {
+      // Navigate to landing then scroll after render
+      navigate(`/#${sectionId}`)
+    }
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-black/5 bg-white">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
@@ -49,14 +69,25 @@ export function Navbar() {
 
         {/* Nav links — hidden on small screens */}
         <ul className="hidden md:flex items-center gap-6">
-          {NAV_ITEMS.map(({ label, href }) => (
+          {NAV_ITEMS.map(({ label, sectionId }) => (
+            <li key={label}>
+              <button
+                type="button"
+                onClick={() => scrollToSection(sectionId)}
+                className="flex items-center text-sm font-medium text-relaive-navy/80 hover:text-relaive-primary transition-colors cursor-pointer bg-transparent border-none p-0"
+              >
+                {label}
+                <ChevronDown />
+              </button>
+            </li>
+          ))}
+          {ROUTE_ITEMS.map(({ label, href }) => (
             <li key={label}>
               <a
                 href={href}
                 className="flex items-center text-sm font-medium text-relaive-navy/80 hover:text-relaive-primary transition-colors"
               >
                 {label}
-                <ChevronDown />
               </a>
             </li>
           ))}

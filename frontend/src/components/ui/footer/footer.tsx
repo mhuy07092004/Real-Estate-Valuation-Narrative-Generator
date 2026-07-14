@@ -89,7 +89,7 @@ function FooterLinkGroup({
 
 export function Footer() {
   return (
-    <footer>
+    <footer id="resources">
       {/* CTA section — slightly lighter than main footer */}
       <div className="bg-[#152a42] px-6 py-20 text-center">
         <div className="mx-auto flex max-w-3xl flex-col items-center gap-4">
