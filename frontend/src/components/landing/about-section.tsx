@@ -92,6 +92,7 @@ const VALUATION_STEPS: DropCardItem[] = [
     icon: <SearchIcon />,
     title: 'Property Analysis',
     description: 'AI scans location, property attributes, features, and market data.',
+    children: 'Relaive analyses property details such as location, land size, bedrooms, bathrooms, and surrounding suburb information to understand the property\'s overall market position before generating a valuation.',
   },
   {
     id: 'comparable-retrieval',
@@ -103,20 +104,25 @@ const VALUATION_STEPS: DropCardItem[] = [
         and ranks them by similarity.
       </>
     ),
+    children: 'The system retrieves recent comparable property sales and ranks them based on similarity to support accurate and evidence-based valuation results.',
   },
   {
     id: 'market-intelligence',
     icon: <BarChartIcon />,
     title: 'Market Intelligence',
-    description:
-      'The system analyses suburb trends, demographic insights, and demand signals.',
+    description: 'The system analyses suburb trends, demographic insights, and demand signals.',
+    children: (
+      <>
+      <strong className="font-semibold text-relaive-navy">Relaive </strong>analyses suburb trends, buyer demand, demographic insights, and local market activity to provide smarter and more context-aware property valuations.
+      </>
+    ),
   },
   {
     id: 'report-generation',
     icon: <DocumentIcon />,
     title: 'Report Generation',
-    description:
-      'AI compiles a professional appraisal narrative with evidence and confidence indicators.',
+    description: 'AI compiles a professional appraisal narrative with evidence and confidence indicators.',
+    children: 'The AI engine combines property data, comparable sales, and market insights to generate a professional appraisal report with explainable reasoning and confidence indicators.',
   },
 ]
 
@@ -161,7 +167,7 @@ export function AboutSection() {
 
         <Card className="h-auto">
           <CardTitle>Explore Valuation Progress</CardTitle>
-          <DropCardList items={VALUATION_STEPS} className="mt-5" />
+          <DropCardList items={VALUATION_STEPS} className="mt-5" allowMultiple={true} />
         </Card>
       </div>
     </section>

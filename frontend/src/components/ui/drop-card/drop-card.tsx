@@ -98,7 +98,7 @@ export function DropCard({
   const [standaloneOpen, setStandaloneOpen] = useState(defaultOpen)
 
   const open = group ? group.isOpen(cardId) : standaloneOpen
-  const expandable = Boolean(description || children)
+  const expandable = Boolean(children)
 
   const handleToggle = () => {
     if (!expandable) {
@@ -115,7 +115,7 @@ export function DropCard({
 
   return (
     <article
-      className={`rounded-2xl bg-slate-50/90 ${className}`}
+      className={`flex flex-col gap-3 ${className}`}
       data-open={open || undefined}
     >
       <button
@@ -124,32 +124,37 @@ export function DropCard({
         aria-expanded={expandable ? open : undefined}
         aria-controls={expandable ? `${cardId}-content` : undefined}
         disabled={!expandable}
-        className={`flex w-full items-center gap-4 rounded-2xl p-4 text-left transition-colors sm:p-5 ${
-          expandable
-            ? 'cursor-pointer hover:bg-slate-100/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary focus-visible:ring-offset-2'
-            : 'cursor-default'
-        }`}
+        className={`flex w-full items-center gap-4 rounded-2xl p-4 text-left border transition-all duration-200 sm:p-5 ${
+          open
+            ? 'bg-[#C4EAE8] border-[#A8DFDD]/60 shadow-sm'
+            : 'bg-slate-50/90 border-slate-100/50 hover:bg-slate-100/80'
+        } ${expandable ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary focus-visible:ring-offset-2' : 'cursor-default'}`}
       >
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-relaive-primary text-white">
           {icon}
         </div>
 
-        <h4 className="min-w-0 flex-1 text-sm font-semibold text-relaive-navy sm:text-base">
-          {title}
-        </h4>
+        <div className="min-w-0 flex-1">
+          <h4 className="text-sm font-semibold text-relaive-navy sm:text-base">
+            {title}
+          </h4>
+          {description ? (
+            <p className="mt-1 text-xs text-relaive-gray font-normal sm:text-sm">
+              {description}
+            </p>
+          ) : null}
+        </div>
 
         {expandable ? <ChevronIcon open={open} /> : null}
       </button>
 
-      {expandable ? (
+      {expandable && open ? (
         <div
           id={`${cardId}-content`}
-          hidden={!open}
-          className="px-4 pb-4 sm:px-5 sm:pb-5"
+          className="rounded-2xl border border-slate-100/60 bg-white p-5 sm:p-6 shadow-[0_4px_12px_rgba(0,0,0,0.02)] transition-all duration-200"
         >
-          <div className="ml-14 text-sm leading-relaxed text-relaive-gray">
-            {description ? <p>{description}</p> : null}
-            {children ? <div className={description ? 'mt-2' : ''}>{children}</div> : null}
+          <div className="text-sm leading-relaxed text-slate-500 italic">
+            {children}
           </div>
         </div>
       ) : null}
