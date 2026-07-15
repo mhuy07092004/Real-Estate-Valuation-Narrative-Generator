@@ -1,6 +1,9 @@
 import { useState, type FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '../../../components/ui/button/button'
 import { Input } from '../../../components/ui/input/input'
+import { useAuth } from '../hooks/use-auth'
+import { AuthError } from '../../../types/auth'
 
 function MailIcon() {
   return (
@@ -120,10 +123,34 @@ function SocialLoginButtons() {
 }
 
 export function SignInForm() {
+  const navigate = useNavigate()
+  const { login } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setError(null)
+    setFieldErrors({})
+    setIsSubmitting(true)
+
+    try {
+      await login({ email, password })
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      if (err instanceof AuthError) {
+        setError(err.message)
+        if (err.errors) setFieldErrors(err.errors)
+      } else {
+        setError('Login failed. Please try again.')
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -133,36 +160,57 @@ export function SignInForm() {
         <p className="mt-2 text-sm text-relaive-gray">
           Continue your property intelligence workflow
         </p>
+        {error ? (
+          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600" role="alert">
+            {error}
+          </p>
+        ) : null}
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <Input
-          id="email"
-          type="email"
-          label="Email"
-          placeholder="Enter your email"
-          startIcon={<MailIcon />}
-          autoComplete="email"
-        />
+        <div className="flex flex-col gap-1.5">
+          <Input
+            id="email"
+            type="email"
+            label="Email"
+            placeholder="Enter your email"
+            startIcon={<MailIcon />}
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          {fieldErrors.email ? (
+            <p className="text-xs text-red-600">{fieldErrors.email}</p>
+          ) : null}
+        </div>
 
-        <Input
-          id="password"
-          type={showPassword ? 'text' : 'password'}
-          label="Password"
-          placeholder="Enter your password"
-          startIcon={<ShieldIcon />}
-          autoComplete="current-password"
-          endIcon={
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="pointer-events-auto focus-visible:outline-none"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              <EyeIcon visible={showPassword} />
-            </button>
-          }
-        />
+        <div className="flex flex-col gap-1.5">
+          <Input
+            id="password"
+            type={showPassword ? 'text' : 'password'}
+            label="Password"
+            placeholder="Enter your password"
+            startIcon={<ShieldIcon />}
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            endIcon={
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="pointer-events-auto focus-visible:outline-none"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                <EyeIcon visible={showPassword} />
+              </button>
+            }
+          />
+          {fieldErrors.password ? (
+            <p className="text-xs text-red-600">{fieldErrors.password}</p>
+          ) : null}
+        </div>
 
         <div className="flex items-center justify-between text-sm">
           <label className="flex items-center gap-2 text-relaive-navy">
@@ -181,9 +229,10 @@ export function SignInForm() {
         <Button
           type="submit"
           size="lg"
-          className="w-full bg-gradient-to-r from-relaive-primary to-relaive-secondary hover:opacity-90"
+          disabled={isSubmitting}
+          className="w-full bg-gradient-to-r from-relaive-primary to-relaive-secondary hover:opacity-90 disabled:opacity-60"
         >
-          Sign in
+          {isSubmitting ? 'Signing in...' : 'Sign in'}
         </Button>
       </form>
 

@@ -4,6 +4,7 @@ trigger: always_on
 
 Always append a Change Report.
 Only change the file that mentioned in the chat if need to adjust file outside of chat must ask for permission
+and always read claude.md to understand the project before plan
 
 Include:
 
