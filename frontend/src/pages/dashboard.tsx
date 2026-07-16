@@ -1,3 +1,5 @@
+import { DashboardNavbar } from '../components/ui/navbar/dashboard-navbar'
+
 export default function Dashboard() {
-  return <div className="min-h-screen bg-relaive-surface" />
+  return <DashboardNavbar />
 }
