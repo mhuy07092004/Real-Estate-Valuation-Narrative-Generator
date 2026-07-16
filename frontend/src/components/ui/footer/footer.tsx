@@ -122,7 +122,7 @@ export function Footer() {
             <a href="/" className="inline-flex w-fit items-center gap-3 rounded-lg bg-white px-4 py-3">
               <img src={logoIcon} alt="Relaive icon" className="h-9 w-9" />
               <div className="flex flex-col leading-tight">
-                <span className="text-base font-bold text-relaive-navy tracking-tight">
+                <span className="font-logo text-base font-bold text-relaive-navy tracking-tight">
                   Relaive
                 </span>
                 <span className="text-[10px] text-relaive-gray">
