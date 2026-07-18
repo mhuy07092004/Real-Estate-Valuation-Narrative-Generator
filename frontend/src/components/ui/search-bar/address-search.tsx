@@ -1,3 +1,8 @@
+type AddressSearchProps = {
+  placeholder?: string
+  className?: string
+}
+
 function SearchIcon() {
   return (
     <svg
@@ -24,13 +29,16 @@ function SearchIcon() {
   )
 }
 
-export function AddressSearch() {
+export function AddressSearch({
+  placeholder = 'Enter property address',
+  className = '',
+}: AddressSearchProps) {
   return (
-    <label className="relative flex w-full max-w-md items-center">
+    <label className={`relative flex w-full max-w-md items-center ${className}`}>
       <span className="sr-only">Property address</span>
       <input
         type="text"
-        placeholder="Enter property address"
+        placeholder={placeholder}
         className="w-full rounded-full border border-black/5 bg-white py-3 pl-5 pr-12 text-sm text-relaive-navy shadow-[0_2px_12px_rgba(26,32,44,0.08)] placeholder:text-relaive-gray/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
         readOnly
       />
