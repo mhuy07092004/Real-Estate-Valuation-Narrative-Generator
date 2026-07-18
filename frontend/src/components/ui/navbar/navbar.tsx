@@ -104,7 +104,7 @@ export function Navbar() {
             <li key={label}>
               <a
                 href={href}
-                className="flex items-center text-sm font-medium text-relaive-navy/80 hover:text-relaive-primary transition-colors"
+                className="font-button flex items-center text-sm font-medium text-relaive-navy/80 hover:text-relaive-primary transition-colors"
               >
                 {label}
               </a>

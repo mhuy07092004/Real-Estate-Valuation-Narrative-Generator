@@ -3,8 +3,10 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes } from 'react'
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'link' | 'outline'
 export type ButtonSize = 'sm' | 'md' | 'lg'
 
-const BASE =
-  'inline-flex items-center justify-center font-button font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary disabled:opacity-50 disabled:pointer-events-none'
+/** Google Sans Code — add to any clickable element that is not a native `<button>`. */
+export const BUTTON_FONT_CLASS = 'font-button'
+
+const BASE = `inline-flex items-center justify-center ${BUTTON_FONT_CLASS} font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary disabled:opacity-50 disabled:pointer-events-none`
 
 const VARIANT_MAP: Record<ButtonVariant, string> = {
   primary:
