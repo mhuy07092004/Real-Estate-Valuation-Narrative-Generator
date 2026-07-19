@@ -5,11 +5,11 @@ import { Button } from '../button/button'
 const NAV_ITEMS = [
   { label: 'Platform', sectionId: 'platform' },
   { label: 'Features', sectionId: 'features' },
-  { label: 'About', sectionId: 'about' },
   { label: 'Resources', sectionId: 'resources' },
 ] as const
 
 const ROUTE_ITEMS = [
+  { label: 'About', href: '/about' },
   { label: 'Plans', href: '/plans' },
 ] as const
 

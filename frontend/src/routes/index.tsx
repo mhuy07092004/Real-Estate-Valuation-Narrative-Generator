@@ -4,6 +4,7 @@ import SignInPageRoute from '../pages/signin'
 import SignUpPageRoute from '../pages/signup'
 import ForgotPasswordPageRoute from '../pages/forgot-password'
 import PlansPageRoute from '../pages/plans'
+import AboutPageRoute from '../pages/about'
 import Dashboard from '../pages/dashboard'
 import { ProtectedRoute } from '../features/auth/components/protected-route'
 
@@ -12,6 +13,7 @@ export function AppRoutes() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/plans" element={<PlansPageRoute />} />
+      <Route path="/about" element={<AboutPageRoute />} />
       <Route path="/signin" element={<SignInPageRoute />} />
       <Route path="/signup" element={<SignUpPageRoute />} />
       <Route path="/forgot-password" element={<ForgotPasswordPageRoute />} />
