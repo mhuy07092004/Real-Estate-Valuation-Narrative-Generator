@@ -121,8 +121,8 @@ const ABOUT_CARDS: AboutCard[] = [
     features: [
       'Explainable reasoning',
       'Evidence-based valuation',
-      'Human-in-the-loop design',
-      'Ethical AI development',
+      'Confidence indicators',
+      'Comparables sales transparency',
     ],
   },
   {
@@ -131,10 +131,10 @@ const ABOUT_CARDS: AboutCard[] = [
     description:
       'We envision a future where property intelligence is instant, explainable, and accessible — empowering smarter decisions across the real estate industry.',
     features: [
-      'Scalable intelligence',
-      'Cross-market insights',
-      'Seamless integration',
-      'Future-ready reporting',
+      'Generate evidence-based appraisal narratives',
+      'Analyze comparable property sales',
+      'Understand suburb and market trends',
+      'Evaluate investment opportunities',
     ],
   },
 ]
