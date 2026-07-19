@@ -162,7 +162,7 @@ export function AboutPage() {
                 About Relaive
               </span>
 
-              <h1 className="max-w-4xl text-2xl font-bold leading-tight text-relaive-navy sm:text-3xl lg:whitespace-nowrap lg:text-4xl">
+              <h1 className="mx-auto text-center text-[22px] font-mediumbold font-Inter leading-tight text-relaive-navy sm:text-[29px] lg:text-[35px]">
                 AI-Powered Property Intelligence for Faster, Smarter Valuations
               </h1>
 
