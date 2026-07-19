@@ -154,19 +154,19 @@ export function AboutPage() {
           className="pointer-events-none absolute -left-20 bottom-10 h-[320px] w-[320px] rounded-full bg-[radial-gradient(circle,rgba(251,242,232,0.7)_0%,transparent_70%)] blur-2xl"
         />
 
-        <section id="about-page" className="relative scroll-mt-20 px-6 py-24">
+        <section id="about-page" className="relative scroll-mt-20 px-6 pt-10 pb-24">
           <div className="mx-auto flex max-w-6xl flex-col gap-12">
-            <div className="flex flex-col items-center gap-4 text-center">
+            <div className="flex flex-col items-center gap-3 text-center">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-relaive-primary/20 bg-relaive-primary/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-relaive-primary">
                 <StarIcon />
                 About Relaive
               </span>
 
-              <h1 className="max-w-3xl text-3xl font-semibold leading-tight text-relaive-navy sm:text-4xl lg:text-[2.75rem]">
+              <h1 className="max-w-4xl text-2xl font-bold leading-tight text-relaive-navy sm:text-3xl lg:whitespace-nowrap lg:text-4xl">
                 AI-Powered Property Intelligence for Faster, Smarter Valuations
               </h1>
 
-              <p className="mx-auto max-w-2xl text-base leading-relaxed text-relaive-gray">
+              <p className="mx-auto max-w-2xl text-sm leading-relaxed text-relaive-gray sm:text-base">
                 Relaive is an AI-powered property intelligence platform designed to help real estate
                 agents, valuers, and investors generate faster, smarter, and more transparent property
                 valuations.

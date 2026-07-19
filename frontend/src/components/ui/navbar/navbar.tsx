@@ -2,15 +2,12 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import logoIcon from '../../../assets/icon.svg'
 import { Button } from '../button/button'
 
-const NAV_ITEMS = [
-  { label: 'Platform', sectionId: 'platform' },
-  { label: 'Features', sectionId: 'features' },
-  { label: 'Resources', sectionId: 'resources' },
-] as const
-
-const ROUTE_ITEMS = [
-  { label: 'About', href: '/about' },
-  { label: 'Plans', href: '/plans' },
+const NAV_ORDER = [
+  { type: 'scroll', label: 'Platform', sectionId: 'platform' },
+  { type: 'scroll', label: 'Features', sectionId: 'features' },
+  { type: 'route', label: 'About', href: '/about' },
+  { type: 'scroll', label: 'Resources', sectionId: 'resources' },
+  { type: 'route', label: 'Plans', href: '/plans' },
 ] as const
 
 function ChevronDown() {
@@ -88,28 +85,37 @@ export function Navbar() {
 
         {/* Nav links — hidden on small screens */}
         <ul className="hidden md:flex items-center gap-6">
-          {NAV_ITEMS.map(({ label, sectionId }) => (
-            <li key={label}>
-              <button
-                type="button"
-                onClick={() => scrollToSection(sectionId)}
-                className="flex items-center text-sm font-medium text-relaive-navy/80 hover:text-relaive-primary transition-colors cursor-pointer bg-transparent border-none p-0"
-              >
-                {label}
-                <ChevronDown />
-              </button>
-            </li>
-          ))}
-          {ROUTE_ITEMS.map(({ label, href }) => (
-            <li key={label}>
-              <a
-                href={href}
-                className="font-button flex items-center text-sm font-medium text-relaive-navy/80 hover:text-relaive-primary transition-colors"
-              >
-                {label}
-              </a>
-            </li>
-          ))}
+          {NAV_ORDER.map((item) => {
+            if (item.type === 'scroll') {
+              return (
+                <li key={item.label}>
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection(item.sectionId)}
+                    className="flex items-center text-sm font-medium text-relaive-navy/80 hover:text-relaive-primary transition-colors cursor-pointer bg-transparent border-none p-0"
+                  >
+                    {item.label}
+                    <ChevronDown />
+                  </button>
+                </li>
+              )
+            }
+
+            const isActive = location.pathname === item.href
+            return (
+              <li key={item.label}>
+                <a
+                  href={item.href}
+                  className={`font-button flex items-center text-sm font-medium transition-colors hover:text-relaive-primary ${
+                    isActive ? 'text-relaive-primary' : 'text-relaive-navy/80'
+                  }`}
+                >
+                  {item.label}
+                  <ChevronDown />
+                </a>
+              </li>
+            )
+          })}
         </ul>
 
         {/* Actions */}
