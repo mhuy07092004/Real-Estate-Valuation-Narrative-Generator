@@ -1,33 +1,46 @@
-import { useState, type ReactNode, type SVGProps } from 'react'
+import { useMemo, useState, type ReactNode, type SVGProps } from 'react'
 import logoIcon from '../../../assets/icon.svg'
+import type { UserRole } from '../../../types/auth'
+import { useAuth } from '../../../features/auth/hooks/use-auth'
 
 const ROLES = [
-  { label: 'Real-Estate Agent', icon: BriefcaseIcon },
-  { label: 'Property Valuer', icon: ValuationIcon },
-  { label: 'Investor', icon: InvestorIcon },
-  { label: 'Buyer', icon: UserIcon },
-] as const
+  { label: 'Real-Estate Agent', value: 'agent', icon: BriefcaseIcon },
+  { label: 'Property Valuer', value: 'valuer', icon: ValuationIcon },
+  { label: 'Investor', value: 'investor', icon: InvestorIcon },
+  { label: 'Buyer', value: 'buyer', icon: UserIcon },
+] as const satisfies { label: string; value: UserRole; icon: typeof BriefcaseIcon }[]
 
-type Role = (typeof ROLES)[number]['label']
+type Role = (typeof ROLES)[number]['value']
 
-const NAV_ITEMS = [
-  { label: 'Dashboard', icon: HomeIcon, active: true },
-  { label: 'Generate Appraisal', icon: SparklesIcon, active: false },
-  { label: 'Comparable Sales', icon: BuildingIcon, active: false },
-  { label: 'Client Reports', icon: DocumentIcon, active: false },
-  { label: 'Buyer Advisory', icon: UsersIcon, active: false },
-  { label: 'Market Insights', icon: ChartIcon, active: false },
-] as const
+const NAV_ITEMS_BY_ROLE: Record<Role, string[]> = {
+  agent: ['Generate Appraisal', 'Comparable Sales', 'Client', 'Client Report'],
+  valuer: ['Generate Appraisal', 'Valuation Cases', 'Evidence Center'],
+  investor: ['Generate Report', 'ROI Calculator', 'Market Comparison', 'Investor Report'],
+  buyer: ['Search Properties', 'Generate Report', 'Affordability', 'Buyer Report', 'Suburb Explorer'],
+}
 
 type DashboardNavbarProps = {
   children?: ReactNode
 }
 
 export function DashboardNavbar({ children }: DashboardNavbarProps) {
+  const { user } = useAuth()
+  const availableRoles = useMemo(
+    () => ROLES.filter((r) => user?.roles.includes(r.value)),
+    [user?.roles],
+  )
+
   const [collapsed, setCollapsed] = useState(false)
   const [roleOpen, setRoleOpen] = useState(false)
-  const [role, setRole] = useState<Role>('Real-Estate Agent')
-  const ActiveRoleIcon = ROLES.find((item) => item.label === role)?.icon ?? BriefcaseIcon
+  const [role, setRole] = useState<Role>(() => availableRoles[0]?.value ?? 'agent')
+  const [activeNav, setActiveNav] = useState('Dashboard')
+
+  const resolvedRole: Role =
+    availableRoles.some((r) => r.value === role) ? role : (availableRoles[0]?.value ?? 'agent')
+  const activeRoleMeta = ROLES.find((item) => item.value === resolvedRole)
+  const ActiveRoleIcon = activeRoleMeta?.icon ?? BriefcaseIcon
+  const activeRoleLabel = activeRoleMeta?.label ?? 'Real-Estate Agent'
+  const currentNavItems = ['Dashboard', ...NAV_ITEMS_BY_ROLE[resolvedRole]]
 
   return (
     <div className="flex min-h-screen bg-[#F5F6F8]">
@@ -88,7 +101,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
               <ActiveRoleIcon className="shrink-0 text-relaive-primary" />
               {!collapsed && (
                 <>
-                  <span className="min-w-0 flex-1 truncate">{role}</span>
+                  <span className="min-w-0 flex-1 truncate">{activeRoleLabel}</span>
                   <ChevronDownIcon
                     className={[
                       'shrink-0 text-relaive-gray transition-transform',
@@ -105,16 +118,17 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
                 role="listbox"
                 className="flex flex-col gap-0.5 rounded-xl border border-black/10 bg-white p-1.5"
               >
-                {ROLES.map(({ label, icon: Icon }) => {
-                  const selected = label === role
+                {availableRoles.map(({ label, value, icon: Icon }) => {
+                  const selected = value === resolvedRole
                   return (
-                    <li key={label}>
+                    <li key={value}>
                       <button
                         type="button"
                         role="option"
                         aria-selected={selected}
                         onClick={() => {
-                          setRole(label)
+                          setRole(value)
+                          setActiveNav('Dashboard')
                           setRoleOpen(false)
                         }}
                         className={[
@@ -136,27 +150,39 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
         </div>
 
         <nav className={['flex-1 overflow-y-auto py-3', collapsed ? 'px-2' : 'px-3'].join(' ')}>
+          {!collapsed && (
+            <p className="px-3 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-wide text-relaive-gray/60">
+              Overview
+            </p>
+          )}
           <ul className="flex flex-col gap-0.5">
-            {NAV_ITEMS.map(({ label, icon: Icon, active }) => (
-              <li key={label}>
-                <a
-                  href="#"
-                  onClick={(event) => event.preventDefault()}
-                  aria-current={active ? 'page' : undefined}
-                  title={collapsed ? label : undefined}
-                  className={[
-                    'flex items-center gap-3 rounded-xl text-sm transition-colors',
-                    collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5',
-                    active
-                      ? 'bg-relaive-navy/[0.06] font-semibold text-relaive-navy'
-                      : 'font-medium text-relaive-gray hover:bg-relaive-navy/[0.04] hover:text-relaive-navy',
-                  ].join(' ')}
-                >
-                  <Icon className="shrink-0" />
-                  {!collapsed && <span className="truncate">{label}</span>}
-                </a>
-              </li>
-            ))}
+            {currentNavItems.map((label) => {
+              const active = label === activeNav
+              const Icon = label === 'Dashboard' ? HomeIcon : NavPlaceholderIcon
+              return (
+                <li key={label}>
+                  <a
+                    href="#"
+                    onClick={(event) => {
+                      event.preventDefault()
+                      setActiveNav(label)
+                    }}
+                    aria-current={active ? 'page' : undefined}
+                    title={collapsed ? label : undefined}
+                    className={[
+                      'flex items-center gap-3 rounded-xl text-sm transition-colors',
+                      collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5',
+                      active
+                        ? 'bg-relaive-navy/[0.06] font-semibold text-relaive-navy'
+                        : 'font-medium text-relaive-gray hover:bg-relaive-navy/[0.04] hover:text-relaive-navy',
+                    ].join(' ')}
+                  >
+                    <Icon className="shrink-0" />
+                    {!collapsed && <span className="truncate">{label}</span>}
+                  </a>
+                </li>
+              )
+            })}
           </ul>
         </nav>
       </aside>
@@ -244,54 +270,10 @@ function HomeIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
-function SparklesIcon(props: SVGProps<SVGSVGElement>) {
+function NavPlaceholderIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...iconProps(props)}>
-      <path d="M12 3l1.2 3.6L17 8l-3.8 1.4L12 13l-1.2-3.6L7 8l3.8-1.4L12 3z" />
-      <path d="M18.5 13l.7 2.1L21.5 16l-2.3.8-.7 2.2-.7-2.2L15.5 16l2.3-.9.7-2.1z" />
-      <path d="M6 14.5l.6 1.8L8.5 17l-1.9.7L6 19.5l-.6-1.8L3.5 17l1.9-.7L6 14.5z" />
-    </svg>
-  )
-}
-
-function BuildingIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...iconProps(props)}>
-      <path d="M4 20V7l8-3 8 3v13" />
-      <path d="M9 20v-5h6v5" />
-      <path d="M9 10h.01M15 10h.01M9 13.5h.01M15 13.5h.01" />
-    </svg>
-  )
-}
-
-function DocumentIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...iconProps(props)}>
-      <path d="M7 3.5h7l4 4V20.5H7z" />
-      <path d="M14 3.5V8h4.5" />
-      <path d="M10 12h5M10 15.5h5" />
-    </svg>
-  )
-}
-
-function UsersIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...iconProps(props)}>
-      <circle cx="9" cy="8" r="3" />
-      <path d="M3.5 19c0-2.8 2.5-5 5.5-5s5.5 2.2 5.5 5" />
-      <path d="M16.5 10.5a2.5 2.5 0 1 0 0-5" />
-      <path d="M20.5 19c0-2.2-1.6-4-3.8-4.6" />
-    </svg>
-  )
-}
-
-function ChartIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...iconProps(props)}>
-      <path d="M4 19h16" />
-      <path d="M7 16V11" />
-      <path d="M12 16V7" />
-      <path d="M17 16v-4" />
+      <rect x="5" y="5" width="14" height="14" rx="2" />
     </svg>
   )
 }
