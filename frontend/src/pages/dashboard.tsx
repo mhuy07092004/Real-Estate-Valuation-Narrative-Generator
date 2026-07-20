@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react'
-import { AiInsightsPanel, type AiInsight } from '../components/dashboard/ai-insights-panel'
-import { QuickActionsPanel, type QuickAction } from '../components/dashboard/quick-actions-panel'
+import { AiInsightsPanel, type AiInsight } from '../features/dashboard/components/ai-insights-panel'
+import { QuickActionsPanel, type QuickAction } from '../features/dashboard/components/quick-actions-panel'
 import {
   RecentReportsPanel,
   type RecentReport,
-} from '../components/dashboard/recent-reports-panel'
+} from '../features/dashboard/components/recent-reports-panel'
 import { DashboardNavbar } from '../components/ui/navbar/dashboard-navbar'
 import { AddressSearch } from '../components/ui/search-bar/address-search'
 import { StatCard } from '../components/ui/stat-card/stat-card'

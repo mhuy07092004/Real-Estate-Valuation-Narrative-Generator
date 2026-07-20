@@ -1,4 +1,4 @@
-import { Card, CardTitle } from '../ui/card/card'
+import { Card, CardTitle } from '../../../components/ui/card/card'
 
 export type RecentReport = {
   id: string
