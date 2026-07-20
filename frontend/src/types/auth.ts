@@ -1,10 +1,16 @@
-export type UserRole = 'admin' | 'user'
+export type UserRole =
+  | 'admin'
+  | 'user'
+  | 'agent'
+  | 'valuer'
+  | 'investor'
+  | 'buyer'
 
 export interface User {
   id: string
   email: string
   fullName: string
-  role: UserRole
+  roles: UserRole[]
   avatar: string | null
   createdAt: string
 }
@@ -24,7 +30,7 @@ export interface AuthSession {
 export interface AuthTokenPayload {
   userId: string
   email: string
-  role: string
+  roles: UserRole[]
   iat: number
   exp: number
 }

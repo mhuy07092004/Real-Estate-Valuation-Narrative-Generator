@@ -3,6 +3,7 @@ import type {
   AuthTokenPayload,
   LoginCredentials,
   User,
+  UserRole,
 } from '../../../types/auth'
 
 interface RegisterRequestBody {
@@ -27,7 +28,7 @@ const MOCK_USERS: MockUser[] = [
     email: 'admin@relaive.com',
     fullName: 'Admin User',
     password: 'admin',
-    role: 'admin',
+    roles: ['admin', 'agent', 'valuer', 'investor', 'buyer'],
     avatar: null,
     createdAt: '2025-01-01T00:00:00.000Z',
   },
@@ -42,7 +43,7 @@ function generateMockToken(user: MockUser): string {
   const payload: AuthTokenPayload = {
     userId: user.id,
     email: user.email,
-    role: user.role,
+    roles: user.roles,
     iat: Date.now(),
     exp: Date.now() + 60 * 60 * 1000,
   }
@@ -53,6 +54,10 @@ function generateMockToken(user: MockUser): string {
 
 function generateRefreshToken(): string {
   return btoa(`refresh_${Date.now()}_${Math.random().toString(36).slice(2)}`)
+}
+
+export function hasRole(user: MockUser, role: UserRole): boolean {
+  return user.roles.includes(role)
 }
 
 function sanitizeUser(user: MockUser): User {
@@ -189,7 +194,7 @@ export const authHandlers = [
         email,
         fullName,
         password,
-        role: 'user',
+        roles: ['user'],
         avatar: null,
         createdAt: new Date().toISOString(),
       }
