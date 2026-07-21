@@ -3,7 +3,6 @@
 A full-stack web application for AI-powered property appraisal (Relaive).
 
 ## 🚀 Technologies & Frameworks
-
 ### Frontend
 - **Vite:** ^8.0.10
 - **React:** ^19.2.5
