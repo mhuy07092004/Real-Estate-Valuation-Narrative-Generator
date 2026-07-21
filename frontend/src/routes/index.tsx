@@ -5,7 +5,12 @@ import SignUpPageRoute from '../pages/signup'
 import ForgotPasswordPageRoute from '../pages/forgot-password'
 import PlansPageRoute from '../pages/plans'
 import AboutPageRoute from '../pages/about'
-import Dashboard from '../pages/dashboard'
+import {
+  DashboardLayout,
+  DashboardRoleGuard,
+  DashboardRoleHome,
+  DashboardRoleRedirect,
+} from '../pages/dashboard'
 import { ProtectedRoute } from '../features/auth/components/protected-route'
 
 export function AppRoutes() {
@@ -21,10 +26,15 @@ export function AppRoutes() {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <Dashboard />
+            <DashboardLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route index element={<DashboardRoleRedirect />} />
+        <Route path=":role" element={<DashboardRoleGuard />}>
+          <Route index element={<DashboardRoleHome />} />
+        </Route>
+      </Route>
     </Routes>
   )
 }

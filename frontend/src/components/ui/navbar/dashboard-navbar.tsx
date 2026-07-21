@@ -1,18 +1,22 @@
-import { useMemo, useState, type ReactNode, type SVGProps } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode, type SVGProps } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import logoIcon from '../../../assets/icon.svg'
-import type { UserRole } from '../../../types/auth'
 import { useAuth } from '../../../features/auth/hooks/use-auth'
+import {
+  type DashboardRole,
+  clearActiveDashboardRole,
+  isDashboardRole,
+  setActiveDashboardRole,
+} from '../../../features/dashboard/utils/dashboard-role'
 
 const ROLES = [
   { label: 'Real-Estate Agent', value: 'agent', icon: BriefcaseIcon },
   { label: 'Property Valuer', value: 'valuer', icon: ValuationIcon },
   { label: 'Investor', value: 'investor', icon: InvestorIcon },
   { label: 'Buyer', value: 'buyer', icon: UserIcon },
-] as const satisfies { label: string; value: UserRole; icon: typeof BriefcaseIcon }[]
+] as const satisfies { label: string; value: DashboardRole; icon: typeof BriefcaseIcon }[]
 
-type Role = (typeof ROLES)[number]['value']
-
-const NAV_ITEMS_BY_ROLE: Record<Role, string[]> = {
+const NAV_ITEMS_BY_ROLE: Record<DashboardRole, string[]> = {
   agent: ['Generate Appraisal', 'Comparable Sales', 'Client', 'Client Report'],
   valuer: ['Generate Appraisal', 'Valuation Cases', 'Evidence Center'],
   investor: ['Generate Report', 'ROI Calculator', 'Market Comparison', 'Investor Report'],
@@ -21,12 +25,37 @@ const NAV_ITEMS_BY_ROLE: Record<Role, string[]> = {
 
 const BOTTOM_NAV_ITEMS = ['Settings', 'Account'] as const
 
+const ACCOUNT_MENU_ITEMS = [
+  'Profile',
+  'Account Settings',
+  'Security',
+  'Help & Support',
+] as const
+
 type DashboardNavbarProps = {
   children?: ReactNode
 }
 
+function formatShortName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return 'User'
+  if (parts.length === 1) return parts[0]
+  const lastInitial = parts[parts.length - 1][0]?.toUpperCase() ?? ''
+  return `${parts[0]} ${lastInitial}`
+}
+
+function getInitials(fullName: string) {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return 'U'
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return `${parts[0][0] ?? ''}${parts[parts.length - 1][0] ?? ''}`.toUpperCase()
+}
+
 export function DashboardNavbar({ children }: DashboardNavbarProps) {
-  const { user } = useAuth()
+  const navigate = useNavigate()
+  const { role: roleParam } = useParams<{ role: string }>()
+  const { user, logout } = useAuth()
+  const userMenuRef = useRef<HTMLDivElement>(null)
   const availableRoles = useMemo(
     () => ROLES.filter((r) => user?.roles.includes(r.value)),
     [user?.roles],
@@ -34,15 +63,61 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
 
   const [collapsed, setCollapsed] = useState(false)
   const [roleOpen, setRoleOpen] = useState(false)
-  const [role, setRole] = useState<Role>(() => availableRoles[0]?.value ?? 'agent')
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [roleListOpen, setRoleListOpen] = useState(false)
   const [activeNav, setActiveNav] = useState('Dashboard')
 
-  const resolvedRole: Role =
-    availableRoles.some((r) => r.value === role) ? role : (availableRoles[0]?.value ?? 'agent')
+  const resolvedRole: DashboardRole =
+    roleParam && isDashboardRole(roleParam) && availableRoles.some((r) => r.value === roleParam)
+      ? roleParam
+      : (availableRoles[0]?.value ?? 'agent')
   const activeRoleMeta = ROLES.find((item) => item.value === resolvedRole)
   const ActiveRoleIcon = activeRoleMeta?.icon ?? BriefcaseIcon
   const activeRoleLabel = activeRoleMeta?.label ?? 'Real-Estate Agent'
   const currentNavItems = ['Dashboard', ...NAV_ITEMS_BY_ROLE[resolvedRole]]
+  const displayName = user ? formatShortName(user.fullName) : 'User'
+  const displayEmail = user?.email ?? ''
+  const userInitials = user ? getInitials(user.fullName) : 'U'
+
+  useEffect(() => {
+    if (!userMenuOpen) return
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!userMenuRef.current?.contains(event.target as Node)) {
+        setUserMenuOpen(false)
+        setRoleListOpen(false)
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setUserMenuOpen(false)
+        setRoleListOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [userMenuOpen])
+
+  function handleRoleChange(nextRole: DashboardRole) {
+    setActiveDashboardRole(nextRole)
+    setActiveNav('Dashboard')
+    setRoleOpen(false)
+    setRoleListOpen(false)
+    setUserMenuOpen(false)
+    navigate(`/dashboard/${nextRole}`, { replace: true })
+  }
+
+  function handleSignOut() {
+    clearActiveDashboardRole()
+    logout()
+    navigate('/signin')
+  }
 
   return (
     <div className="flex min-h-screen bg-[#F5F6F8]">
@@ -128,11 +203,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
                         type="button"
                         role="option"
                         aria-selected={selected}
-                        onClick={() => {
-                          setRole(value)
-                          setActiveNav('Dashboard')
-                          setRoleOpen(false)
-                        }}
+                        onClick={() => handleRoleChange(value)}
                         className={[
                           'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors',
                           selected
@@ -260,13 +331,128 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
               AI Copilot
             </button>
 
-            <button
-              type="button"
-              aria-label="User profile"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-[#EEF1F5] text-relaive-gray transition-colors hover:bg-relaive-navy/10"
-            >
-              <UserIcon />
-            </button>
+            <div ref={userMenuRef} className="relative">
+              <button
+                type="button"
+                aria-label="User profile"
+                aria-haspopup="menu"
+                aria-expanded={userMenuOpen}
+                onClick={() => {
+                  setUserMenuOpen((open) => {
+                    if (open) setRoleListOpen(false)
+                    return !open
+                  })
+                }}
+                className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-black/40"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/10 bg-gradient-to-br from-relaive-secondary to-relaive-primary text-xs font-semibold text-white">
+                  {user ? userInitials : <UserIcon className="text-white" />}
+                </span>
+                <span className="hidden min-w-0 flex-col leading-tight sm:flex">
+                  <span className="truncate text-sm font-semibold text-relaive-navy">{displayName}</span>
+                  <span className="truncate text-xs text-relaive-gray">{activeRoleLabel}</span>
+                </span>
+              </button>
+
+              {userMenuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-[calc(100%+8px)] z-50 w-[300px] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-lg"
+                >
+                  <div className="flex items-center gap-3 border-b border-black/5 px-4 py-3.5">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-relaive-secondary to-relaive-primary text-sm font-semibold text-white">
+                      {userInitials}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-relaive-navy">
+                        {user?.fullName ?? displayName}
+                      </p>
+                      <p className="truncate text-xs text-relaive-gray">{displayEmail}</p>
+                    </div>
+                  </div>
+
+                  <div className="border-b border-black/5 px-4 py-3">
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        aria-expanded={roleListOpen}
+                        aria-controls="user-menu-role-accordion"
+                        onClick={() => setRoleListOpen((open) => !open)}
+                        className="flex w-full items-center gap-2 rounded-xl border border-black/10 bg-white px-3 py-2.5 text-left text-sm font-medium text-relaive-navy transition-colors hover:bg-[#F8F9FB]"
+                      >
+                        <ActiveRoleIcon className="shrink-0 text-relaive-primary" />
+                        <span className="min-w-0 flex-1 truncate">{activeRoleLabel}</span>
+                        <ChevronDownIcon
+                          className={[
+                            'shrink-0 text-relaive-gray transition-transform',
+                            roleListOpen ? 'rotate-180' : '',
+                          ].join(' ')}
+                        />
+                      </button>
+
+                      {roleListOpen && (
+                        <ul
+                          id="user-menu-role-accordion"
+                          role="listbox"
+                          className="flex flex-col gap-0.5 rounded-xl border border-black/10 bg-white p-1.5"
+                        >
+                          {availableRoles.map(({ label, value, icon: Icon }) => {
+                            const selected = value === resolvedRole
+                            return (
+                              <li key={value}>
+                                <button
+                                  type="button"
+                                  role="option"
+                                  aria-selected={selected}
+                                  onClick={() => handleRoleChange(value)}
+                                  className={[
+                                    'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors',
+                                    selected
+                                      ? 'bg-relaive-primary/15 font-medium text-relaive-primary'
+                                      : 'text-relaive-navy/80 hover:bg-relaive-navy/5',
+                                  ].join(' ')}
+                                >
+                                  <Icon className={selected ? 'text-relaive-primary' : 'text-relaive-gray'} />
+                                  <span className="truncate">{label}</span>
+                                </button>
+                              </li>
+                            )
+                          })}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+
+                  <ul className="border-b border-black/5 py-1.5">
+                    {ACCOUNT_MENU_ITEMS.map((label) => (
+                      <li key={label}>
+                        <a
+                          href="#"
+                          role="menuitem"
+                          onClick={(event) => event.preventDefault()}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-relaive-navy transition-colors hover:bg-relaive-navy/5"
+                        >
+                          <NavPlaceholderIcon className="shrink-0 text-relaive-gray" />
+                          <span>{label}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="py-1.5">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={handleSignOut}
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+                    >
+                      <LogOutIcon className="shrink-0 text-red-600" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -408,6 +594,16 @@ function UserIcon(props: SVGProps<SVGSVGElement>) {
     <svg {...iconProps({ width: 16, height: 16, ...props })}>
       <circle cx="12" cy="9" r="3.5" />
       <path d="M5.5 19c0-3 2.9-5 6.5-5s6.5 2 6.5 5" />
+    </svg>
+  )
+}
+
+function LogOutIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps({ width: 16, height: 16, ...props })}>
+      <path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5" />
+      <path d="M14 12H7" />
+      <path d="M17 9l3 3-3 3" />
     </svg>
   )
 }
