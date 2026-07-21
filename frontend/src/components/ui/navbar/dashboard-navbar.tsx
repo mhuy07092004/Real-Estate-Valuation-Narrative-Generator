@@ -19,6 +19,8 @@ const NAV_ITEMS_BY_ROLE: Record<Role, string[]> = {
   buyer: ['Search Properties', 'Generate Report', 'Affordability', 'Buyer Report', 'Suburb Explorer'],
 }
 
+const BOTTOM_NAV_ITEMS = ['Settings', 'Account'] as const
+
 type DashboardNavbarProps = {
   children?: ReactNode
 }
@@ -185,6 +187,34 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
             })}
           </ul>
         </nav>
+
+        <div className={['shrink-0 border-t border-black/5 py-3', collapsed ? 'px-2' : 'px-3'].join(' ')}>
+          <ul className="flex flex-col gap-0.5">
+            {BOTTOM_NAV_ITEMS.map((label) => {
+              const active = label === activeNav
+              return (
+                <li key={label}>
+                  <a
+                    href="#"
+                    onClick={(event) => event.preventDefault()}
+                    aria-current={active ? 'page' : undefined}
+                    title={collapsed ? label : undefined}
+                    className={[
+                      'flex items-center gap-3 rounded-xl text-sm transition-colors',
+                      collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5',
+                      active
+                        ? 'bg-relaive-navy/[0.06] font-semibold text-relaive-navy'
+                        : 'font-medium text-relaive-gray hover:bg-relaive-navy/[0.04] hover:text-relaive-navy',
+                    ].join(' ')}
+                  >
+                    <NavPlaceholderIcon className="shrink-0" />
+                    {!collapsed && <span className="truncate">{label}</span>}
+                  </a>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
       </aside>
 
       {/* Main column */}
