@@ -119,6 +119,15 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
     navigate('/signin')
   }
 
+  function handleNavChange(label: string) {
+    setActiveNav(label)
+    if (label === 'Dashboard') {
+      navigate(`/dashboard/${resolvedRole}`)
+    } else {
+      navigate(`/dashboard/${resolvedRole}/mock`)
+    }
+  }
+
   function handleExpandRole() {
     if (collapsed) setCollapsed(false)
     setRoleOpen((open) => !open)
@@ -145,7 +154,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
         onRoleChange={handleRoleChange}
         navSections={navSections}
         activeNav={activeNav}
-        onNavChange={setActiveNav}
+        onNavChange={handleNavChange}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">

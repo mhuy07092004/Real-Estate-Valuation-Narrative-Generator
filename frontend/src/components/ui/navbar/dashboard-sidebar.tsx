@@ -137,11 +137,11 @@ export function DashboardSidebar({
                       aria-current={active ? 'page' : undefined}
                       title={collapsed ? item.label : undefined}
                       className={[
-                        'flex items-center gap-2.5 rounded-xl text-xs transition-colors',
-                        collapsed ? 'justify-center px-2 py-2' : 'px-3 py-2',
+                        'flex items-center gap-2.5 text-xs transition-all',
+                        collapsed ? 'justify-center px-2 py-2' : 'px-3.5 py-2.5',
                         active
-                          ? 'bg-relaive-navy/[0.06] font-semibold text-relaive-navy'
-                          : 'font-medium text-relaive-gray hover:bg-relaive-navy/[0.04] hover:text-relaive-navy',
+                          ? 'rounded-full bg-gradient-to-r from-[#5D8CAE] to-[#86C5C9] font-medium text-white shadow-[0_4px_14px_rgba(93,140,174,0.35)]'
+                          : 'rounded-xl font-medium text-relaive-gray hover:bg-relaive-navy/[0.04] hover:text-relaive-navy',
                       ].join(' ')}
                     >
                       <Icon className="size-4 shrink-0" />
@@ -163,15 +163,18 @@ export function DashboardSidebar({
               <li key={label}>
                 <a
                   href="#"
-                  onClick={(event) => event.preventDefault()}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    onNavChange(label)
+                  }}
                   aria-current={active ? 'page' : undefined}
                   title={collapsed ? label : undefined}
                   className={[
-                    'flex items-center gap-2.5 rounded-xl text-xs transition-colors',
-                    collapsed ? 'justify-center px-2 py-2' : 'px-3 py-2',
+                    'flex items-center gap-2.5 text-xs transition-all',
+                    collapsed ? 'justify-center px-2 py-2' : 'px-3.5 py-2.5',
                     active
-                      ? 'bg-relaive-navy/[0.06] font-semibold text-relaive-navy'
-                      : 'font-medium text-relaive-gray hover:bg-relaive-navy/[0.04] hover:text-relaive-navy',
+                      ? 'rounded-full bg-gradient-to-r from-[#5D8CAE] to-[#86C5C9] font-medium text-white shadow-[0_4px_14px_rgba(93,140,174,0.35)]'
+                      : 'rounded-xl font-medium text-relaive-gray hover:bg-relaive-navy/[0.04] hover:text-relaive-navy',
                   ].join(' ')}
                 >
                   <NavPlaceholderIcon className="size-4 shrink-0" />
