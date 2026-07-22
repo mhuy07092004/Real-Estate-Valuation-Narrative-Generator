@@ -34,7 +34,7 @@ function DashboardWelcomeHeader() {
   return (
     <header className="font-sans px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pt-8">
       <h1 className="text-2xl font-semibold tracking-tight text-[#1C2A38] sm:text-[28px]">
-        Welcome back, {displayName}
+        Welcome Back, {displayName}
       </h1>
       <p className="mt-1 text-sm text-[#1C2A3880] sm:text-base">{dateLabel}</p>
     </header>
