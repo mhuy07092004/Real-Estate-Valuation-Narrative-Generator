@@ -1,4 +1,5 @@
 import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-role'
+import { preloadDashboardRole } from '../../../features/dashboard/utils/dashboard-role-lazy'
 import type { RoleOption } from './dashboard-navbar.types'
 
 type RoleOptionsListProps = {
@@ -20,6 +21,8 @@ export function RoleOptionsList({ id, roles, resolvedRole, onSelect }: RoleOptio
               role="option"
               aria-selected={selected}
               onClick={() => onSelect(value)}
+              onMouseEnter={() => preloadDashboardRole(value)}
+              onFocus={() => preloadDashboardRole(value)}
               className={[
                 'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors',
                 selected

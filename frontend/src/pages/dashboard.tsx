@@ -1,27 +1,17 @@
-import type { ComponentType } from 'react'
+import { Suspense, useEffect } from 'react'
 import { Navigate, Outlet, useParams } from 'react-router-dom'
 import { DashboardNavbar } from '../components/ui/navbar/dashboard-navbar'
 import { useAuth } from '../features/auth/hooks/use-auth'
-import { AgentDashboard } from '../features/dashboard/components/real-estate-agent/agent-dashboard'
-import { ValuerDashboard } from '../features/dashboard/components/property-valuer/valuer-dashboard'
-import { InvestorDashboard } from '../features/dashboard/components/investor/investor-dashboard'
-import { BuyerDashboard } from '../features/dashboard/components/buyer/buyer-dashboard'
+import { DashboardViewSkeleton } from '../features/dashboard/components/dashboard-view-skeleton'
 import {
-  type DashboardRole,
   getActiveDashboardRole,
   getDefaultDashboardRole,
   isDashboardRole,
   resolveDashboardRole,
   setActiveDashboardRole,
 } from '../features/dashboard/utils/dashboard-role'
+import { LAZY_ROLE_VIEWS, preloadOtherDashboardRoles } from '../features/dashboard/utils/dashboard-role-lazy'
 import { formatUserDisplayDate } from '../features/dashboard/utils/dashboard-date'
-
-const ROLE_VIEWS: Record<DashboardRole, ComponentType> = {
-  agent: AgentDashboard,
-  valuer: ValuerDashboard,
-  investor: InvestorDashboard,
-  buyer: BuyerDashboard,
-}
 
 function DashboardWelcomeHeader() {
   const { user } = useAuth()
@@ -91,12 +81,25 @@ export function DashboardRoleGuard() {
 
 export function DashboardRoleHome() {
   const { role: roleParam } = useParams<{ role: string }>()
+
+  // Once the active role's chunk has painted, warm the other roles in the
+  // background so switching roles later (sidebar/topbar accordion) is instant.
+  useEffect(() => {
+    if (roleParam && isDashboardRole(roleParam)) {
+      preloadOtherDashboardRoles(roleParam)
+    }
+  }, [roleParam])
+
   if (!roleParam || !isDashboardRole(roleParam)) {
     return <Navigate to="/dashboard" replace />
   }
 
-  const View = ROLE_VIEWS[roleParam]
-  return <View />
+  const View = LAZY_ROLE_VIEWS[roleParam]
+  return (
+    <Suspense fallback={<DashboardViewSkeleton />}>
+      <View />
+    </Suspense>
+  )
 }
 
 export default function Dashboard() {
