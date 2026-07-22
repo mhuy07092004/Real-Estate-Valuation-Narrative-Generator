@@ -1,8 +1,8 @@
 import logoIcon from '../../../assets/icon.svg'
 import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-role'
-import { ChevronDownIcon, ChevronLeftIcon, HomeIcon, NavPlaceholderIcon } from './dashboard-navbar-icons'
+import { ChevronDownIcon, ChevronLeftIcon, NavPlaceholderIcon } from './dashboard-navbar-icons'
 import { RoleOptionsList } from './role-options-list'
-import type { RoleOption } from './dashboard-navbar.types'
+import type { RoleOption, SidebarNavSection } from './dashboard-navbar.types'
 
 const BOTTOM_NAV_ITEMS = ['Settings', 'Account'] as const
 
@@ -16,7 +16,7 @@ type DashboardSidebarProps = {
   activeRoleLabel: string
   ActiveRoleIcon: RoleOption['icon']
   onRoleChange: (role: DashboardRole) => void
-  currentNavItems: string[]
+  navSections: SidebarNavSection[]
   activeNav: string
   onNavChange: (label: string) => void
 }
@@ -31,7 +31,7 @@ export function DashboardSidebar({
   activeRoleLabel,
   ActiveRoleIcon,
   onRoleChange,
-  currentNavItems,
+  navSections,
   activeNav,
   onNavChange,
 }: DashboardSidebarProps) {
@@ -112,40 +112,47 @@ export function DashboardSidebar({
       </div>
 
       <nav className={['flex-1 overflow-y-auto py-3', collapsed ? 'px-2' : 'px-3'].join(' ')}>
-        {!collapsed && (
-          <p className="px-3 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-wide text-relaive-gray/60">
-            Overview
-          </p>
-        )}
-        <ul className="flex flex-col gap-0.5">
-          {currentNavItems.map((label) => {
-            const active = label === activeNav
-            const Icon = label === 'Dashboard' ? HomeIcon : NavPlaceholderIcon
-            return (
-              <li key={label}>
-                <a
-                  href="#"
-                  onClick={(event) => {
-                    event.preventDefault()
-                    onNavChange(label)
-                  }}
-                  aria-current={active ? 'page' : undefined}
-                  title={collapsed ? label : undefined}
-                  className={[
-                    'flex items-center gap-3 rounded-xl text-sm transition-colors',
-                    collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5',
-                    active
-                      ? 'bg-relaive-navy/[0.06] font-semibold text-relaive-navy'
-                      : 'font-medium text-relaive-gray hover:bg-relaive-navy/[0.04] hover:text-relaive-navy',
-                  ].join(' ')}
-                >
-                  <Icon className="shrink-0" />
-                  {!collapsed && <span className="truncate">{label}</span>}
-                </a>
-              </li>
-            )
-          })}
-        </ul>
+        {navSections.map((section, sectionIndex) => (
+          <div
+            key={section.title}
+            className={sectionIndex > 0 ? (collapsed ? 'mt-2' : 'mt-4') : undefined}
+          >
+            {!collapsed && (
+              <p className="px-3 pb-1.5 pt-1 text-sm font-semibold uppercase tracking-wide text-relaive-gray/60">
+                {section.title}
+              </p>
+            )}
+            <ul className="flex flex-col gap-0.5">
+              {section.items.map((item) => {
+                const active = item.label === activeNav
+                const Icon = item.icon
+                return (
+                  <li key={item.label}>
+                    <a
+                      href="#"
+                      onClick={(event) => {
+                        event.preventDefault()
+                        onNavChange(item.label)
+                      }}
+                      aria-current={active ? 'page' : undefined}
+                      title={collapsed ? item.label : undefined}
+                      className={[
+                        'flex items-center gap-2.5 rounded-xl text-xs transition-colors',
+                        collapsed ? 'justify-center px-2 py-2' : 'px-3 py-2',
+                        active
+                          ? 'bg-relaive-navy/[0.06] font-semibold text-relaive-navy'
+                          : 'font-medium text-relaive-gray hover:bg-relaive-navy/[0.04] hover:text-relaive-navy',
+                      ].join(' ')}
+                    >
+                      <Icon className="size-4 shrink-0" />
+                      {!collapsed && <span className="truncate">{item.label}</span>}
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        ))}
       </nav>
 
       <div className={['shrink-0 border-t border-black/5 py-3', collapsed ? 'px-2' : 'px-3'].join(' ')}>
@@ -160,14 +167,14 @@ export function DashboardSidebar({
                   aria-current={active ? 'page' : undefined}
                   title={collapsed ? label : undefined}
                   className={[
-                    'flex items-center gap-3 rounded-xl text-sm transition-colors',
-                    collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5',
+                    'flex items-center gap-2.5 rounded-xl text-xs transition-colors',
+                    collapsed ? 'justify-center px-2 py-2' : 'px-3 py-2',
                     active
                       ? 'bg-relaive-navy/[0.06] font-semibold text-relaive-navy'
                       : 'font-medium text-relaive-gray hover:bg-relaive-navy/[0.04] hover:text-relaive-navy',
                   ].join(' ')}
                 >
-                  <NavPlaceholderIcon className="shrink-0" />
+                  <NavPlaceholderIcon className="size-4 shrink-0" />
                   {!collapsed && <span className="truncate">{label}</span>}
                 </a>
               </li>

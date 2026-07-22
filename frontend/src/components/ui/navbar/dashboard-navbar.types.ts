@@ -6,3 +6,13 @@ export type RoleOption = {
   value: DashboardRole
   icon: (props: SVGProps<SVGSVGElement>) => ReactElement
 }
+
+export type SidebarNavItem = {
+  label: string
+  icon: (props: SVGProps<SVGSVGElement>) => ReactElement
+}
+
+export type SidebarNavSection = {
+  title: string
+  items: SidebarNavItem[]
+}

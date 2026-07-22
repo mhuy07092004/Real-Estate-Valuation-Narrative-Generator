@@ -9,10 +9,20 @@ import {
   setActiveDashboardRole,
 } from '../../../features/dashboard/utils/dashboard-role'
 import { useClickOutside } from '../../../hooks/use-click-outside'
-import { BriefcaseIcon, InvestorIcon, UserIcon, ValuationIcon } from './dashboard-navbar-icons'
+import {
+  BellIcon,
+  BookmarkIcon,
+  BotIcon,
+  BriefcaseIcon,
+  HomeIcon,
+  InvestorIcon,
+  NavPlaceholderIcon,
+  UserIcon,
+  ValuationIcon,
+} from './dashboard-navbar-icons'
 import { DashboardSidebar } from './dashboard-sidebar'
 import { DashboardTopbar } from './dashboard-topbar'
-import type { RoleOption } from './dashboard-navbar.types'
+import type { RoleOption, SidebarNavSection } from './dashboard-navbar.types'
 
 const ROLES = [
   { label: 'Real-Estate Agent', value: 'agent', icon: BriefcaseIcon },
@@ -26,6 +36,19 @@ const NAV_ITEMS_BY_ROLE: Record<DashboardRole, string[]> = {
   valuer: ['Generate Appraisal', 'Valuation Cases', 'Evidence Center'],
   investor: ['Generate Report', 'ROI Calculator', 'Market Comparison', 'Investor Report'],
   buyer: ['Search Properties', 'Generate Report', 'Affordability', 'Buyer Report', 'Suburb Explorer'],
+}
+
+const TRACKING_NAV: SidebarNavSection = {
+  title: 'Tracking',
+  items: [
+    { label: 'Watchlist', icon: BookmarkIcon },
+    { label: 'Alert', icon: BellIcon },
+  ],
+}
+
+const ASSISTANCE_NAV: SidebarNavSection = {
+  title: 'Assistance',
+  items: [{ label: 'AI Copilot', icon: BotIcon }],
 }
 
 type DashboardNavbarProps = {
@@ -55,7 +78,23 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   const activeRoleMeta = ROLES.find((item) => item.value === resolvedRole)
   const ActiveRoleIcon = activeRoleMeta?.icon ?? BriefcaseIcon
   const activeRoleLabel = activeRoleMeta?.label ?? 'Real-Estate Agent'
-  const currentNavItems = ['Dashboard', ...NAV_ITEMS_BY_ROLE[resolvedRole]]
+  const navSections = useMemo<SidebarNavSection[]>(
+    () => [
+      {
+        title: 'Overview',
+        items: [
+          { label: 'Dashboard', icon: HomeIcon },
+          ...NAV_ITEMS_BY_ROLE[resolvedRole].map((label) => ({
+            label,
+            icon: NavPlaceholderIcon,
+          })),
+        ],
+      },
+      TRACKING_NAV,
+      ASSISTANCE_NAV,
+    ],
+    [resolvedRole],
+  )
   const displayName = user ? formatShortName(user.fullName) : 'User'
   const displayEmail = user?.email ?? ''
   const userInitials = user ? getInitials(user.fullName) : 'U'
@@ -104,7 +143,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
         activeRoleLabel={activeRoleLabel}
         ActiveRoleIcon={ActiveRoleIcon}
         onRoleChange={handleRoleChange}
-        currentNavItems={currentNavItems}
+        navSections={navSections}
         activeNav={activeNav}
         onNavChange={setActiveNav}
       />
