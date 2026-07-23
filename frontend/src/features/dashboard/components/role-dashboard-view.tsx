@@ -28,7 +28,7 @@ export function RoleDashboardView({ role }: RoleDashboardViewProps) {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)] lg:gap-6">
         <RecentReportsPanel reports={data.reports} />
         <AiInsightsPanel insights={data.insights} />
       </div>
