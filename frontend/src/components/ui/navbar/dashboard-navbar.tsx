@@ -31,11 +31,69 @@ const ROLES = [
   { label: 'Buyer', value: 'buyer', icon: UserIcon },
 ] as const satisfies RoleOption[]
 
-const NAV_ITEMS_BY_ROLE: Record<DashboardRole, string[]> = {
-  agent: ['Generate Appraisal', 'Comparable Sales', 'Client', 'Client Report'],
-  valuer: ['Generate Appraisal', 'Valuation Cases', 'Evidence Center'],
-  investor: ['Generate Report', 'ROI Calculator', 'Market Comparison', 'Investor Report'],
-  buyer: ['Search Properties', 'Generate Report', 'Affordability', 'Buyer Report', 'Suburb Explorer'],
+const OVERVIEW_NAV: SidebarNavSection = {
+  title: 'Overview',
+  items: [{ label: 'Dashboard', icon: HomeIcon }],
+}
+
+const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
+  agent: [
+    {
+      title: 'Appraisal Workflow',
+      items: [
+        { label: 'Generate Appraisal', icon: NavPlaceholderIcon },
+        { label: 'Comparable Sales', icon: NavPlaceholderIcon },
+        { label: 'Client', icon: NavPlaceholderIcon },
+        { label: 'Client Report', icon: NavPlaceholderIcon },
+      ],
+    },
+  ],
+  valuer: [
+    {
+      title: 'Valuation Workflow',
+      items: [
+        { label: 'Generate Appraisal', icon: NavPlaceholderIcon },
+        { label: 'Valuation Cases', icon: NavPlaceholderIcon },
+        { label: 'Evidence Center', icon: NavPlaceholderIcon },
+      ],
+    },
+  ],
+  buyer: [
+    {
+      title: 'Property Discovery',
+      items: [
+        { label: 'Search Properties', icon: NavPlaceholderIcon },
+        { label: 'Saved', icon: NavPlaceholderIcon },
+      ],
+    },
+    {
+      title: 'Decision Tools',
+      items: [
+        { label: 'Affordability', icon: NavPlaceholderIcon },
+        { label: 'Buyer Report', icon: NavPlaceholderIcon },
+      ],
+    },
+    {
+      title: 'Location',
+      items: [{ label: 'Suburb Explorer', icon: NavPlaceholderIcon }],
+    },
+  ],
+  investor: [
+    {
+      title: 'Market Intelligence',
+      items: [
+        { label: 'Market Comparison', icon: NavPlaceholderIcon },
+        { label: 'Forecasting', icon: NavPlaceholderIcon },
+      ],
+    },
+    {
+      title: 'Financial Analysis',
+      items: [
+        { label: 'ROI Calculator', icon: NavPlaceholderIcon },
+        { label: 'Investor Report', icon: NavPlaceholderIcon },
+      ],
+    },
+  ],
 }
 
 const TRACKING_NAV: SidebarNavSection = {
@@ -80,16 +138,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   const activeRoleLabel = activeRoleMeta?.label ?? 'Real-Estate Agent'
   const navSections = useMemo<SidebarNavSection[]>(
     () => [
-      {
-        title: 'Overview',
-        items: [
-          { label: 'Dashboard', icon: HomeIcon },
-          ...NAV_ITEMS_BY_ROLE[resolvedRole].map((label) => ({
-            label,
-            icon: NavPlaceholderIcon,
-          })),
-        ],
-      },
+      OVERVIEW_NAV,
+      ...ROLE_NAV_SECTIONS[resolvedRole],
       TRACKING_NAV,
       ASSISTANCE_NAV,
     ],
