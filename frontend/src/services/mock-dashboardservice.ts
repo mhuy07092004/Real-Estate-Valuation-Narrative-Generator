@@ -81,6 +81,12 @@ const AGENT_DATA: DashboardMockPayload = {
       detail: '$720,000 • Draft Saved',
       timeAgo: 'Yesterday',
     },
+    {
+      id: '4',
+      title: 'Listing Appraisal - Bondi Beach',
+      detail: '$1,450,000 • In Review',
+      timeAgo: '2 days ago',
+    },
   ],
   insights: [
     {
@@ -172,8 +178,20 @@ const VALUER_DATA: DashboardMockPayload = {
     {
       id: '2',
       title: 'Evidence Pack - Westmead',
-      detail: '12 comps • Ready',
+      detail: '$890,000 • Ready',
       timeAgo: 'Yesterday',
+    },
+    {
+      id: '3',
+      title: 'Valuation Case - North Ryde',
+      detail: '$1,180,000 • Peer Review',
+      timeAgo: '3 hours ago',
+    },
+    {
+      id: '4',
+      title: 'Evidence Pack - Strathfield',
+      detail: '$760,000 • Draft',
+      timeAgo: '2 days ago',
     },
   ],
   insights: [
@@ -246,14 +264,26 @@ const INVESTOR_DATA: DashboardMockPayload = {
     {
       id: '1',
       title: 'Investor Report - Parramatta Unit',
-      detail: 'Yield 5.1% • Draft',
+      detail: '$620,000 • Draft',
       timeAgo: '3 hours ago',
     },
     {
       id: '2',
       title: 'Market Comparison - Inner West',
-      detail: '3 suburbs • Completed',
+      detail: '$540,000 • Completed',
       timeAgo: 'Yesterday',
+    },
+    {
+      id: '3',
+      title: 'ROI Scenario - Ashfield',
+      detail: '$715,000 • In Review',
+      timeAgo: '5 hours ago',
+    },
+    {
+      id: '4',
+      title: 'Portfolio Report - Canterbury',
+      detail: '$880,000 • Sent',
+      timeAgo: '2 days ago',
     },
   ],
   insights: [
@@ -332,8 +362,20 @@ const BUYER_DATA: DashboardMockPayload = {
     {
       id: '2',
       title: 'Affordability Check - Dulwich Hill',
-      detail: 'Pass • Saved',
+      detail: '$920,000 • Saved',
       timeAgo: 'Yesterday',
+    },
+    {
+      id: '3',
+      title: 'Buyer Report - Newtown Terrace',
+      detail: '$1,050,000 • Draft',
+      timeAgo: '6 hours ago',
+    },
+    {
+      id: '4',
+      title: 'Suburb Match - Leichhardt',
+      detail: '$875,000 • Completed',
+      timeAgo: '3 days ago',
     },
   ],
   insights: [

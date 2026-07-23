@@ -1,4 +1,4 @@
-import { Card, CardTitle } from '../../../components/ui/card/card'
+import { Card } from '../../../components/ui/card/card'
 
 export type RecentReport = {
   id: string
@@ -12,30 +12,21 @@ type RecentReportsPanelProps = {
   className?: string
 }
 
-function DocumentIcon() {
+function getReportPrice(detail: string) {
+  return detail.split(' • ')[0]?.trim() ?? detail
+}
+
+function getReportStatus(detail: string) {
+  return detail.split(' • ')[1]?.trim() ?? ''
+}
+
+function HouseIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path
-        d="M7 3.5h7l4 4V20.5a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1z"
+        d="M4 10.5L12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9.5z"
         stroke="currentColor"
         strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      <path d="M14 3.5V8h4.5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M9 12h6M9 15.5h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function ClockIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.5" />
-      <path
-        d="M12 8v4.5l3 1.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
         strokeLinejoin="round"
       />
     </svg>
@@ -45,8 +36,8 @@ function ClockIcon() {
 export function RecentReportsPanel({ reports, className = '' }: RecentReportsPanelProps) {
   return (
     <Card className={className}>
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <CardTitle>Recent Reports</CardTitle>
+      <header className="flex items-center justify-between gap-3 border-b border-black/5 pb-4">
+        <h3 className="text-lg font-semibold text-black sm:text-xl">Recent Reports</h3>
         <a
           href="#"
           className="shrink-0 text-sm font-medium text-relaive-primary transition-colors hover:text-relaive-primary-hover"
@@ -54,24 +45,43 @@ export function RecentReportsPanel({ reports, className = '' }: RecentReportsPan
         >
           View All ↗
         </a>
-      </div>
+      </header>
 
-      <ul className="flex flex-col gap-4">
-        {reports.map((report) => (
-          <li key={report.id} className="flex items-start gap-3">
-            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-relaive-primary/10 text-relaive-primary">
-              <DocumentIcon />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-relaive-navy">{report.title}</p>
-              <p className="mt-0.5 truncate text-sm text-relaive-gray">{report.detail}</p>
-              <p className="mt-1.5 flex items-center gap-1.5 text-xs text-relaive-gray">
-                <ClockIcon />
-                {report.timeAgo}
-              </p>
-            </div>
-          </li>
-        ))}
+      <ul className="pt-1">
+        {reports.slice(0, 4).map((report) => {
+          const price = getReportPrice(report.detail)
+          const status = getReportStatus(report.detail)
+
+          return (
+            <li
+              key={report.id}
+              className="flex items-center gap-3 border-b border-black/5 py-4 last:border-b-0"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-relaive-primary/10 text-relaive-primary">
+                <HouseIcon />
+              </span>
+
+              <div className="min-w-0 flex-1">
+                <button
+                  type="button"
+                  aria-label={`Open report: ${report.title}`}
+                  className="block max-w-full truncate text-left text-sm font-semibold text-black transition-colors hover:text-relaive-primary hover:underline"
+                  onClick={() => {}}
+                >
+                  {report.title}
+                </button>
+                <p className="mt-0.5 truncate text-sm text-relaive-gray">{price}</p>
+                <p className="mt-0.5 truncate text-xs text-relaive-gray/80">{report.timeAgo}</p>
+              </div>
+
+              {status ? (
+                <span className="shrink-0 rounded-full bg-relaive-primary/10 px-2.5 py-1 text-right text-xs font-medium text-relaive-primary">
+                  {status}
+                </span>
+              ) : null}
+            </li>
+          )
+        })}
       </ul>
     </Card>
   )
