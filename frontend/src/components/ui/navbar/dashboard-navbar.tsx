@@ -52,9 +52,10 @@ const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
     {
       title: 'Valuation Workflow',
       items: [
-        { label: 'Generate Appraisal', icon: NavPlaceholderIcon },
         { label: 'Valuation Cases', icon: NavPlaceholderIcon },
-        { label: 'Evidence Center', icon: NavPlaceholderIcon },
+        { label: 'New Valuation', icon: NavPlaceholderIcon },
+        { label: 'Evidence Centre', icon: NavPlaceholderIcon },
+        { label: 'Reports', icon: NavPlaceholderIcon },
       ],
     },
   ],
