@@ -116,6 +116,7 @@ type DashboardNavbarProps = {
 
 function resolveActiveNavFromPath(pathname: string): string {
   if (pathname.endsWith('/valuation-cases')) return 'Valuation Cases'
+  if (pathname.endsWith('/evidence-centre')) return 'Evidence Centre'
   if (/^\/dashboard\/[^/]+\/?$/.test(pathname)) return 'Dashboard'
   return 'Dashboard'
 }
@@ -160,6 +161,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   useEffect(() => {
     if (pathname.endsWith('/valuation-cases')) {
       setActiveNav('Valuation Cases')
+    } else if (pathname.endsWith('/evidence-centre')) {
+      setActiveNav('Evidence Centre')
     } else if (/^\/dashboard\/[^/]+\/?$/.test(pathname)) {
       setActiveNav('Dashboard')
     }
@@ -191,6 +194,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate(`/dashboard/${resolvedRole}`)
     } else if (label === 'Valuation Cases' && resolvedRole === 'valuer') {
       navigate('/dashboard/valuer/valuation-cases')
+    } else if (label === 'Evidence Centre' && resolvedRole === 'valuer') {
+      navigate('/dashboard/valuer/evidence-centre')
     } else {
       navigate(`/dashboard/${resolvedRole}/mock`)
     }

@@ -1,4 +1,5 @@
 import type { CaseStatus } from '../../../services/mock-case-service'
+import type { EvidenceStatus } from '../../../services/mock-evidence-service'
 
 const STATUS_STYLES: Record<CaseStatus, { bg: string; text: string; dot: string; label: string }> = {
   valuer_review: {
@@ -56,6 +57,52 @@ type StatusBadgeProps = {
 
 export function StatusBadge({ status, className = '' }: StatusBadgeProps) {
   const styles = STATUS_STYLES[status]
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${styles.bg} ${styles.text} ${className}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${styles.dot}`} aria-hidden="true" />
+      {styles.label}
+    </span>
+  )
+}
+
+const EVIDENCE_STATUS_STYLES: Record<
+  EvidenceStatus,
+  { bg: string; text: string; dot: string; label: string }
+> = {
+  verified: {
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-600',
+    dot: 'bg-emerald-500',
+    label: 'Verified',
+  },
+  pending: {
+    bg: 'bg-orange-50',
+    text: 'text-orange-600',
+    dot: 'bg-orange-500',
+    label: 'Pending',
+  },
+  missing: {
+    bg: 'bg-red-50',
+    text: 'text-red-600',
+    dot: 'bg-red-500',
+    label: 'Missing',
+  },
+}
+
+export function getEvidenceStatusLabel(status: EvidenceStatus): string {
+  return EVIDENCE_STATUS_STYLES[status].label
+}
+
+type EvidenceStatusBadgeProps = {
+  status: EvidenceStatus
+  className?: string
+}
+
+export function EvidenceStatusBadge({ status, className = '' }: EvidenceStatusBadgeProps) {
+  const styles = EVIDENCE_STATUS_STYLES[status]
 
   return (
     <span
