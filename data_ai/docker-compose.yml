@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: relaive-ai-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: relaive_ai
+      POSTGRES_USER: relaive
+      POSTGRES_PASSWORD: relaive_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U relaive -d relaive_ai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
