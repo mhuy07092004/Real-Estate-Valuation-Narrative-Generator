@@ -1,8 +1,11 @@
+import { CaseTable } from '../../../../components/ui/table/case-table'
 import { StatCard } from '../../../../components/ui/stat-card/stat-card'
+import { getCaseListMockData } from '../../../../services/mock-case-service'
 import { getValuationCasesMockData } from '../../../../services/mock-dashboardservice'
 
 export function ValuationCases() {
   const data = getValuationCasesMockData()
+  const cases = getCaseListMockData()
 
   return (
     <div className="flex flex-col">
@@ -21,6 +24,8 @@ export function ValuationCases() {
             <StatCard key={stat.label} label={stat.label} value={stat.value} tone={stat.tone} />
           ))}
         </div>
+
+        <CaseTable cases={cases} />
       </div>
     </div>
   )

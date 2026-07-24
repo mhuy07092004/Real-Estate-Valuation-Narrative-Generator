@@ -1,0 +1,68 @@
+import type { CaseStatus } from '../../../services/mock-case-service'
+
+const STATUS_STYLES: Record<CaseStatus, { bg: string; text: string; dot: string; label: string }> = {
+  valuer_review: {
+    bg: 'bg-blue-50',
+    text: 'text-blue-600',
+    dot: 'bg-blue-500',
+    label: 'Valuer Review',
+  },
+  evidence_collection: {
+    bg: 'bg-orange-50',
+    text: 'text-orange-600',
+    dot: 'bg-orange-500',
+    label: 'Evidence Collection',
+  },
+  reviewer_approval: {
+    bg: 'bg-teal-50',
+    text: 'text-teal-600',
+    dot: 'bg-teal-500',
+    label: 'Reviewer Approval',
+  },
+  approved: {
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-600',
+    dot: 'bg-emerald-500',
+    label: 'Approved',
+  },
+  exported: {
+    bg: 'bg-emerald-100',
+    text: 'text-emerald-700',
+    dot: 'bg-emerald-600',
+    label: 'Exported',
+  },
+  draft: {
+    bg: 'bg-gray-100',
+    text: 'text-gray-500',
+    dot: 'bg-gray-400',
+    label: 'Draft',
+  },
+  returned_for_revision: {
+    bg: 'bg-red-50',
+    text: 'text-red-600',
+    dot: 'bg-red-500',
+    label: 'Returned for Revision',
+  },
+}
+
+export function getCaseStatusLabel(status: CaseStatus): string {
+  return STATUS_STYLES[status].label
+}
+
+type StatusBadgeProps = {
+  status: CaseStatus
+  className?: string
+}
+
+export function StatusBadge({ status, className = '' }: StatusBadgeProps) {
+  const styles = STATUS_STYLES[status]
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${styles.bg} ${styles.text} ${className}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${styles.dot}`} aria-hidden="true" />
+      {styles.label}
+    </span>
+  )
+}
