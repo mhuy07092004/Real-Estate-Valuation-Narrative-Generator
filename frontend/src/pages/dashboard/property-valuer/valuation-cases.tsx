@@ -1,7 +1,7 @@
-import { CaseTable } from '../../../../components/ui/table/case-table'
-import { StatCard } from '../../../../components/ui/stat-card/stat-card'
-import { getCaseListMockData } from '../../../../services/mock-case-service'
-import { getValuationCasesMockData } from '../../../../services/mock-dashboardservice'
+import { CaseTable } from '../../../components/ui/table/case-table'
+import { StatCard } from '../../../components/ui/stat-card/stat-card'
+import { getCaseListMockData } from '../../../services/mock-case-service'
+import { getValuationCasesMockData } from '../../../services/mock-dashboardservice'
 
 export function ValuationCases() {
   const data = getValuationCasesMockData()

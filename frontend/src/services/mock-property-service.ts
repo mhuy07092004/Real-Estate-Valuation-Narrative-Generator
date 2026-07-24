@@ -1,4 +1,4 @@
-import type { PropertyCardData } from '../../../components/ui/property-card/property-card'
+import type { PropertyCardData } from '../components/ui/property-card/property-card'
 
 export const MOCK_PROPERTIES: PropertyCardData[] = [
   {

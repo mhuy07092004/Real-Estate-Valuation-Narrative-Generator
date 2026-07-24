@@ -12,10 +12,10 @@ import {
   DashboardRoleRedirect,
 } from '../pages/dashboard'
 import MockPageRoute from '../pages/mock'
-import { EvidenceCentre } from '../features/dashboard/components/property-valuer/evidence-centre'
-import SearchPropertyPageRoute from '../pages/search-property'
-import SavedPropertyPageRoute from '../pages/saved-property'
-import { ValuationCases } from '../features/dashboard/components/property-valuer/valuation-cases'
+import { EvidenceCentre } from '../pages/dashboard/property-valuer/evidence-centre'
+import { SearchProperty } from '../pages/dashboard/buyer/search-property'
+import { SavedProperty } from '../pages/dashboard/buyer/saved-property'
+import { ValuationCases } from '../pages/dashboard/property-valuer/valuation-cases'
 import { ProtectedRoute } from '../features/auth/components/protected-route'
 
 export function AppRoutes() {
@@ -40,8 +40,8 @@ export function AppRoutes() {
           <Route index element={<DashboardRoleHome />} />
           <Route path="valuation-cases" element={<ValuationCases />} />
           <Route path="evidence-centre" element={<EvidenceCentre />} />
-          <Route path="search-properties" element={<SearchPropertyPageRoute />} />
-          <Route path="saved" element={<SavedPropertyPageRoute />} />
+          <Route path="search-properties" element={<SearchProperty />} />
+          <Route path="saved" element={<SavedProperty />} />
           <Route path="mock" element={<MockPageRoute />} />
         </Route>
       </Route>

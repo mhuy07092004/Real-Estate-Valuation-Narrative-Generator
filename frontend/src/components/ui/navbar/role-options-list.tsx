@@ -1,5 +1,5 @@
 import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-role'
-import { preloadDashboardRole } from '../../../features/dashboard/utils/dashboard-role-lazy'
+import { preloadDashboardRole } from '../../../pages/dashboard/dashboard-role-lazy'
 import type { RoleOption } from './dashboard-navbar.types'
 
 type RoleOptionsListProps = {

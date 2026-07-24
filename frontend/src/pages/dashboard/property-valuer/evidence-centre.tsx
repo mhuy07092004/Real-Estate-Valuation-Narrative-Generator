@@ -2,19 +2,19 @@ import { useMemo } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { StatCard } from '../../../../components/ui/stat-card/stat-card'
-import { ConfidenceBar } from '../../../../components/ui/table/confidence-bar'
-import { ClockIcon, DataTable, type DataTableTab } from '../../../../components/ui/table/data-table'
+import { StatCard } from '../../../components/ui/stat-card/stat-card'
+import { ConfidenceBar } from '../../../components/ui/table/confidence-bar'
+import { ClockIcon, DataTable, type DataTableTab } from '../../../components/ui/table/data-table'
 import {
   EvidenceStatusBadge,
   getEvidenceStatusLabel,
-} from '../../../../components/ui/table/status-badge'
+} from '../../../components/ui/table/status-badge'
 import {
   getEvidenceCentreMockData,
   getEvidenceListMockData,
   type EvidenceCategory,
   type EvidenceItem,
-} from '../../../../services/mock-evidence-service'
+} from '../../../services/mock-evidence-service'
 
 dayjs.extend(relativeTime)
 

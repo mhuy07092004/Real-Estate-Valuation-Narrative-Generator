@@ -1,5 +1,5 @@
 import { lazy } from 'react'
-import { DASHBOARD_ROLES, type DashboardRole } from './dashboard-role'
+import { DASHBOARD_ROLES, type DashboardRole } from '../../features/dashboard/utils/dashboard-role'
 
 /**
  * One dynamic import() per role → each role dashboard becomes its own chunk.
@@ -7,10 +7,10 @@ import { DASHBOARD_ROLES, type DashboardRole } from './dashboard-role'
  * preloaded in the background (see `preloadOtherDashboardRoles`).
  */
 const ROLE_LOADERS: Record<DashboardRole, () => Promise<{ default: React.ComponentType }>> = {
-  agent: () => import('../components/real-estate-agent/agent-dashboard').then((m) => ({ default: m.AgentDashboard })),
-  valuer: () => import('../components/property-valuer/valuer-dashboard').then((m) => ({ default: m.ValuerDashboard })),
-  investor: () => import('../components/investor/investor-dashboard').then((m) => ({ default: m.InvestorDashboard })),
-  buyer: () => import('../components/buyer/buyer-dashboard').then((m) => ({ default: m.BuyerDashboard })),
+  agent: () => import('./real-estate-agent/agent-dashboard').then((m) => ({ default: m.AgentDashboard })),
+  valuer: () => import('./property-valuer/valuer-dashboard').then((m) => ({ default: m.ValuerDashboard })),
+  investor: () => import('./investor/investor-dashboard').then((m) => ({ default: m.InvestorDashboard })),
+  buyer: () => import('./buyer/buyer-dashboard').then((m) => ({ default: m.BuyerDashboard })),
 }
 
 /** Lazy, code-split components — safe to render inside <Suspense>. */
