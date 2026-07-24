@@ -1,8 +1,8 @@
 import { AddressSearch } from '../../../../components/ui/search-bar/address-search'
 import { Button } from '../../../../components/ui/button/button'
 import { FilterButton } from '../../../../components/ui/button/filter-button'
-
-const MOCK_MATCH_COUNT = 128
+import { PropertyCard } from '../../../../components/ui/property-card/property-card'
+import { MOCK_PROPERTIES } from '../../utils/mock-property'
 
 export function SearchProperty() {
   return (
@@ -12,7 +12,7 @@ export function SearchProperty() {
           Search Properties
         </h1>
         <p className="mt-1 text-sm text-[#1C2A3880] sm:text-base">
-          {MOCK_MATCH_COUNT} match your criteria
+          {MOCK_PROPERTIES.length} match your criteria
         </p>
       </header>
 
@@ -23,6 +23,12 @@ export function SearchProperty() {
           <Button variant="primary" size="md" type="button">
             Search
           </Button>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {MOCK_PROPERTIES.map((property) => (
+            <PropertyCard key={property.id} property={property} />
+          ))}
         </div>
       </div>
     </div>
