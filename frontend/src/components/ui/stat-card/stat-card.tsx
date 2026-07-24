@@ -3,10 +3,10 @@ import type { ReactNode } from 'react'
 type StatTone = 'blue' | 'teal' | 'orange' | 'sky'
 
 type StatCardProps = {
-  icon: ReactNode
+  icon?: ReactNode
   label: string
   value: string
-  trend: string
+  trend?: string
   tone?: StatTone
   className?: string
 }
@@ -51,16 +51,20 @@ export function StatCard({
     <article
       className={`flex flex-col rounded-3xl border border-black/5 bg-white p-5 shadow-[0_4px_24px_rgba(26,32,44,0.06)] sm:p-6 ${className}`}
     >
-      <div
-        className={`mb-4 flex h-10 w-10 items-center justify-center rounded-xl ${styles.iconWrap} ${styles.icon}`}
-      >
-        {icon}
-      </div>
+      {icon != null && (
+        <div
+          className={`mb-4 flex h-10 w-10 items-center justify-center rounded-xl ${styles.iconWrap} ${styles.icon}`}
+        >
+          {icon}
+        </div>
+      )}
       <p className="text-sm text-relaive-gray">{label}</p>
       <p className="mt-1 text-2xl font-bold tracking-tight text-relaive-navy sm:text-3xl">
         {value}
       </p>
-      <p className={`mt-3 text-sm font-medium ${styles.trend}`}>{trend}</p>
+      {trend != null && trend !== '' && (
+        <p className={`mt-3 text-sm font-medium ${styles.trend}`}>{trend}</p>
+      )}
     </article>
   )
 }

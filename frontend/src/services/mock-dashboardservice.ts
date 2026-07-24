@@ -422,3 +422,30 @@ const DATA_BY_ROLE: Record<DashboardRole, DashboardMockPayload> = {
 export function getDashboardMockData(role: DashboardRole): DashboardMockPayload {
   return DATA_BY_ROLE[role]
 }
+
+export type ValuationCasesStat = {
+  label: string
+  value: string
+  tone: 'blue' | 'teal' | 'orange' | 'sky'
+}
+
+export type ValuationCasesMockPayload = {
+  totalCases: number
+  returnedForRevision: number
+  stats: ValuationCasesStat[]
+}
+
+const VALUATION_CASES_DATA: ValuationCasesMockPayload = {
+  totalCases: 28,
+  returnedForRevision: 3,
+  stats: [
+    { label: 'In Review', value: '7', tone: 'blue' },
+    { label: 'Low Confidence', value: '4', tone: 'orange' },
+    { label: 'Awaiting Approval', value: '5', tone: 'sky' },
+    { label: 'Approved this month', value: '12', tone: 'teal' },
+  ],
+}
+
+export function getValuationCasesMockData(): ValuationCasesMockPayload {
+  return VALUATION_CASES_DATA
+}

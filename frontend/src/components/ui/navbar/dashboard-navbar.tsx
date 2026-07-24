@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState, type ReactNode } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../../features/auth/hooks/use-auth'
 import { formatShortName, getInitials } from '../../../features/dashboard/utils/dashboard-user'
 import {
@@ -114,8 +114,15 @@ type DashboardNavbarProps = {
   children?: ReactNode
 }
 
+function resolveActiveNavFromPath(pathname: string): string {
+  if (pathname.endsWith('/valuation-cases')) return 'Valuation Cases'
+  if (/^\/dashboard\/[^/]+\/?$/.test(pathname)) return 'Dashboard'
+  return 'Dashboard'
+}
+
 export function DashboardNavbar({ children }: DashboardNavbarProps) {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const { role: roleParam } = useParams<{ role: string }>()
   const { user, logout } = useAuth()
   const userMenuRef = useRef<HTMLDivElement>(null)
@@ -128,7 +135,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   const [roleOpen, setRoleOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [roleListOpen, setRoleListOpen] = useState(false)
-  const [activeNav, setActiveNav] = useState('Dashboard')
+  const [activeNav, setActiveNav] = useState(() => resolveActiveNavFromPath(pathname))
 
   const resolvedRole: DashboardRole =
     roleParam && isDashboardRole(roleParam) && availableRoles.some((r) => r.value === roleParam)
@@ -149,6 +156,14 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   const displayName = user ? formatShortName(user.fullName) : 'User'
   const displayEmail = user?.email ?? ''
   const userInitials = user ? getInitials(user.fullName) : 'U'
+
+  useEffect(() => {
+    if (pathname.endsWith('/valuation-cases')) {
+      setActiveNav('Valuation Cases')
+    } else if (/^\/dashboard\/[^/]+\/?$/.test(pathname)) {
+      setActiveNav('Dashboard')
+    }
+  }, [pathname])
 
   useClickOutside(userMenuRef, userMenuOpen, () => {
     setUserMenuOpen(false)
@@ -174,6 +189,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
     setActiveNav(label)
     if (label === 'Dashboard') {
       navigate(`/dashboard/${resolvedRole}`)
+    } else if (label === 'Valuation Cases' && resolvedRole === 'valuer') {
+      navigate('/dashboard/valuer/valuation-cases')
     } else {
       navigate(`/dashboard/${resolvedRole}/mock`)
     }

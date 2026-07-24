@@ -1,5 +1,5 @@
 import { Suspense, useEffect } from 'react'
-import { Navigate, Outlet, useParams } from 'react-router-dom'
+import { Navigate, Outlet, useLocation, useParams } from 'react-router-dom'
 import { DashboardNavbar } from '../components/ui/navbar/dashboard-navbar'
 import { useAuth } from '../features/auth/hooks/use-auth'
 import { DashboardViewSkeleton } from '../features/dashboard/components/dashboard-view-skeleton'
@@ -13,13 +13,18 @@ import {
 import { LAZY_ROLE_VIEWS, preloadOtherDashboardRoles } from '../features/dashboard/utils/dashboard-role-lazy'
 import { formatUserDisplayDate } from '../features/dashboard/utils/dashboard-date'
 
+function isDashboardRoleHome(pathname: string) {
+  return /^\/dashboard\/[^/]+\/?$/.test(pathname)
+}
+
 function DashboardWelcomeHeader() {
   const { user } = useAuth()
   const { role: roleParam } = useParams<{ role: string }>()
+  const { pathname } = useLocation()
   const displayName = user?.fullName?.trim().split(/\s+/)[0] || 'User'
   const dateLabel = formatUserDisplayDate()
 
-  if (!roleParam || !isDashboardRole(roleParam)) return null
+  if (!roleParam || !isDashboardRole(roleParam) || !isDashboardRoleHome(pathname)) return null
 
   return (
     <header className="font-sans px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pt-8">

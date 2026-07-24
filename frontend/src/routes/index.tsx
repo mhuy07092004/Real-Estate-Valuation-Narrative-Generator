@@ -12,6 +12,7 @@ import {
   DashboardRoleRedirect,
 } from '../pages/dashboard'
 import MockPageRoute from '../pages/mock'
+import ValuationCasesPageRoute from '../pages/valuation-cases'
 import { ProtectedRoute } from '../features/auth/components/protected-route'
 
 export function AppRoutes() {
@@ -34,6 +35,7 @@ export function AppRoutes() {
         <Route index element={<DashboardRoleRedirect />} />
         <Route path=":role" element={<DashboardRoleGuard />}>
           <Route index element={<DashboardRoleHome />} />
+          <Route path="valuation-cases" element={<ValuationCasesPageRoute />} />
           <Route path="mock" element={<MockPageRoute />} />
         </Route>
       </Route>
