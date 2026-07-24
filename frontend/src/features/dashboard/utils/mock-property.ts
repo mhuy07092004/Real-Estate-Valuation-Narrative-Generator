@@ -92,3 +92,36 @@ export const MOCK_PROPERTIES: PropertyCardData[] = [
     status: 'above_range',
   },
 ]
+
+export const MOCK_SAVED_PROPERTIES: PropertyCardData[] = [
+  {
+    id: 'saved-1',
+    address: {
+      street: '18 Cecil St',
+      suburb: 'South Melbourne',
+      state: 'VIC',
+      postcode: '3205',
+    },
+    price: 1325000,
+    estimatedRange: { min: '$1.25M', max: '$1.38M' },
+    propertyType: 'House',
+    features: { beds: 3, baths: 2, areaSqm: 295, parking: 1 },
+    listedDays: 6,
+    status: 'within_range',
+  },
+  {
+    id: 'saved-2',
+    address: {
+      street: '9 York St',
+      suburb: 'South Melbourne',
+      state: 'VIC',
+      postcode: '3205',
+    },
+    price: 865000,
+    estimatedRange: { min: '$810k', max: '$890k' },
+    propertyType: 'Unit',
+    features: { beds: 2, baths: 2, areaSqm: 110 },
+    listedDays: 12,
+    status: 'below_range',
+  },
+]
