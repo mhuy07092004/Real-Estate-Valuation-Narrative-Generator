@@ -118,6 +118,7 @@ function resolveActiveNavFromPath(pathname: string): string {
   if (pathname.endsWith('/valuation-cases')) return 'Valuation Cases'
   if (pathname.endsWith('/evidence-centre')) return 'Evidence Centre'
   if (pathname.endsWith('/search-properties')) return 'Search Properties'
+  if (pathname.endsWith('/saved')) return 'Saved'
   if (/^\/dashboard\/[^/]+\/?$/.test(pathname)) return 'Dashboard'
   return 'Dashboard'
 }
@@ -166,6 +167,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       setActiveNav('Evidence Centre')
     } else if (pathname.endsWith('/search-properties')) {
       setActiveNav('Search Properties')
+    } else if (pathname.endsWith('/saved')) {
+      setActiveNav('Saved')
     } else if (/^\/dashboard\/[^/]+\/?$/.test(pathname)) {
       setActiveNav('Dashboard')
     }
@@ -201,6 +204,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate('/dashboard/valuer/evidence-centre')
     } else if (label === 'Search Properties' && resolvedRole === 'buyer') {
       navigate('/dashboard/buyer/search-properties')
+    } else if (label === 'Saved' && resolvedRole === 'buyer') {
+      navigate('/dashboard/buyer/saved')
     } else {
       navigate(`/dashboard/${resolvedRole}/mock`)
     }

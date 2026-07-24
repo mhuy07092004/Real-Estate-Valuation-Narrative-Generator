@@ -14,6 +14,7 @@ import {
 import MockPageRoute from '../pages/mock'
 import EvidenceCentrePageRoute from '../pages/evidence-centre'
 import SearchPropertyPageRoute from '../pages/search-property'
+import SavedPropertyPageRoute from '../pages/saved-property'
 import ValuationCasesPageRoute from '../pages/valuation-cases'
 import { ProtectedRoute } from '../features/auth/components/protected-route'
 
@@ -40,6 +41,7 @@ export function AppRoutes() {
           <Route path="valuation-cases" element={<ValuationCasesPageRoute />} />
           <Route path="evidence-centre" element={<EvidenceCentrePageRoute />} />
           <Route path="search-properties" element={<SearchPropertyPageRoute />} />
+          <Route path="saved" element={<SavedPropertyPageRoute />} />
           <Route path="mock" element={<MockPageRoute />} />
         </Route>
       </Route>
