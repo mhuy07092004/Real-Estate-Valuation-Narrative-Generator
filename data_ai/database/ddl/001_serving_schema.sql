@@ -1,6 +1,14 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE EXTENSION IF NOT EXISTS vector;
 
+DROP TABLE IF EXISTS rag_document_chunks CASCADE;
+DROP TABLE IF EXISTS gold_narrative_training_pairs CASCADE;
+DROP TABLE IF EXISTS gold_suburb_aggregates CASCADE;
+DROP TABLE IF EXISTS gold_property_model_ready CASCADE;
+
+DROP TYPE IF EXISTS buyer_purpose_enum CASCADE;
+DROP TYPE IF EXISTS source_type_enum CASCADE;
+
 CREATE TYPE buyer_purpose_enum AS ENUM ('family', 'personal', 'investment');
 CREATE TYPE source_type_enum AS ENUM (
   'client_historical',
@@ -23,7 +31,8 @@ CREATE TABLE gold_property_model_ready (
   price DECIMAL(14,2) NOT NULL,
   sale_date DATE NOT NULL,
   suburb_median_price_index DECIMAL(12,2),
-  cash_rate_at_sale DECIMAL(12,4)
+  cash_rate_at_sale DECIMAL(12,4),
+  is_seed_data BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE gold_suburb_aggregates (
@@ -34,6 +43,7 @@ CREATE TABLE gold_suburb_aggregates (
   listing_count INT NOT NULL,
   avg_days_on_market DECIMAL(10,2) NOT NULL,
   growth_pct_yoy DECIMAL(10,4) NOT NULL,
+  is_seed_data BOOLEAN NOT NULL DEFAULT FALSE,
   PRIMARY KEY (suburb, period_start)
 );
 
@@ -44,7 +54,8 @@ CREATE TABLE gold_narrative_training_pairs (
   buyer_purpose buyer_purpose_enum NOT NULL,
   source_type source_type_enum NOT NULL,
   consent_confirmed BOOLEAN NOT NULL,
-  added_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  added_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  is_seed_data BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE rag_document_chunks (
@@ -53,5 +64,6 @@ CREATE TABLE rag_document_chunks (
   publish_date DATE NOT NULL,
   topic VARCHAR NOT NULL,
   chunk_text TEXT NOT NULL,
-  embedding vector NULL
+  embedding vector NULL,
+  is_seed_data BOOLEAN NOT NULL DEFAULT FALSE
 );
