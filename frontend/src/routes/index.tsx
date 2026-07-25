@@ -16,6 +16,7 @@ import { EvidenceCentre } from '../pages/dashboard/property-valuer/evidence-cent
 import { SearchProperty } from '../pages/dashboard/buyer/search-property'
 import { SavedProperty } from '../pages/dashboard/buyer/saved-property'
 import { ValuationCases } from '../pages/dashboard/property-valuer/valuation-cases'
+import { Settings } from '../pages/dashboard/settings'
 import { ProtectedRoute } from '../features/auth/components/protected-route'
 
 export function AppRoutes() {
@@ -42,6 +43,7 @@ export function AppRoutes() {
           <Route path="evidence-centre" element={<EvidenceCentre />} />
           <Route path="search-properties" element={<SearchProperty />} />
           <Route path="saved" element={<SavedProperty />} />
+          <Route path="settings" element={<Settings />} />
           <Route path="mock" element={<MockPageRoute />} />
         </Route>
       </Route>
