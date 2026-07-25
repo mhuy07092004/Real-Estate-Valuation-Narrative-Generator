@@ -17,6 +17,7 @@ import { SearchProperty } from '../pages/dashboard/buyer/search-property'
 import { SavedProperty } from '../pages/dashboard/buyer/saved-property'
 import { ValuationCases } from '../pages/dashboard/property-valuer/valuation-cases'
 import { Settings } from '../pages/dashboard/settings'
+import { Copilot } from '../pages/dashboard/copilot'
 import { ProtectedRoute } from '../features/auth/components/protected-route'
 
 export function AppRoutes() {
@@ -44,6 +45,7 @@ export function AppRoutes() {
           <Route path="search-properties" element={<SearchProperty />} />
           <Route path="saved" element={<SavedProperty />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="copilot" element={<Copilot />} />
           <Route path="mock" element={<MockPageRoute />} />
         </Route>
       </Route>

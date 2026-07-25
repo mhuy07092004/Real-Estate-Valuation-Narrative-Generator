@@ -33,6 +33,8 @@ type DashboardTopbarProps = {
   displayName: string
   displayEmail: string
   userInitials: string
+  onNavigateToSettings: () => void
+  onNavigateToCopilot: () => void
   onSignOut: () => void
 }
 
@@ -51,6 +53,8 @@ export function DashboardTopbar({
   displayName,
   displayEmail,
   userInitials,
+  onNavigateToSettings,
+  onNavigateToCopilot,
   onSignOut,
 }: DashboardTopbarProps) {
   return (
@@ -89,6 +93,7 @@ export function DashboardTopbar({
 
         <button
           type="button"
+          onClick={onNavigateToCopilot}
           className="inline-flex h-9 items-center gap-2 rounded-lg border border-black/10 bg-white px-3 text-sm font-medium text-relaive-navy transition-colors hover:bg-relaive-navy/5"
         >
           <BotIcon />
@@ -163,15 +168,17 @@ export function DashboardTopbar({
               <ul className="border-b border-black/5 py-1.5">
                 {ACCOUNT_MENU_ITEMS.map((label) => (
                   <li key={label}>
-                    <a
-                      href="#"
+                    <button
+                      type="button"
                       role="menuitem"
-                      onClick={(event) => event.preventDefault()}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-relaive-navy transition-colors hover:bg-relaive-navy/5"
+                      onClick={() => {
+                        if (label === 'Account Settings') onNavigateToSettings()
+                      }}
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-relaive-navy transition-colors hover:bg-relaive-navy/5"
                     >
                       <NavPlaceholderIcon className="shrink-0 text-relaive-gray" />
                       <span>{label}</span>
-                    </a>
+                    </button>
                   </li>
                 ))}
               </ul>

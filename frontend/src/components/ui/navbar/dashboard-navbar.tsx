@@ -120,6 +120,7 @@ function resolveActiveNavFromPath(pathname: string): string {
   if (pathname.endsWith('/search-properties')) return 'Search Properties'
   if (pathname.endsWith('/saved')) return 'Saved'
   if (pathname.endsWith('/settings')) return 'Settings'
+  if (pathname.endsWith('/copilot')) return 'AI Copilot'
   if (/^\/dashboard\/[^/]+\/?$/.test(pathname)) return 'Dashboard'
   return 'Dashboard'
 }
@@ -172,6 +173,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       setActiveNav('Saved')
     } else if (pathname.endsWith('/settings')) {
       setActiveNav('Settings')
+    } else if (pathname.endsWith('/copilot')) {
+      setActiveNav('AI Copilot')
     } else if (/^\/dashboard\/[^/]+\/?$/.test(pathname)) {
       setActiveNav('Dashboard')
     }
@@ -197,6 +200,18 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
     navigate('/signin')
   }
 
+  function handleNavigateToSettings() {
+    setUserMenuOpen(false)
+    setRoleListOpen(false)
+    setActiveNav('Settings')
+    navigate(`/dashboard/${resolvedRole}/settings`)
+  }
+
+  function handleNavigateToCopilot() {
+    setActiveNav('AI Copilot')
+    navigate(`/dashboard/${resolvedRole}/copilot`)
+  }
+
   function handleNavChange(label: string) {
     setActiveNav(label)
     if (label === 'Dashboard') {
@@ -211,6 +226,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate('/dashboard/buyer/saved')
     } else if (label === 'Settings') {
       navigate(`/dashboard/${resolvedRole}/settings`)
+    } else if (label === 'AI Copilot') {
+      navigate(`/dashboard/${resolvedRole}/copilot`)
     } else {
       navigate(`/dashboard/${resolvedRole}/mock`)
     }
@@ -261,6 +278,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
           displayName={displayName}
           displayEmail={displayEmail}
           userInitials={userInitials}
+          onNavigateToSettings={handleNavigateToSettings}
+          onNavigateToCopilot={handleNavigateToCopilot}
           onSignOut={handleSignOut}
         />
 
