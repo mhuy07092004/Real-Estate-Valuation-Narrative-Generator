@@ -1,0 +1,4 @@
+psycopg
+psycopg[binary]
+fastapi
+uvicorn
