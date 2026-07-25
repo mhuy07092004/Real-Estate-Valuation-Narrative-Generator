@@ -2,7 +2,7 @@ import { Suspense, useEffect } from 'react'
 import { Navigate, Outlet, useLocation, useParams } from 'react-router-dom'
 import { DashboardNavbar } from '../../components/ui/navbar/dashboard-navbar'
 import { useAuth } from '../../features/auth/hooks/use-auth'
-import { DashboardViewSkeleton } from './dashboard-view-skeleton'
+import { DashboardViewSkeleton } from './dashboard-view-skeleton.tsx'
 import {
   getActiveDashboardRole,
   getDefaultDashboardRole,
@@ -10,7 +10,7 @@ import {
   resolveDashboardRole,
   setActiveDashboardRole,
 } from '../../features/dashboard/utils/dashboard-role'
-import { LAZY_ROLE_VIEWS, preloadOtherDashboardRoles } from './dashboard-role-lazy'
+import { LAZY_ROLE_VIEWS, preloadOtherDashboardRoles } from './dashboard-role-lazy.tsx'
 import { formatUserDisplayDate } from '../../features/dashboard/utils/dashboard-date'
 
 function isDashboardRoleHome(pathname: string) {
