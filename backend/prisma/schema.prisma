@@ -1,0 +1,46 @@
+// Local dev database. Swapping to production Postgres later is a
+// datasource change only — provider + url — nothing in src/ changes.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Subset of the team's ERD needed for registration + login.
+// Other tables (plans, properties, reports, etc.) get added by
+// whoever picks up those tickets — this migration only owns
+// users + roles so it doesn't collide with that work.
+
+model Role {
+  roleId   Int    @id @default(autoincrement()) @map("role_id")
+  roleName String @unique @map("role_name")
+
+  users User[]
+
+  @@map("roles")
+}
+
+enum AuthProvider {
+  local
+  google
+  microsoft
+}
+
+model User {
+  userId       String       @id @default(uuid()) @map("user_id")
+  fullName     String       @map("full_name")
+  email        String       @unique
+  passwordHash String?      @map("password_hash") // null for OAuth-only accounts
+  authProvider AuthProvider @default(local) @map("auth_provider")
+  roleId       Int          @map("role_id")
+  isActive     Boolean      @default(true) @map("is_active")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  lastLoginAt  DateTime?    @map("last_login_at")
+
+  role Role @relation(fields: [roleId], references: [roleId])
+
+  @@map("users")
+}
