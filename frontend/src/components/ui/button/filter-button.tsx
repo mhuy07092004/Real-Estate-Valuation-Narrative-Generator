@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from 'react'
+import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
 function FunnelIcon() {
   return (
@@ -15,10 +15,12 @@ function FunnelIcon() {
 
 type FilterButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> & {
   label?: string
+  icon?: ReactNode
 }
 
 export function FilterButton({
   label = 'Filters',
+  icon,
   title,
   className = '',
   onClick,
@@ -33,7 +35,7 @@ export function FilterButton({
       className={`inline-flex items-center gap-2 rounded-lg border border-black/10 px-3.5 py-2 text-sm font-medium text-relaive-navy hover:bg-relaive-navy/5 ${className}`}
       {...props}
     >
-      <FunnelIcon />
+      {icon ?? <FunnelIcon />}
       {label}
     </button>
   )

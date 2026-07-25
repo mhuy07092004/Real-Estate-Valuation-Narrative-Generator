@@ -34,9 +34,20 @@ const CASE_TABS: DataTableTab<CaseItem>[] = [
 type CaseTableProps = {
   cases: CaseItem[]
   className?: string
+  tabs?: DataTableTab<CaseItem>[]
+  defaultTabId?: string
+  searchPlaceholder?: string
+  emptyMessage?: string
 }
 
-export function CaseTable({ cases, className = '' }: CaseTableProps) {
+export function CaseTable({
+  cases,
+  className = '',
+  tabs = CASE_TABS,
+  defaultTabId = 'all',
+  searchPlaceholder = 'Search cases, properties, clients...',
+  emptyMessage = 'No cases match your search.',
+}: CaseTableProps) {
   const columns = useMemo<ColumnDef<CaseItem, unknown>[]>(
     () => [
       {
@@ -113,16 +124,16 @@ export function CaseTable({ cases, className = '' }: CaseTableProps) {
     <DataTable
       data={cases}
       columns={columns}
-      tabs={CASE_TABS}
-      defaultTabId="all"
+      tabs={tabs}
+      defaultTabId={defaultTabId}
       getRowId={(item) => item.id}
-      searchPlaceholder="Search cases, properties, clients..."
+      searchPlaceholder={searchPlaceholder}
       searchFilter={(item, query) =>
         item.id.toLowerCase().includes(query) ||
         item.address.toLowerCase().includes(query) ||
         item.clientName.toLowerCase().includes(query)
       }
-      emptyMessage="No cases match your search."
+      emptyMessage={emptyMessage}
       className={className}
     />
   )

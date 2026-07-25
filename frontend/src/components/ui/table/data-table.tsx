@@ -26,7 +26,7 @@ type DataTableProps<T> = {
   searchPlaceholder?: string
   searchFilter?: (item: T, query: string) => boolean
   onFilterClick?: () => void
-  onExportClick?: () => void
+  onSortClick?: () => void
   emptyMessage?: string
   className?: string
 }
@@ -40,17 +40,16 @@ function SearchIcon() {
   )
 }
 
-function DownloadIcon() {
+function SortToolbarIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path
-        d="M12 3.5v11m0 0l-4-4m4 4l4-4"
+        d="M4 7h10M4 12h7M4 17h4M16 5v14m0 0l-3-3m3 3l3-3"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <path d="M4.5 17v2.5a1 1 0 0 0 1 1h13a1 1 0 0 0 1-1V17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
 }
@@ -111,7 +110,7 @@ export function DataTable<T>({
   searchPlaceholder = 'Search...',
   searchFilter,
   onFilterClick,
-  onExportClick,
+  onSortClick,
   emptyMessage = 'No results match your search.',
   className = '',
 }: DataTableProps<T>) {
@@ -191,15 +190,7 @@ export function DataTable<T>({
 
         <div className="flex items-center gap-2">
           <FilterButton onClick={onFilterClick} />
-          <button
-            type="button"
-            title={onExportClick ? 'Export' : 'Coming soon'}
-            onClick={onExportClick}
-            className="inline-flex items-center gap-2 rounded-lg bg-relaive-primary px-3.5 py-2 text-sm font-medium text-white hover:bg-relaive-primary-hover"
-          >
-            <DownloadIcon />
-            Export
-          </button>
+          <FilterButton label="Sort" icon={<SortToolbarIcon />} onClick={onSortClick} />
         </div>
       </div>
 
