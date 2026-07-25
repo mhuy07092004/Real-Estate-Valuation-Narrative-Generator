@@ -10,6 +10,18 @@ export function isDashboardRole(value: string): value is DashboardRole {
   return (DASHBOARD_ROLES as readonly string[]).includes(value)
 }
 
+/**
+ * Page header title for the shared `/dashboard/:role/report` page. Kept in
+ * sync with (but separate from) the sidebar labels in
+ * `ui/navbar/dashboard-navbar.tsx` — this map does not drive the sidebar.
+ */
+export const REPORT_PAGE_TITLE: Record<DashboardRole, string> = {
+  agent: 'Client Report',
+  valuer: 'Reports',
+  investor: 'Investor Report',
+  buyer: 'Buyer Report',
+}
+
 export function getActiveDashboardRole(): DashboardRole | null {
   const raw = sessionStorage.getItem(STORAGE_KEY)
   if (!raw || !isDashboardRole(raw)) return null

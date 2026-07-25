@@ -6,6 +6,7 @@ import {
   type DashboardRole,
   clearActiveDashboardRole,
   isDashboardRole,
+  REPORT_PAGE_TITLE,
   setActiveDashboardRole,
 } from '../../../features/dashboard/utils/dashboard-role'
 import { useClickOutside } from '../../../hooks/use-click-outside'
@@ -114,9 +115,14 @@ type DashboardNavbarProps = {
   children?: ReactNode
 }
 
+function extractRoleFromPathname(pathname: string): DashboardRole {
+  const segment = pathname.split('/')[2]
+  return segment && isDashboardRole(segment) ? segment : 'agent'
+}
+
 function resolveActiveNavFromPath(pathname: string): string {
   if (pathname.endsWith('/valuation-cases')) return 'Valuation Cases'
-  if (pathname.endsWith('/view-report')) return 'Reports'
+  if (pathname.endsWith('/report')) return REPORT_PAGE_TITLE[extractRoleFromPathname(pathname)]
   if (pathname.endsWith('/evidence-centre')) return 'Evidence Centre'
   if (pathname.endsWith('/search-properties')) return 'Search Properties'
   if (pathname.endsWith('/saved')) return 'Saved'
@@ -166,8 +172,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   useEffect(() => {
     if (pathname.endsWith('/valuation-cases')) {
       setActiveNav('Valuation Cases')
-    } else if (pathname.endsWith('/view-report')) {
-      setActiveNav('Reports')
+    } else if (pathname.endsWith('/report')) {
+      setActiveNav(REPORT_PAGE_TITLE[resolvedRole])
     } else if (pathname.endsWith('/evidence-centre')) {
       setActiveNav('Evidence Centre')
     } else if (pathname.endsWith('/search-properties')) {
@@ -181,7 +187,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
     } else if (/^\/dashboard\/[^/]+\/?$/.test(pathname)) {
       setActiveNav('Dashboard')
     }
-  }, [pathname])
+  }, [pathname, resolvedRole])
 
   useClickOutside(userMenuRef, userMenuOpen, () => {
     setUserMenuOpen(false)
@@ -221,8 +227,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate(`/dashboard/${resolvedRole}`)
     } else if (label === 'Valuation Cases' && resolvedRole === 'valuer') {
       navigate('/dashboard/valuer/valuation-cases')
-    } else if (label === 'Reports' && resolvedRole === 'valuer') {
-      navigate('/dashboard/valuer/view-report')
+    } else if (label === REPORT_PAGE_TITLE[resolvedRole]) {
+      navigate(`/dashboard/${resolvedRole}/report`)
     } else if (label === 'Evidence Centre' && resolvedRole === 'valuer') {
       navigate('/dashboard/valuer/evidence-centre')
     } else if (label === 'Search Properties' && resolvedRole === 'buyer') {

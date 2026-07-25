@@ -42,7 +42,7 @@ export function AppRoutes() {
         <Route path=":role" element={<DashboardRoleGuard />}>
           <Route index element={<DashboardRoleHome />} />
           <Route path="valuation-cases" element={<ValuationCases />} />
-          <Route path="view-report" element={<ViewReport />} />
+          <Route path="report" element={<ViewReport />} />
           <Route path="evidence-centre" element={<EvidenceCentre />} />
           <Route path="search-properties" element={<SearchProperty />} />
           <Route path="saved" element={<SavedProperty />} />
