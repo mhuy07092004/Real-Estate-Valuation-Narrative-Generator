@@ -45,3 +45,24 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
 }
+
+@keyframes copilot-glow {
+  0%,
+  100% {
+    box-shadow: 0 2px 8px rgba(84, 148, 182, 0.35);
+  }
+
+  50% {
+    box-shadow: 0 4px 18px rgba(84, 148, 182, 0.55);
+  }
+}
+
+@keyframes copilot-shimmer {
+  0% {
+    transform: translateX(-150%) skewX(-15deg);
+  }
+
+  100% {
+    transform: translateX(250%) skewX(-15deg);
+  }
+}

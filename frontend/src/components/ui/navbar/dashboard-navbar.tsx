@@ -10,6 +10,10 @@ import {
   setActiveDashboardRole,
 } from '../../../features/dashboard/utils/dashboard-role'
 import { useClickOutside } from '../../../hooks/use-click-outside'
+import { getAgentUnreadNotificationCount } from '../../../services/mock-agent'
+import { getBuyerUnreadNotificationCount } from '../../../services/mock-buyer'
+import { getInvestorUnreadNotificationCount } from '../../../services/mock-investor'
+import { getValuerUnreadNotificationCount } from '../../../services/mock-valuer'
 import {
   BellIcon,
   BookmarkIcon,
@@ -171,6 +175,19 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   const displayName = user ? formatShortName(user.fullName) : 'User'
   const displayEmail = user?.email ?? ''
   const userInitials = user ? getInitials(user.fullName) : 'U'
+  const unreadNotificationCount = useMemo(() => {
+    switch (resolvedRole) {
+      case 'buyer':
+        return getBuyerUnreadNotificationCount()
+      case 'investor':
+        return getInvestorUnreadNotificationCount()
+      case 'valuer':
+        return getValuerUnreadNotificationCount()
+      case 'agent':
+      default:
+        return getAgentUnreadNotificationCount()
+    }
+  }, [resolvedRole])
 
   useEffect(() => {
     if (pathname.endsWith('/valuation-cases')) {
@@ -226,6 +243,11 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   function handleNavigateToCopilot() {
     setActiveNav('AI Copilot')
     navigate(`/dashboard/${resolvedRole}/copilot`)
+  }
+
+  function handleNavigateToNotifications() {
+    setActiveNav('Alert')
+    navigate(`/dashboard/${resolvedRole}/notifications`)
   }
 
   function handleNavChange(label: string) {
@@ -306,6 +328,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
           userInitials={userInitials}
           onNavigateToSettings={handleNavigateToSettings}
           onNavigateToCopilot={handleNavigateToCopilot}
+          onNavigateToNotifications={handleNavigateToNotifications}
+          unreadNotificationCount={unreadNotificationCount}
           onSignOut={handleSignOut}
         />
 

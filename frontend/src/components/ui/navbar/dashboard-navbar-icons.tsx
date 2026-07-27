@@ -127,6 +127,15 @@ export function BotIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+export function SparkleIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps({ width: 16, height: 16, ...props })}>
+      <path d="M12 3l1.6 5.2L19 10l-5.4 1.8L12 17l-1.6-5.2L5 10l5.4-1.8L12 3z" />
+      <path d="M19 15l.7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7L19 15z" />
+    </svg>
+  )
+}
+
 export function UserIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...iconProps({ width: 16, height: 16, ...props })}>

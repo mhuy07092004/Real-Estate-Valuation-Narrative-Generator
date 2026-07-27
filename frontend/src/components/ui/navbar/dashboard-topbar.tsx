@@ -4,13 +4,13 @@ import type { User } from '../../../types/auth'
 import {
   BellIcon,
   BookmarkIcon,
-  BotIcon,
   ChevronDownIcon,
   ChevronRightIcon,
   GridIcon,
   HomeIcon,
   LogOutIcon,
   NavPlaceholderIcon,
+  SparkleIcon,
   UserIcon,
 } from './dashboard-navbar-icons'
 import { RoleOptionsList } from './role-options-list'
@@ -35,6 +35,8 @@ type DashboardTopbarProps = {
   userInitials: string
   onNavigateToSettings: () => void
   onNavigateToCopilot: () => void
+  onNavigateToNotifications: () => void
+  unreadNotificationCount: number
   onSignOut: () => void
 }
 
@@ -55,6 +57,8 @@ export function DashboardTopbar({
   userInitials,
   onNavigateToSettings,
   onNavigateToCopilot,
+  onNavigateToNotifications,
+  unreadNotificationCount,
   onSignOut,
 }: DashboardTopbarProps) {
   return (
@@ -75,29 +79,36 @@ export function DashboardTopbar({
         <button
           type="button"
           aria-label="Notifications"
+          onClick={onNavigateToNotifications}
           className="relative flex h-9 w-9 items-center justify-center rounded-lg text-relaive-gray transition-colors hover:bg-relaive-navy/5 hover:text-relaive-navy"
         >
           <BellIcon />
-          <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-400 px-1 text-[10px] font-semibold text-white">
-            3
-          </span>
+          {unreadNotificationCount > 0 ? (
+            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-400 px-1 text-[10px] font-semibold text-white">
+              {unreadNotificationCount}
+            </span>
+          ) : null}
         </button>
 
         <button
           type="button"
-          className="inline-flex h-9 items-center gap-2 rounded-lg border border-black/10 bg-white px-3 text-sm font-medium text-relaive-navy transition-colors hover:bg-relaive-navy/5"
+          aria-label="Watchlist"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-relaive-gray transition-colors hover:bg-relaive-navy/5 hover:text-relaive-navy"
         >
           <BookmarkIcon />
-          Watchlist
         </button>
 
         <button
           type="button"
+          aria-label="Copilot"
           onClick={onNavigateToCopilot}
-          className="inline-flex h-9 items-center gap-2 rounded-lg border border-black/10 bg-white px-3 text-sm font-medium text-relaive-navy transition-colors hover:bg-relaive-navy/5"
+          className="relative inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-r from-relaive-secondary to-relaive-primary text-white [animation:copilot-glow_2.5s_ease-in-out_infinite] transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]"
         >
-          <BotIcon />
-          AI Copilot
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent [animation:copilot-shimmer_3s_ease-in-out_infinite]"
+          />
+          <SparkleIcon className="relative" />
         </button>
 
         <div ref={userMenuRef} className="relative">
