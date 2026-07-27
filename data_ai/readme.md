@@ -15,6 +15,8 @@ docker compose up -d postgres
 ## Apply schema
 docker exec -i relaive-ai-db psql -U relaive -d relaive_ai < database/ddl/001_serving_schema.sql
 
+docker exec -i relaive-ai-db psql -U relaive -d relaive_ai < database/ddl/002_bronze_ingestion_schema.sql
+
 docker exec -it relaive-ai-db psql -U relaive -d relaive_ai
 
 ## Install Python deps
