@@ -2,7 +2,7 @@
 
 import type { PropertyCardData } from '../components/ui/property-card/property-card'
 import type { CaseItem } from './mock-dashboard'
-import { daysAgo, hoursAgo } from './mock-common'
+import { daysAgo, hoursAgo, type InboxNotification } from './mock-common'
 
 // ---------------------------------------------------------------------------
 // Types — affordability
@@ -247,4 +247,79 @@ const BUYER_REPORT_LIST: CaseItem[] = [
 
 export function getBuyerReportListMockData(): CaseItem[] {
   return BUYER_REPORT_LIST
+}
+
+// ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+export const MOCK_BUYER_NOTIFICATIONS: InboxNotification[] = [
+  {
+    id: 'buyer-notif-1',
+    title: 'Price Drop – 123 Smith St',
+    description:
+      'A saved property dropped $25,000 to $807,000. Within your current affordability range.',
+    priority: 'high',
+    timestamp: '15 mins ago',
+    isRead: false,
+    icon: 'sale',
+  },
+  {
+    id: 'buyer-notif-2',
+    title: 'Affordability Update',
+    description:
+      'Your borrowing capacity estimate increased to $920,000 after the latest rate assumptions.',
+    priority: 'high',
+    timestamp: '1 hour ago',
+    isRead: false,
+    icon: 'ai',
+  },
+  {
+    id: 'buyer-notif-3',
+    title: 'New Listing Near You',
+    description:
+      '18 Bridge Rd, Richmond listed at $795,000 – matches your search filters for 2+ bedrooms.',
+    priority: 'medium',
+    timestamp: '3 hours ago',
+    isRead: false,
+    icon: 'market',
+  },
+  {
+    id: 'buyer-notif-4',
+    title: 'Comparable Sale Nearby',
+    description:
+      '9 Swan St sold for $815,000 – useful benchmark for your saved property at 123 Smith St.',
+    priority: 'medium',
+    timestamp: '5 hours ago',
+    isRead: false,
+    icon: 'sale',
+  },
+  {
+    id: 'buyer-notif-5',
+    title: 'Buyer Advisory Ready',
+    description:
+      'Your advisory report for Carlton North is ready to view in Reports.',
+    priority: 'low',
+    timestamp: '1 day ago',
+    isRead: true,
+    icon: 'report',
+  },
+  {
+    id: 'buyer-notif-6',
+    title: 'Suburb Forecast – Fitzroy',
+    description:
+      'AI growth outlook for Fitzroy moved from Moderate to Strong (6.8% p.a.).',
+    priority: 'low',
+    timestamp: '3 days ago',
+    isRead: true,
+    icon: 'forecast',
+  },
+]
+
+export function getBuyerNotifications(): InboxNotification[] {
+  return MOCK_BUYER_NOTIFICATIONS
+}
+
+export function getBuyerUnreadNotificationCount(): number {
+  return MOCK_BUYER_NOTIFICATIONS.filter((n) => !n.isRead).length
 }

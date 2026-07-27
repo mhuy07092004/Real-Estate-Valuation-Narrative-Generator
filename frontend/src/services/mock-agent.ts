@@ -2,7 +2,7 @@
 
 import dayjs from 'dayjs'
 import type { CaseItem } from './mock-dashboard'
-import { daysAgo, hoursAgo } from './mock-common'
+import { daysAgo, hoursAgo, type InboxNotification } from './mock-common'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -181,4 +181,79 @@ export function getClientListSummary(): ClientListSummary {
 
 export function getAgentReportListMockData(): CaseItem[] {
   return AGENT_REPORT_LIST
+}
+
+// ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+export const MOCK_AGENT_NOTIFICATIONS: InboxNotification[] = [
+  {
+    id: 'agent-notif-1',
+    title: 'AI Valuation Update',
+    description:
+      'Your property at 123 Smith St has a new AI estimate: $832,000 (+$7,000 from last week)',
+    priority: 'high',
+    timestamp: '2 mins ago',
+    isRead: false,
+    icon: 'ai',
+  },
+  {
+    id: 'agent-notif-2',
+    title: 'Market Alert – Richmond VIC',
+    description:
+      'Median house price rose 1.2% this week, now at $1.29M. Auction clearance rate: 82%',
+    priority: 'high',
+    timestamp: '1 hour ago',
+    isRead: false,
+    icon: 'market',
+  },
+  {
+    id: 'agent-notif-3',
+    title: 'Approval Required',
+    description:
+      "Sarah Chen has submitted '45 Park Ave Appraisal' for your review and approval",
+    priority: 'high',
+    timestamp: '2 hours ago',
+    isRead: false,
+    icon: 'approval',
+  },
+  {
+    id: 'agent-notif-4',
+    title: 'New Comparable Sale',
+    description:
+      '12 Church St, Richmond sold for $1.21M – 0.4km from your saved property 123 Smith St',
+    priority: 'medium',
+    timestamp: '3 hours ago',
+    isRead: false,
+    icon: 'sale',
+  },
+  {
+    id: 'agent-notif-5',
+    title: 'Forecast Update – Surry Hills',
+    description:
+      'AI growth forecast for Surry Hills upgraded from Moderate to Strong (now 7.2% p.a.)',
+    priority: 'medium',
+    timestamp: '1 day ago',
+    isRead: true,
+    icon: 'forecast',
+  },
+  {
+    id: 'agent-notif-6',
+    title: 'AI Report Ready',
+    description:
+      'Your AI Copilot has finished generating the market comparison report for Kew VIC',
+    priority: 'low',
+    timestamp: '2 days ago',
+    isRead: true,
+    icon: 'report',
+  },
+]
+
+export function getAgentNotifications(): InboxNotification[] {
+  return MOCK_AGENT_NOTIFICATIONS
+}
+
+export function getAgentUnreadNotificationCount(): number {
+  return MOCK_AGENT_NOTIFICATIONS.filter((n) => !n.isRead).length
 }

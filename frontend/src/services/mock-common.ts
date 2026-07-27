@@ -16,6 +16,20 @@ export function daysAgo(days: number): string {
 // Notifications / disclaimers
 // ---------------------------------------------------------------------------
 
+/** Shared shape for role inbox notifications (data lives in mock-{role}.ts). */
+export type NotificationPriority = 'high' | 'medium' | 'low'
+export type NotificationIconKind = 'ai' | 'market' | 'approval' | 'sale' | 'forecast' | 'report'
+
+export type InboxNotification = {
+  id: string
+  title: string
+  description: string
+  priority: NotificationPriority
+  timestamp: string
+  isRead: boolean
+  icon: NotificationIconKind
+}
+
 export type NotificationMock = {
   message: string
 }

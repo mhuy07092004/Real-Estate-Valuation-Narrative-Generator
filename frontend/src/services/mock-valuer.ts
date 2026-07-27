@@ -1,7 +1,7 @@
 // Valuer-only mock data — evidence centre + valuation cases / reports.
 
 import type { CaseItem } from './mock-dashboard'
-import { daysAgo, hoursAgo } from './mock-common'
+import { daysAgo, hoursAgo, type InboxNotification } from './mock-common'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -320,4 +320,79 @@ export function getValuationCasesMockData(): ValuationCasesMockPayload {
 
 export function getValuerCaseListMockData(): CaseItem[] {
   return VALUER_CASE_LIST
+}
+
+// ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+export const MOCK_VALUER_NOTIFICATIONS: InboxNotification[] = [
+  {
+    id: 'valuer-notif-1',
+    title: 'Case Assigned – 45 Park Ave',
+    description:
+      'A new valuation case was assigned to you. Target turnaround: 48 hours.',
+    priority: 'high',
+    timestamp: '10 mins ago',
+    isRead: false,
+    icon: 'approval',
+  },
+  {
+    id: 'valuer-notif-2',
+    title: 'Evidence Missing',
+    description:
+      'Comparable sales pack for 123 Smith St is incomplete – 2 documents still pending.',
+    priority: 'high',
+    timestamp: '1 hour ago',
+    isRead: false,
+    icon: 'report',
+  },
+  {
+    id: 'valuer-notif-3',
+    title: 'AI Confidence Drop',
+    description:
+      'Model confidence for Kew VIC case fell to 72%. Review flagged inputs before export.',
+    priority: 'high',
+    timestamp: '2 hours ago',
+    isRead: false,
+    icon: 'ai',
+  },
+  {
+    id: 'valuer-notif-4',
+    title: 'New Comparable Verified',
+    description:
+      '12 Church St comparable was verified and added to the Richmond evidence set.',
+    priority: 'medium',
+    timestamp: '4 hours ago',
+    isRead: false,
+    icon: 'sale',
+  },
+  {
+    id: 'valuer-notif-5',
+    title: 'Market Brief – Richmond',
+    description:
+      'Weekly market brief ready: clearance 82%, median house $1.29M.',
+    priority: 'medium',
+    timestamp: '1 day ago',
+    isRead: true,
+    icon: 'market',
+  },
+  {
+    id: 'valuer-notif-6',
+    title: 'Report Exported',
+    description:
+      'Valuation report for Surry Hills unit was exported successfully.',
+    priority: 'low',
+    timestamp: '2 days ago',
+    isRead: true,
+    icon: 'forecast',
+  },
+]
+
+export function getValuerNotifications(): InboxNotification[] {
+  return MOCK_VALUER_NOTIFICATIONS
+}
+
+export function getValuerUnreadNotificationCount(): number {
+  return MOCK_VALUER_NOTIFICATIONS.filter((n) => !n.isRead).length
 }

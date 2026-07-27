@@ -8,7 +8,7 @@ import type {
   DashboardMockPayload,
   DashboardStat,
 } from './mock-dashboard'
-import { daysAgo, hoursAgo } from './mock-common'
+import { daysAgo, hoursAgo, type InboxNotification } from './mock-common'
 
 // ---------------------------------------------------------------------------
 // ROI calculator types
@@ -290,4 +290,79 @@ export function getInvestorReportSummary(): InvestorReportSummary {
     draftCount,
     sharedCount,
   }
+}
+
+// ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+export const MOCK_INVESTOR_NOTIFICATIONS: InboxNotification[] = [
+  {
+    id: 'investor-notif-1',
+    title: 'ROI Alert – 45 Park Ave',
+    description:
+      'Projected net yield improved to 4.8% after updated rent and expense assumptions.',
+    priority: 'high',
+    timestamp: '20 mins ago',
+    isRead: false,
+    icon: 'ai',
+  },
+  {
+    id: 'investor-notif-2',
+    title: 'Market Alert – Surry Hills',
+    description:
+      'Unit median rose 0.9% this month. Vacancy rate held at 1.8% across the suburb.',
+    priority: 'high',
+    timestamp: '2 hours ago',
+    isRead: false,
+    icon: 'market',
+  },
+  {
+    id: 'investor-notif-3',
+    title: 'Forecast Upgrade – Newtown',
+    description:
+      'AI growth forecast for Newtown upgraded from Moderate to Strong (7.1% p.a.).',
+    priority: 'medium',
+    timestamp: '4 hours ago',
+    isRead: false,
+    icon: 'forecast',
+  },
+  {
+    id: 'investor-notif-4',
+    title: 'Comparable Investment Sale',
+    description:
+      '22 King St sold for $1.05M at an implied 4.2% yield – close to your watchlist asset.',
+    priority: 'medium',
+    timestamp: '6 hours ago',
+    isRead: false,
+    icon: 'sale',
+  },
+  {
+    id: 'investor-notif-5',
+    title: 'Investor Report Shared',
+    description:
+      "Your 'Richmond Portfolio Review' report was marked shared with your adviser.",
+    priority: 'low',
+    timestamp: '1 day ago',
+    isRead: true,
+    icon: 'report',
+  },
+  {
+    id: 'investor-notif-6',
+    title: 'Approval Reminder',
+    description:
+      'Draft ROI scenario for Kew VIC is waiting for your final confirmation.',
+    priority: 'low',
+    timestamp: '2 days ago',
+    isRead: true,
+    icon: 'approval',
+  },
+]
+
+export function getInvestorNotifications(): InboxNotification[] {
+  return MOCK_INVESTOR_NOTIFICATIONS
+}
+
+export function getInvestorUnreadNotificationCount(): number {
+  return MOCK_INVESTOR_NOTIFICATIONS.filter((n) => !n.isRead).length
 }

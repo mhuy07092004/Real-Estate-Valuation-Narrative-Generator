@@ -129,6 +129,7 @@ function resolveActiveNavFromPath(pathname: string): string {
   if (pathname.endsWith('/saved')) return 'Saved'
   if (pathname.endsWith('/settings')) return 'Settings'
   if (pathname.endsWith('/copilot')) return 'AI Copilot'
+  if (pathname.endsWith('/notifications')) return 'Alert'
   if (pathname.endsWith('/affortability-calculation')) return 'Affordability'
   if (/^\/dashboard\/[^/]+\/?$/.test(pathname)) return 'Dashboard'
   return 'Dashboard'
@@ -188,6 +189,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       setActiveNav('Settings')
     } else if (pathname.endsWith('/copilot')) {
       setActiveNav('AI Copilot')
+    } else if (pathname.endsWith('/notifications')) {
+      setActiveNav('Alert')
     } else if (/^\/dashboard\/[^/]+\/?$/.test(pathname)) {
       setActiveNav('Dashboard')
     }
@@ -245,6 +248,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate(`/dashboard/${resolvedRole}/settings`)
     } else if (label === 'AI Copilot') {
       navigate(`/dashboard/${resolvedRole}/copilot`)
+    } else if (label === 'Alert') {
+      navigate(`/dashboard/${resolvedRole}/notifications`)
     } else if (label === 'ROI Calculator') {
       navigate(`/dashboard/${resolvedRole}/roi-calculation`)
     } else if (label === 'Affordability' && resolvedRole === 'buyer') {
