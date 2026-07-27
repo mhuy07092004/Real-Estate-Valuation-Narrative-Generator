@@ -2,7 +2,8 @@ import { Button } from '../../../components/ui/button/button'
 import { Card } from '../../../components/ui/card/card'
 import { Input } from '../../../components/ui/input/input'
 
-const INPUT_CLASS = '!border-relaive-primary/25 !bg-relaive-primary/[0.06] !text-relaive-navy'
+const INPUT_CLASS =
+  '!border-relaive-primary/25 !bg-relaive-primary/[0.06] !text-relaive-navy [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
 
 const DollarIcon = <span className="text-sm font-medium">$</span>
 const PercentIcon = <span className="text-sm font-medium">%</span>
@@ -24,7 +25,7 @@ export function RoiCalculation() {
         className="flex flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:p-8"
         onSubmit={(event) => event.preventDefault()}
       >
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
+        <div className="flex flex-col gap-4 sm:gap-5">
           <Card>
             <h2 className="text-base font-semibold text-relaive-navy">Purchase Detail</h2>
             <div className="mt-5 flex flex-col gap-4">
