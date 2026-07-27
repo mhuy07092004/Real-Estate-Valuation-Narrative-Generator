@@ -1,8 +1,8 @@
 import { useParams } from 'react-router-dom'
 import { CaseTable } from '../../../components/ui/table/case-table'
 import { StatCard } from '../../../components/ui/stat-card/stat-card'
-import { getCaseListMockData } from '../../../services/mock-case-service'
-import { getValuationCasesMockData } from '../../../services/mock-dashboardservice'
+import { getCaseListMockData } from '../../../services/mock-dashboard'
+import { getValuationCasesMockData } from '../../../services/mock-valuer'
 import { isDashboardRole, type DashboardRole } from '../../../features/dashboard/utils/dashboard-role'
 
 export function ValuationCases() {

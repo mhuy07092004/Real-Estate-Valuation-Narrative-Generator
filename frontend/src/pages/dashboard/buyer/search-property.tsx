@@ -2,7 +2,7 @@ import { AddressSearch } from '../../../components/ui/search-bar/address-search'
 import { Button } from '../../../components/ui/button/button'
 import { FilterButton } from '../../../components/ui/button/filter-button'
 import { PropertyCard } from '../../../components/ui/property-card/property-card'
-import { MOCK_PROPERTIES } from '../../../services/mock-property-service'
+import { MOCK_PROPERTIES } from '../../../services/mock-buyer'
 
 export function SearchProperty() {
   return (

@@ -1,3 +1,9 @@
+// Investor-only mock data — ROI & cash-flow calculator.
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
 export type RoiSummaryTone = 'green' | 'red' | 'navy' | 'net'
 
 export type RoiSummaryRow = {
@@ -26,6 +32,10 @@ export type RoiCalculationMock = {
   metrics: RoiStatMetric[]
   investmentReturns: RoiReturnRow[]
 }
+
+// ---------------------------------------------------------------------------
+// Data
+// ---------------------------------------------------------------------------
 
 const ROI_CALCULATION_DATA: RoiCalculationMock = {
   annualSummary: [
@@ -56,6 +66,10 @@ const ROI_CALCULATION_DATA: RoiCalculationMock = {
     { label: 'Cash-on-Cash Returns', display: '-16.5%', tone: 'red' },
   ],
 }
+
+// ---------------------------------------------------------------------------
+// Getters
+// ---------------------------------------------------------------------------
 
 export function getRoiCalculationMockData(): RoiCalculationMock {
   return ROI_CALCULATION_DATA

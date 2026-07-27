@@ -1,4 +1,10 @@
+// Agent-only mock data — CRM client list.
+
 import dayjs from 'dayjs'
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 export type ClientStatus =
   | 'prospecting'
@@ -23,9 +29,24 @@ export type ClientListSummary = {
   followUpsDueSoon: number
 }
 
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
 function startOfDayOffset(days: number): string {
   return dayjs().startOf('day').add(days, 'day').toISOString()
 }
+
+function isFollowUpDueSoon(followUpAt: string): boolean {
+  const followUp = dayjs(followUpAt).startOf('day')
+  const today = dayjs().startOf('day')
+  const tomorrow = today.add(1, 'day')
+  return followUp.isSame(today, 'day') || followUp.isSame(tomorrow, 'day')
+}
+
+// ---------------------------------------------------------------------------
+// Data
+// ---------------------------------------------------------------------------
 
 const CLIENT_LIST_DATA: ClientItem[] = [
   {
@@ -100,12 +121,9 @@ const CLIENT_LIST_DATA: ClientItem[] = [
   },
 ]
 
-function isFollowUpDueSoon(followUpAt: string): boolean {
-  const followUp = dayjs(followUpAt).startOf('day')
-  const today = dayjs().startOf('day')
-  const tomorrow = today.add(1, 'day')
-  return followUp.isSame(today, 'day') || followUp.isSame(tomorrow, 'day')
-}
+// ---------------------------------------------------------------------------
+// Getters
+// ---------------------------------------------------------------------------
 
 export function getClientListMockData(): ClientItem[] {
   return CLIENT_LIST_DATA

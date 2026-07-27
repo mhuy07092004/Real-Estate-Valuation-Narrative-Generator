@@ -4,7 +4,7 @@ import { QuickActionsPanel } from './quick-actions-panel'
 import { RecentReportsPanel } from './recent-reports-panel'
 import { StatCard } from '../../../components/ui/stat-card/stat-card'
 import type { DashboardRole } from '../utils/dashboard-role'
-import { getDashboardMockData } from '../../../services/mock-dashboardservice'
+import { getDashboardMockData } from '../../../services/mock-dashboard'
 
 type RoleDashboardViewProps = {
   role: DashboardRole

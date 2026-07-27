@@ -1,6 +1,6 @@
-import type { CaseStatus } from '../../../services/mock-case-service'
-import type { ClientStatus } from '../../../services/mock-client-service'
-import type { EvidenceStatus } from '../../../services/mock-evidence-service'
+import type { CaseStatus } from '../../../services/mock-dashboard'
+import type { ClientStatus } from '../../../services/mock-agent'
+import type { EvidenceStatus } from '../../../services/mock-valuer'
 
 const STATUS_STYLES: Record<CaseStatus, { bg: string; text: string; dot: string; label: string }> = {
   valuer_review: {

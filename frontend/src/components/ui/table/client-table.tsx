@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import dayjs from 'dayjs'
-import type { ClientItem } from '../../../services/mock-client-service'
+import type { ClientItem } from '../../../services/mock-agent'
 import { DataTable, type DataTableTab } from './data-table'
 import { ClientStatusBadge, getClientStatusLabel } from './status-badge'
 

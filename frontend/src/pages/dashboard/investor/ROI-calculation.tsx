@@ -3,12 +3,12 @@ import { Card } from '../../../components/ui/card/card'
 import { Input } from '../../../components/ui/input/input'
 import { StatCard } from '../../../components/ui/stat-card/stat-card'
 import { Notification } from '../../../components/notification/notification'
-import { getRoiDisclaimerNotification } from '../../../services/mock-notification'
+import { getRoiDisclaimerNotification } from '../../../services/mock-common'
 import {
   getRoiCalculationMockData,
   type RoiReturnTone,
   type RoiSummaryTone,
-} from '../../../services/mock-roi-calculation'
+} from '../../../services/mock-investor'
 
 const INPUT_CLASS =
   '!border-relaive-primary/25 !bg-relaive-primary/[0.06] !text-relaive-navy [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'

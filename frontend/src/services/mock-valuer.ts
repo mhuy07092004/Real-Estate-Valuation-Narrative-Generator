@@ -1,9 +1,15 @@
+// Valuer-only mock data — evidence centre + valuation cases stats.
+
+import { daysAgo, hoursAgo } from './mock-common'
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
 export type EvidenceCategory = 'comparable' | 'market' | 'document' | 'history' | 'missing'
 export type EvidenceStatus = 'verified' | 'pending' | 'missing'
 
-/**
- * Shape the backend should return for each row of the evidence centre list.
- */
+/** Shape the backend should return for each row of the evidence centre list. */
 export type EvidenceItem = {
   id: string
   title: string
@@ -27,13 +33,21 @@ export type EvidenceCentreMockPayload = {
   stats: EvidenceCentreStat[]
 }
 
-function hoursAgo(hours: number): string {
-  return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
+export type ValuationCasesStat = {
+  label: string
+  value: string
+  tone: 'blue' | 'teal' | 'orange' | 'sky'
 }
 
-function daysAgo(days: number): string {
-  return hoursAgo(days * 24)
+export type ValuationCasesMockPayload = {
+  totalCases: number
+  returnedForRevision: number
+  stats: ValuationCasesStat[]
 }
+
+// ---------------------------------------------------------------------------
+// Evidence centre data
+// ---------------------------------------------------------------------------
 
 const EVIDENCE_LIST_DATA: EvidenceItem[] = [
   {
@@ -198,4 +212,23 @@ export function getEvidenceCentreMockData(): EvidenceCentreMockPayload {
       { label: 'Missing Evidence', value: String(missing), tone: 'orange' },
     ],
   }
+}
+
+// ---------------------------------------------------------------------------
+// Valuation cases stats
+// ---------------------------------------------------------------------------
+
+const VALUATION_CASES_DATA: ValuationCasesMockPayload = {
+  totalCases: 28,
+  returnedForRevision: 3,
+  stats: [
+    { label: 'In Review', value: '7', tone: 'blue' },
+    { label: 'Low Confidence', value: '4', tone: 'orange' },
+    { label: 'Awaiting Approval', value: '5', tone: 'sky' },
+    { label: 'Approved this month', value: '12', tone: 'teal' },
+  ],
+}
+
+export function getValuationCasesMockData(): ValuationCasesMockPayload {
+  return VALUATION_CASES_DATA
 }

@@ -3,12 +3,12 @@ import { Card } from '../../../components/ui/card/card'
 import { Input } from '../../../components/ui/input/input'
 import { StatCard } from '../../../components/ui/stat-card/stat-card'
 import { Notification } from '../../../components/notification/notification'
-import { getAffordabilityDisclaimerNotification } from '../../../services/mock-notification'
+import { getAffordabilityDisclaimerNotification } from '../../../services/mock-common'
 import {
   getAffordabilityCalculationMockData,
   type AffordabilityReturnTone,
   type AffordabilitySummaryTone,
-} from '../../../services/mock-affordability'
+} from '../../../services/mock-buyer'
 
 const INPUT_CLASS =
   '!border-relaive-primary/25 !bg-relaive-primary/[0.06] !text-relaive-navy [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'

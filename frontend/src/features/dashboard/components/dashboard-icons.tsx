@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import type {
   DashboardActionIconKey,
   DashboardStatIconKey,
-} from '../../../services/mock-dashboardservice'
+} from '../../../services/mock-dashboard'
 
 function DocumentIcon() {
   return (

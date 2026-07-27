@@ -3,7 +3,7 @@ import {
   MOCK_COPILOT_MESSAGES,
   MOCK_COPILOT_SUGGESTIONS,
   type CopilotSuggestion,
-} from '../../../../services/mock-copilot-service'
+} from '../../../../services/mock-common'
 import {
   BuildingIcon,
   ChartIcon,

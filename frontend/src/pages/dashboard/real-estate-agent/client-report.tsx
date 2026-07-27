@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 import type { DataTableTab } from '../../../components/ui/table/data-table'
 import { CaseTable } from '../../../components/ui/table/case-table'
-import { getCaseListMockData, type CaseItem } from '../../../services/mock-case-service'
+import { getCaseListMockData, type CaseItem } from '../../../services/mock-dashboard'
 import {
   isDashboardRole,
   REPORT_PAGE_TITLE,
