@@ -1,5 +1,17 @@
+import { useMemo } from 'react'
+import type { ColumnDef } from '@tanstack/react-table'
 import type { DataTableTab } from '../../../components/ui/table/data-table'
-import { ClientTable } from '../../../components/ui/table/client-table'
+import {
+  ChevronIcon,
+  ClientTable,
+  formatFollowUpLabel,
+  reportLabel,
+  StarIcon,
+} from '../../../components/ui/table/client-table'
+import {
+  ClientStatusBadge,
+  getClientStatusLabel,
+} from '../../../components/ui/table/status-badge'
 import {
   getClientListMockData,
   getClientListSummary,
@@ -39,6 +51,94 @@ export function ClientAgent() {
   const clients = getClientListMockData()
   const { totalClients, followUpsDueSoon } = getClientListSummary()
 
+  const columns = useMemo<ColumnDef<ClientItem, unknown>[]>(
+    () => [
+      {
+        id: 'name',
+        header: 'Name',
+        accessorFn: (row) => row.name,
+        cell: ({ row }) => {
+          const item = row.original
+          return (
+            <div className="flex items-center gap-3 py-1">
+              <span
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-500 text-sm font-semibold text-white"
+                aria-hidden="true"
+              >
+                {item.initials}
+              </span>
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <span className="inline-flex items-center gap-1.5 text-sm font-bold text-relaive-navy">
+                  {item.name}
+                  {item.isStarred && (
+                    <span className="text-amber-500" title="Starred client">
+                      <StarIcon />
+                    </span>
+                  )}
+                </span>
+                <span className="truncate text-xs text-relaive-gray">
+                  {reportLabel(item.reportCount)}
+                </span>
+              </div>
+            </div>
+          )
+        },
+      },
+      {
+        id: 'address',
+        header: 'Address',
+        accessorFn: (row) => row.address ?? '',
+        cell: ({ row }) => (
+          <span className="truncate text-sm text-relaive-navy">
+            {row.original.address ?? 'No property linked'}
+          </span>
+        ),
+        sortingFn: (rowA, rowB) =>
+          (rowA.original.address ?? '').localeCompare(rowB.original.address ?? ''),
+      },
+      {
+        id: 'status',
+        header: 'Status',
+        accessorFn: (row) => getClientStatusLabel(row.status),
+        cell: ({ row }) => <ClientStatusBadge status={row.original.status} />,
+        sortingFn: (rowA, rowB) =>
+          getClientStatusLabel(rowA.original.status).localeCompare(
+            getClientStatusLabel(rowB.original.status),
+          ),
+      },
+      {
+        id: 'date',
+        header: 'Date',
+        accessorFn: (row) => row.followUpAt,
+        cell: ({ row }) => {
+          const followUp = formatFollowUpLabel(row.original.followUpAt)
+          const toneClass =
+            followUp.tone === 'today'
+              ? 'text-red-500'
+              : followUp.tone === 'tomorrow'
+                ? 'text-orange-600'
+                : 'text-relaive-gray'
+
+          return <span className={`text-xs ${toneClass}`}>{followUp.label}</span>
+        },
+        sortingFn: (rowA, rowB) =>
+          new Date(rowA.original.followUpAt).getTime() -
+          new Date(rowB.original.followUpAt).getTime(),
+      },
+      {
+        id: 'actions',
+        header: '',
+        enableSorting: false,
+        cell: () => (
+          <span className="flex justify-end text-relaive-gray/50" aria-hidden="true">
+            <ChevronIcon />
+          </span>
+        ),
+      },
+    ],
+    [],
+  )
+
   return (
     <div className="flex flex-col">
       <header className="font-sans px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pt-8">
@@ -53,6 +153,7 @@ export function ClientAgent() {
       <div className="flex flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:p-8">
         <ClientTable
           clients={clients}
+          columns={columns}
           tabs={CLIENT_TABS}
           defaultTabId="all"
           searchPlaceholder="Search clients, properties..."
