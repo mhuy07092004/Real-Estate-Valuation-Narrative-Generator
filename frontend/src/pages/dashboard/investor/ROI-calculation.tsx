@@ -1,6 +1,14 @@
 import { Button } from '../../../components/ui/button/button'
 import { Card } from '../../../components/ui/card/card'
 import { Input } from '../../../components/ui/input/input'
+import { StatCard } from '../../../components/ui/stat-card/stat-card'
+import { Notification } from '../../../components/notification/notification'
+import { getRoiDisclaimerNotification } from '../../../services/mock-notification'
+import {
+  getRoiCalculationMockData,
+  type RoiReturnTone,
+  type RoiSummaryTone,
+} from '../../../services/mock-roi-calculation'
 
 const INPUT_CLASS =
   '!border-relaive-primary/25 !bg-relaive-primary/[0.06] !text-relaive-navy [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
@@ -9,7 +17,53 @@ const DollarIcon = <span className="text-sm font-medium">$</span>
 const PercentIcon = <span className="text-sm font-medium">%</span>
 const YearsIcon = <span className="text-xs font-medium">Yrs</span>
 
+const numberFormatter = new Intl.NumberFormat('en-AU', {
+  maximumFractionDigits: 0,
+})
+
+function formatSignedCurrency(amount: number): string {
+  const formatted = `$${numberFormatter.format(Math.abs(amount))}`
+  return amount < 0 ? `-${formatted}` : formatted
+}
+
+function summaryAmountClass(tone: RoiSummaryTone, amount: number): string {
+  if (tone === 'green') return 'text-emerald-600'
+  if (tone === 'red') return 'text-red-600'
+  if (tone === 'net') return amount >= 0 ? 'text-emerald-600' : 'text-red-600'
+  return 'text-relaive-navy'
+}
+
+function returnAmountClass(tone: RoiReturnTone): string {
+  if (tone === 'green') return 'text-emerald-600'
+  if (tone === 'red') return 'text-red-600'
+  return 'text-relaive-navy'
+}
+
+type SummaryRowProps = {
+  label: string
+  value: string
+  valueClassName: string
+  emphasize?: boolean
+  isLast?: boolean
+}
+
+function SummaryRow({ label, value, valueClassName, emphasize = false, isLast = false }: SummaryRowProps) {
+  return (
+    <div
+      className={`flex items-center justify-between gap-3 py-3 ${
+        isLast ? '' : 'border-b border-black/5'
+      } ${emphasize ? 'border-t border-black/10 pt-4 font-semibold' : ''}`}
+    >
+      <span className={`text-sm ${emphasize ? 'text-relaive-navy' : 'text-relaive-gray'}`}>{label}</span>
+      <span className={`shrink-0 text-sm tabular-nums ${valueClassName}`}>{value}</span>
+    </div>
+  )
+}
+
 export function RoiCalculation() {
+  const data = getRoiCalculationMockData()
+  const disclaimer = getRoiDisclaimerNotification()
+
   return (
     <div className="flex flex-col">
       <header className="font-sans px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pt-8">
@@ -25,6 +79,9 @@ export function RoiCalculation() {
         className="flex flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:p-8"
         onSubmit={(event) => event.preventDefault()}
       >
+        <Notification>{disclaimer.message}</Notification>
+
+        <div className="grid grid-cols-1 gap-5 sm:gap-6 lg:grid-cols-[6fr_4fr]">
         <div className="flex flex-col gap-4 sm:gap-5">
           <Card>
             <h2 className="text-base font-semibold text-relaive-navy">Purchase Detail</h2>
@@ -142,11 +199,62 @@ export function RoiCalculation() {
               />
             </div>
           </Card>
+
+          <Button type="submit" variant="primary" className="w-fit">
+            Calculate
+          </Button>
         </div>
 
-        <Button type="submit" variant="primary" className="w-fit">
-          Calculate
-        </Button>
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
+          <Card>
+            <h2 className="text-base font-semibold text-relaive-navy">Annual Summary</h2>
+            <div className="mt-2">
+              {data.annualSummary.map((row, index) => {
+                const isLast = index === data.annualSummary.length - 1
+                const isNet = row.tone === 'net'
+                return (
+                  <SummaryRow
+                    key={row.label}
+                    label={row.label}
+                    value={formatSignedCurrency(row.amount)}
+                    valueClassName={`${summaryAmountClass(row.tone, row.amount)}${isNet ? ' font-semibold' : ''}`}
+                    emphasize={isNet}
+                    isLast={isLast}
+                  />
+                )
+              })}
+            </div>
+          </Card>
+
+          <div className="grid grid-cols-2 gap-3">
+            {data.metrics.map((metric) => (
+              <StatCard
+                key={metric.label}
+                label={metric.label}
+                value={metric.value}
+                trend={metric.trend}
+                tone={metric.tone}
+                valueClassName="text-[22px] sm:text-[28px]"
+              />
+            ))}
+          </div>
+
+          <Card>
+            <h2 className="text-base font-semibold text-relaive-navy">Investment Returns</h2>
+            <div className="mt-2">
+              {data.investmentReturns.map((row, index) => (
+                <SummaryRow
+                  key={row.label}
+                  label={row.label}
+                  value={row.display}
+                  valueClassName={returnAmountClass(row.tone)}
+                  isLast={index === data.investmentReturns.length - 1}
+                />
+              ))}
+            </div>
+          </Card>
+        </aside>
+        </div>
       </form>
     </div>
   )

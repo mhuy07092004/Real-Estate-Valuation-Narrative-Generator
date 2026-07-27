@@ -9,6 +9,7 @@ type StatCardProps = {
   trend?: string
   tone?: StatTone
   className?: string
+  valueClassName?: string
 }
 
 const TONE_STYLES: Record<
@@ -44,6 +45,7 @@ export function StatCard({
   trend,
   tone = 'blue',
   className = '',
+  valueClassName = '',
 }: StatCardProps) {
   const styles = TONE_STYLES[tone]
 
@@ -59,7 +61,11 @@ export function StatCard({
         </div>
       )}
       <p className="text-sm text-relaive-gray">{label}</p>
-      <p className="mt-1 text-2xl font-bold tracking-tight text-relaive-navy sm:text-3xl">
+      <p
+        className={`mt-1 font-bold tracking-tight text-relaive-navy ${
+          valueClassName || 'text-2xl sm:text-3xl'
+        }`}
+      >
         {value}
       </p>
       {trend != null && trend !== '' && (
