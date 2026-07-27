@@ -239,6 +239,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate(`/dashboard/${resolvedRole}/settings`)
     } else if (label === 'AI Copilot') {
       navigate(`/dashboard/${resolvedRole}/copilot`)
+    } else if (label === 'ROI Calculator') {
+      navigate(`/dashboard/${resolvedRole}/roi-calculation`)
     } else {
       navigate(`/dashboard/${resolvedRole}/mock`)
     }

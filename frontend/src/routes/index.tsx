@@ -19,6 +19,7 @@ import { ValuationCases } from '../pages/dashboard/property-valuer/valuation-cas
 import { ViewReport } from '../pages/dashboard/view-report'
 import { Settings } from '../pages/dashboard/settings'
 import { Copilot } from '../pages/dashboard/copilot'
+import { RoiCalculation } from '../pages/dashboard/investor/ROI-calculation'
 import { ProtectedRoute } from '../features/auth/components/protected-route'
 
 export function AppRoutes() {
@@ -48,6 +49,7 @@ export function AppRoutes() {
           <Route path="saved" element={<SavedProperty />} />
           <Route path="settings" element={<Settings />} />
           <Route path="copilot" element={<Copilot />} />
+          <Route path="roi-calculation" element={<RoiCalculation />} />
           <Route path="mock" element={<MockPageRoute />} />
         </Route>
       </Route>
