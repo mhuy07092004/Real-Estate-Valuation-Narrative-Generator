@@ -1,5 +1,6 @@
-// Valuer-only mock data — evidence centre + valuation cases stats.
+// Valuer-only mock data — evidence centre + valuation cases / reports.
 
+import type { CaseItem } from './mock-dashboard'
 import { daysAgo, hoursAgo } from './mock-common'
 
 // ---------------------------------------------------------------------------
@@ -215,6 +216,90 @@ export function getEvidenceCentreMockData(): EvidenceCentreMockPayload {
 }
 
 // ---------------------------------------------------------------------------
+// Valuation cases / reports list
+// ---------------------------------------------------------------------------
+
+const VALUER_CASE_LIST: CaseItem[] = [
+  {
+    id: 'VC-2047',
+    address: '12 Church St',
+    suburb: 'Richmond VIC 3121',
+    clientName: 'ANZ Bank',
+    status: 'valuer_review',
+    purpose: 'Market Valuation',
+    confidence: 91,
+    updatedAt: hoursAgo(1),
+    hasWarning: false,
+  },
+  {
+    id: 'VC-2046',
+    address: '45 Park Ave',
+    suburb: 'Fitzroy VIC 3065',
+    clientName: 'Commonwealth Bank',
+    status: 'evidence_collection',
+    purpose: 'Lending Support',
+    confidence: 74,
+    updatedAt: hoursAgo(3),
+    hasWarning: true,
+  },
+  {
+    id: 'VC-2045',
+    address: '7 Collins St',
+    suburb: 'Melbourne VIC 3000',
+    clientName: 'Westpac',
+    status: 'reviewer_approval',
+    purpose: 'Internal Assessment',
+    confidence: 89,
+    updatedAt: daysAgo(1),
+    hasWarning: false,
+  },
+  {
+    id: 'VC-2044',
+    address: '7 Harbour Dr',
+    suburb: 'South Yarra VIC 3141',
+    clientName: 'Private Client',
+    status: 'approved',
+    purpose: 'Retrospective Review',
+    confidence: 93,
+    updatedAt: daysAgo(2),
+    hasWarning: false,
+  },
+  {
+    id: 'VC-2043',
+    address: '33 Oak St',
+    suburb: 'Prahran VIC 3181',
+    clientName: 'Private Client',
+    status: 'exported',
+    purpose: 'Buyer Advisory',
+    confidence: 88,
+    updatedAt: daysAgo(3),
+    hasWarning: false,
+  },
+  {
+    id: 'VC-2042',
+    address: '5 Marina Rd',
+    suburb: 'Williamstown VIC 3016',
+    clientName: 'ANZ Bank',
+    status: 'draft',
+    purpose: 'Market Valuation',
+    confidence: null,
+    updatedAt: daysAgo(4),
+    hasWarning: false,
+  },
+  {
+    id: 'VC-2041',
+    address: '88 High St',
+    suburb: 'Northcote VIC 3070',
+    clientName: 'NAB',
+    status: 'returned_for_revision',
+    purpose: 'Lending Support',
+    confidence: 68,
+    updatedAt: daysAgo(5),
+    hasWarning: true,
+  },
+]
+
+// ---------------------------------------------------------------------------
 // Valuation cases stats
 // ---------------------------------------------------------------------------
 
@@ -231,4 +316,8 @@ const VALUATION_CASES_DATA: ValuationCasesMockPayload = {
 
 export function getValuationCasesMockData(): ValuationCasesMockPayload {
   return VALUATION_CASES_DATA
+}
+
+export function getValuerCaseListMockData(): CaseItem[] {
+  return VALUER_CASE_LIST
 }

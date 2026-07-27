@@ -1,6 +1,7 @@
 import type { CaseStatus } from '../../../services/mock-dashboard'
 import type { ClientStatus } from '../../../services/mock-agent'
 import type { EvidenceStatus } from '../../../services/mock-valuer'
+import type { InvestorReportStatus } from '../../../services/mock-investor'
 
 const STATUS_STYLES: Record<CaseStatus, { bg: string; text: string; dot: string; label: string }> = {
   valuer_review: {
@@ -157,6 +158,53 @@ type ClientStatusBadgeProps = {
 
 export function ClientStatusBadge({ status, className = '' }: ClientStatusBadgeProps) {
   const styles = CLIENT_STATUS_STYLES[status]
+
+  return (
+    <span
+      className={`inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${styles.bg} ${styles.text} ${className}`}
+    >
+      {styles.label}
+    </span>
+  )
+}
+
+const INVESTOR_REPORT_STATUS_STYLES: Record<
+  InvestorReportStatus,
+  { bg: string; text: string; label: string }
+> = {
+  draft: {
+    bg: 'bg-gray-100',
+    text: 'text-gray-600',
+    label: 'Draft',
+  },
+  in_review: {
+    bg: 'bg-blue-50',
+    text: 'text-blue-600',
+    label: 'In Review',
+  },
+  shared: {
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-600',
+    label: 'Shared',
+  },
+  archived: {
+    bg: 'bg-teal-50',
+    text: 'text-teal-600',
+    label: 'Archived',
+  },
+}
+
+export function getInvestorReportStatusLabel(status: InvestorReportStatus): string {
+  return INVESTOR_REPORT_STATUS_STYLES[status].label
+}
+
+type InvestorReportStatusBadgeProps = {
+  status: InvestorReportStatus
+  className?: string
+}
+
+export function InvestorReportStatusBadge({ status, className = '' }: InvestorReportStatusBadgeProps) {
+  const styles = INVESTOR_REPORT_STATUS_STYLES[status]
 
   return (
     <span

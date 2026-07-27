@@ -1,6 +1,8 @@
-// Agent-only mock data — CRM client list.
+// Agent-only mock data — CRM client list + client reports.
 
 import dayjs from 'dayjs'
+import type { CaseItem } from './mock-dashboard'
+import { daysAgo, hoursAgo } from './mock-common'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -122,6 +124,46 @@ const CLIENT_LIST_DATA: ClientItem[] = [
 ]
 
 // ---------------------------------------------------------------------------
+// Client reports
+// ---------------------------------------------------------------------------
+
+const AGENT_REPORT_LIST: CaseItem[] = [
+  {
+    id: 'AG-3021',
+    address: '22 Bridge Rd',
+    suburb: 'Richmond VIC 3121',
+    clientName: 'Sarah Mitchell',
+    status: 'exported',
+    purpose: 'Pre-Listing Appraisal',
+    confidence: 92,
+    updatedAt: hoursAgo(2),
+    hasWarning: false,
+  },
+  {
+    id: 'AG-3020',
+    address: '5 Oxford St',
+    suburb: 'Fitzroy VIC 3065',
+    clientName: 'James Nguyen',
+    status: 'draft',
+    purpose: 'Sale Appraisal',
+    confidence: null,
+    updatedAt: daysAgo(1),
+    hasWarning: false,
+  },
+  {
+    id: 'AG-3019',
+    address: '18 Church St',
+    suburb: 'Hawthorn VIC 3122',
+    clientName: 'Chen Family Trust',
+    status: 'approved',
+    purpose: 'Rental Appraisal',
+    confidence: 87,
+    updatedAt: daysAgo(3),
+    hasWarning: false,
+  },
+]
+
+// ---------------------------------------------------------------------------
 // Getters
 // ---------------------------------------------------------------------------
 
@@ -135,4 +177,8 @@ export function getClientListSummary(): ClientListSummary {
     totalClients: clients.length,
     followUpsDueSoon: clients.filter((client) => isFollowUpDueSoon(client.followUpAt)).length,
   }
+}
+
+export function getAgentReportListMockData(): CaseItem[] {
+  return AGENT_REPORT_LIST
 }

@@ -1,6 +1,8 @@
-// Buyer-only mock data — affordability calculator + property search/saved.
+// Buyer-only mock data — affordability calculator + property search/saved + reports.
 
 import type { PropertyCardData } from '../components/ui/property-card/property-card'
+import type { CaseItem } from './mock-dashboard'
+import { daysAgo, hoursAgo } from './mock-common'
 
 // ---------------------------------------------------------------------------
 // Types — affordability
@@ -202,3 +204,47 @@ export const MOCK_SAVED_PROPERTIES: PropertyCardData[] = [
     status: 'below_range',
   },
 ]
+
+// ---------------------------------------------------------------------------
+// Buyer reports
+// ---------------------------------------------------------------------------
+
+const BUYER_REPORT_LIST: CaseItem[] = [
+  {
+    id: 'BY-5210',
+    address: '3 Grove St',
+    suburb: 'Camberwell VIC 3124',
+    clientName: 'Self',
+    status: 'exported',
+    purpose: 'Pre-Purchase Report',
+    confidence: 88,
+    updatedAt: hoursAgo(6),
+    hasWarning: false,
+  },
+  {
+    id: 'BY-5209',
+    address: '27 Toorak Rd',
+    suburb: 'Toorak VIC 3142',
+    clientName: 'Self',
+    status: 'draft',
+    purpose: 'Due Diligence Review',
+    confidence: null,
+    updatedAt: daysAgo(2),
+    hasWarning: false,
+  },
+  {
+    id: 'BY-5208',
+    address: '44 High St',
+    suburb: 'Kew VIC 3101',
+    clientName: 'Self',
+    status: 'approved',
+    purpose: 'Buyer Advisory Report',
+    confidence: 91,
+    updatedAt: daysAgo(5),
+    hasWarning: false,
+  },
+]
+
+export function getBuyerReportListMockData(): CaseItem[] {
+  return BUYER_REPORT_LIST
+}

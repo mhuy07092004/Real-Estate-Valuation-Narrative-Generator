@@ -1,17 +1,13 @@
-import { useParams } from 'react-router-dom'
 import { CaseTable } from '../../../components/ui/table/case-table'
 import { StatCard } from '../../../components/ui/stat-card/stat-card'
-import { getCaseListMockData } from '../../../services/mock-dashboard'
-import { getValuationCasesMockData } from '../../../services/mock-valuer'
-import { isDashboardRole, type DashboardRole } from '../../../features/dashboard/utils/dashboard-role'
+import {
+  getValuationCasesMockData,
+  getValuerCaseListMockData,
+} from '../../../services/mock-valuer'
 
 export function ValuationCases() {
-  const { role: roleParam } = useParams<{ role: string }>()
-  // DashboardRoleGuard already guarantees a valid, authorized role by the
-  // time this route renders; the fallback below only satisfies TypeScript.
-  const role: DashboardRole = roleParam && isDashboardRole(roleParam) ? roleParam : 'valuer'
   const data = getValuationCasesMockData()
-  const cases = getCaseListMockData(role)
+  const cases = getValuerCaseListMockData()
 
   return (
     <div className="flex flex-col">

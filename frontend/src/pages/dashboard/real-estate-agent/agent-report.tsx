@@ -1,12 +1,7 @@
-import { useParams } from 'react-router-dom'
 import type { DataTableTab } from '../../../components/ui/table/data-table'
 import { CaseTable } from '../../../components/ui/table/case-table'
-import { getCaseListMockData, type CaseItem } from '../../../services/mock-dashboard'
-import {
-  isDashboardRole,
-  REPORT_PAGE_TITLE,
-  type DashboardRole,
-} from '../../../features/dashboard/utils/dashboard-role'
+import type { CaseItem } from '../../../services/mock-dashboard'
+import { getAgentReportListMockData } from '../../../services/mock-agent'
 
 const REPORT_TABS: DataTableTab<CaseItem>[] = [
   { id: 'recent', label: 'Recent' },
@@ -27,18 +22,14 @@ const REPORT_TABS: DataTableTab<CaseItem>[] = [
   },
 ]
 
-export function ClientReport() {
-  const { role: roleParam } = useParams<{ role: string }>()
-  // DashboardRoleGuard already guarantees a valid, authorized role by the
-  // time this route renders; the fallback below only satisfies TypeScript.
-  const role: DashboardRole = roleParam && isDashboardRole(roleParam) ? roleParam : 'agent'
-  const cases = getCaseListMockData(role)
+export function AgentReport() {
+  const cases = getAgentReportListMockData()
 
   return (
     <div className="flex flex-col">
       <header className="font-sans px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pt-8">
         <h1 className="text-2xl font-semibold tracking-tight text-[#1C2A38] sm:text-[28px]">
-          {REPORT_PAGE_TITLE[role]}
+          Client Report
         </h1>
         <p className="mt-1 text-sm text-[#1C2A3880] sm:text-base">
           Manage, share and export your appraisal reports
