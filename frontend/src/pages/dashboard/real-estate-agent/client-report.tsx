@@ -1,12 +1,12 @@
 import { useParams } from 'react-router-dom'
-import type { DataTableTab } from '../../components/ui/table/data-table'
-import { CaseTable } from '../../components/ui/table/case-table'
-import { getCaseListMockData, type CaseItem } from '../../services/mock-case-service'
+import type { DataTableTab } from '../../../components/ui/table/data-table'
+import { CaseTable } from '../../../components/ui/table/case-table'
+import { getCaseListMockData, type CaseItem } from '../../../services/mock-case-service'
 import {
   isDashboardRole,
   REPORT_PAGE_TITLE,
   type DashboardRole,
-} from '../../features/dashboard/utils/dashboard-role'
+} from '../../../features/dashboard/utils/dashboard-role'
 
 const REPORT_TABS: DataTableTab<CaseItem>[] = [
   { id: 'recent', label: 'Recent' },
@@ -27,7 +27,7 @@ const REPORT_TABS: DataTableTab<CaseItem>[] = [
   },
 ]
 
-export function ViewReport() {
+export function ClientReport() {
   const { role: roleParam } = useParams<{ role: string }>()
   // DashboardRoleGuard already guarantees a valid, authorized role by the
   // time this route renders; the fallback below only satisfies TypeScript.
