@@ -122,6 +122,7 @@ function extractRoleFromPathname(pathname: string): DashboardRole {
 
 function resolveActiveNavFromPath(pathname: string): string {
   if (pathname.endsWith('/valuation-cases')) return 'Valuation Cases'
+  if (pathname.endsWith('/clients')) return 'Client'
   if (pathname.endsWith('/report')) return REPORT_PAGE_TITLE[extractRoleFromPathname(pathname)]
   if (pathname.endsWith('/evidence-centre')) return 'Evidence Centre'
   if (pathname.endsWith('/search-properties')) return 'Search Properties'
@@ -173,6 +174,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   useEffect(() => {
     if (pathname.endsWith('/valuation-cases')) {
       setActiveNav('Valuation Cases')
+    } else if (pathname.endsWith('/clients')) {
+      setActiveNav('Client')
     } else if (pathname.endsWith('/report')) {
       setActiveNav(REPORT_PAGE_TITLE[resolvedRole])
     } else if (pathname.endsWith('/evidence-centre')) {
@@ -228,6 +231,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate(`/dashboard/${resolvedRole}`)
     } else if (label === 'Valuation Cases' && resolvedRole === 'valuer') {
       navigate('/dashboard/valuer/valuation-cases')
+    } else if (label === 'Client' && resolvedRole === 'agent') {
+      navigate(`/dashboard/${resolvedRole}/clients`)
     } else if (label === REPORT_PAGE_TITLE[resolvedRole]) {
       navigate(`/dashboard/${resolvedRole}/report`)
     } else if (label === 'Evidence Centre' && resolvedRole === 'valuer') {

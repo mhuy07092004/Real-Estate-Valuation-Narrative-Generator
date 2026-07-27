@@ -1,4 +1,5 @@
 import type { CaseStatus } from '../../../services/mock-case-service'
+import type { ClientStatus } from '../../../services/mock-client-service'
 import type { EvidenceStatus } from '../../../services/mock-evidence-service'
 
 const STATUS_STYLES: Record<CaseStatus, { bg: string; text: string; dot: string; label: string }> = {
@@ -109,6 +110,58 @@ export function EvidenceStatusBadge({ status, className = '' }: EvidenceStatusBa
       className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${styles.bg} ${styles.text} ${className}`}
     >
       <span className={`h-1.5 w-1.5 rounded-full ${styles.dot}`} aria-hidden="true" />
+      {styles.label}
+    </span>
+  )
+}
+
+const CLIENT_STATUS_STYLES: Record<
+  ClientStatus,
+  { bg: string; text: string; label: string }
+> = {
+  appraisal_sent: {
+    bg: 'bg-orange-50',
+    text: 'text-orange-600',
+    label: 'Appraisal Sent',
+  },
+  active: {
+    bg: 'bg-blue-50',
+    text: 'text-blue-600',
+    label: 'Active',
+  },
+  listing: {
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-600',
+    label: 'Listing',
+  },
+  prospecting: {
+    bg: 'bg-gray-100',
+    text: 'text-gray-600',
+    label: 'Prospecting',
+  },
+  sold: {
+    bg: 'bg-teal-50',
+    text: 'text-teal-600',
+    label: 'Sold',
+  },
+}
+
+export function getClientStatusLabel(status: ClientStatus): string {
+  return CLIENT_STATUS_STYLES[status].label
+}
+
+type ClientStatusBadgeProps = {
+  status: ClientStatus
+  className?: string
+}
+
+export function ClientStatusBadge({ status, className = '' }: ClientStatusBadgeProps) {
+  const styles = CLIENT_STATUS_STYLES[status]
+
+  return (
+    <span
+      className={`inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${styles.bg} ${styles.text} ${className}`}
+    >
       {styles.label}
     </span>
   )

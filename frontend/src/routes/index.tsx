@@ -16,6 +16,7 @@ import { EvidenceCentre } from '../pages/dashboard/property-valuer/evidence-cent
 import { SearchProperty } from '../pages/dashboard/buyer/search-property'
 import { SavedProperty } from '../pages/dashboard/buyer/saved-property'
 import { ValuationCases } from '../pages/dashboard/property-valuer/valuation-cases'
+import { ClientAgent } from '../pages/dashboard/real-estate-agent/client-agent'
 import { ClientReport } from '../pages/dashboard/real-estate-agent/client-report'
 import { Settings } from '../pages/dashboard/settings'
 import { Copilot } from '../pages/dashboard/copilot'
@@ -44,6 +45,7 @@ export function AppRoutes() {
         <Route path=":role" element={<DashboardRoleGuard />}>
           <Route index element={<DashboardRoleHome />} />
           <Route path="valuation-cases" element={<ValuationCases />} />
+          <Route path="clients" element={<ClientAgent />} />
           <Route path="report" element={<ClientReport />} />
           <Route path="evidence-centre" element={<EvidenceCentre />} />
           <Route path="search-properties" element={<SearchProperty />} />
