@@ -128,6 +128,7 @@ function resolveActiveNavFromPath(pathname: string): string {
   if (pathname.endsWith('/saved')) return 'Saved'
   if (pathname.endsWith('/settings')) return 'Settings'
   if (pathname.endsWith('/copilot')) return 'AI Copilot'
+  if (pathname.endsWith('/affortability-calculation')) return 'Affordability'
   if (/^\/dashboard\/[^/]+\/?$/.test(pathname)) return 'Dashboard'
   return 'Dashboard'
 }
@@ -241,6 +242,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate(`/dashboard/${resolvedRole}/copilot`)
     } else if (label === 'ROI Calculator') {
       navigate(`/dashboard/${resolvedRole}/roi-calculation`)
+    } else if (label === 'Affordability' && resolvedRole === 'buyer') {
+      navigate('/dashboard/buyer/affortability-calculation')
     } else {
       navigate(`/dashboard/${resolvedRole}/mock`)
     }

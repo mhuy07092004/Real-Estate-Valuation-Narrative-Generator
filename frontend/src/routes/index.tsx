@@ -20,6 +20,7 @@ import { ViewReport } from '../pages/dashboard/view-report'
 import { Settings } from '../pages/dashboard/settings'
 import { Copilot } from '../pages/dashboard/copilot'
 import { RoiCalculation } from '../pages/dashboard/investor/ROI-calculation'
+import { AffordabilityCalculation } from '../pages/dashboard/buyer/affortability-calculation'
 import { ProtectedRoute } from '../features/auth/components/protected-route'
 
 export function AppRoutes() {
@@ -50,6 +51,7 @@ export function AppRoutes() {
           <Route path="settings" element={<Settings />} />
           <Route path="copilot" element={<Copilot />} />
           <Route path="roi-calculation" element={<RoiCalculation />} />
+          <Route path="affortability-calculation" element={<AffordabilityCalculation />} />
           <Route path="mock" element={<MockPageRoute />} />
         </Route>
       </Route>
