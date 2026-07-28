@@ -46,7 +46,7 @@ const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
     {
       title: 'Appraisal Workflow',
       items: [
-        { label: 'Generate Appraisal', icon: NavPlaceholderIcon },
+        { label: 'Generate Report', icon: NavPlaceholderIcon },
         { label: 'Comparable Sales', icon: NavPlaceholderIcon },
         { label: 'Client', icon: NavPlaceholderIcon },
         { label: 'Client Report', icon: NavPlaceholderIcon },
@@ -57,9 +57,9 @@ const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
     {
       title: 'Valuation Workflow',
       items: [
-        { label: 'Valuation Cases', icon: NavPlaceholderIcon },
         { label: 'New Valuation', icon: NavPlaceholderIcon },
-        { label: 'Evidence Centre', icon: NavPlaceholderIcon },
+        { label: 'Valuation Cases', icon: NavPlaceholderIcon },
+        { label: 'Evidence Center', icon: NavPlaceholderIcon },
         { label: 'Reports', icon: NavPlaceholderIcon },
       ],
     },
@@ -123,7 +123,7 @@ function resolveActiveNavFromPath(pathname: string): string {
   if (pathname.endsWith('/valuation-cases')) return 'Valuation Cases'
   if (pathname.endsWith('/clients')) return 'Client'
   if (pathname.endsWith('/report')) return REPORT_PAGE_TITLE[extractRoleFromPathname(pathname)]
-  if (pathname.endsWith('/evidence-centre')) return 'Evidence Centre'
+  if (pathname.endsWith('/evidence-centre')) return 'Evidence Center'
   if (pathname.endsWith('/search-properties')) return 'Search Properties'
   if (pathname.endsWith('/saved')) return 'Saved'
   if (pathname.endsWith('/settings')) return 'Settings'
@@ -134,7 +134,7 @@ function resolveActiveNavFromPath(pathname: string): string {
     const role = extractRoleFromPathname(pathname)
     if (role === 'valuer') return 'New Valuation'
     if (role === 'investor') return 'Generate Report'
-    return 'Generate Appraisal'
+    return 'Generate Report'
   }
   if (/^\/dashboard\/[^/]+\/?$/.test(pathname)) return 'Dashboard'
   return 'Dashboard'
@@ -198,7 +198,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
     } else if (pathname.endsWith('/report')) {
       setActiveNav(REPORT_PAGE_TITLE[resolvedRole])
     } else if (pathname.endsWith('/evidence-centre')) {
-      setActiveNav('Evidence Centre')
+      setActiveNav('Evidence Center')
     } else if (pathname.endsWith('/search-properties')) {
       setActiveNav('Search Properties')
     } else if (pathname.endsWith('/saved')) {
@@ -215,7 +215,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       } else if (resolvedRole === 'investor') {
         setActiveNav('Generate Report')
       } else {
-        setActiveNav('Generate Appraisal')
+        setActiveNav('Generate Report')
       }
     } else if (/^\/dashboard\/[^/]+\/?$/.test(pathname)) {
       setActiveNav('Dashboard')
@@ -269,7 +269,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate(`/dashboard/${resolvedRole}/clients`)
     } else if (label === REPORT_PAGE_TITLE[resolvedRole]) {
       navigate(`/dashboard/${resolvedRole}/report`)
-    } else if (label === 'Evidence Centre' && resolvedRole === 'valuer') {
+    } else if (label === 'Evidence Center' && resolvedRole === 'valuer') {
       navigate('/dashboard/valuer/evidence-centre')
     } else if (label === 'Search Properties' && resolvedRole === 'buyer') {
       navigate('/dashboard/buyer/search-properties')
@@ -285,7 +285,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate(`/dashboard/${resolvedRole}/roi-calculation`)
     } else if (label === 'Affordability' && resolvedRole === 'buyer') {
       navigate('/dashboard/buyer/affortability-calculation')
-    } else if (label === 'Generate Appraisal' && resolvedRole === 'agent') {
+    } else if (label === 'Generate Report' && resolvedRole === 'agent') {
       navigate('/dashboard/agent/generate-report')
     } else if (label === 'New Valuation' && resolvedRole === 'valuer') {
       navigate('/dashboard/valuer/generate-report')

@@ -1,3 +1,6 @@
+import { Stepper } from '../../components/ui/Progress-Bar/Stepper'
+import { MOCK_APPRAISAL_STEPS } from '../../services/mock-common'
+
 export function GenerateReport() {
   return (
     <div className="flex flex-col">
@@ -10,7 +13,9 @@ export function GenerateReport() {
         </p>
       </header>
 
-      <div className="flex flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:p-8" />
+      <div className="flex flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:p-8">
+        <Stepper steps={MOCK_APPRAISAL_STEPS} activeStep={0} />
+      </div>
     </div>
   )
 }

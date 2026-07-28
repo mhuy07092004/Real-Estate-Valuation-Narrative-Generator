@@ -119,3 +119,20 @@ export const MOCK_COPILOT_MESSAGES: CopilotMessage[] = [
       "Hello! I'm your Relaive AI Copilot. I can help you analyse properties, understand market trends, explain valuations, and draft professional reports. What would you like to explore today?",
   },
 ]
+
+// ---------------------------------------------------------------------------
+// Stepper (appraisal / payment flows)
+// ---------------------------------------------------------------------------
+
+export type StepperStep = {
+  id: string
+  label: string
+}
+
+export const MOCK_APPRAISAL_STEPS: StepperStep[] = [
+  { id: 'property-input', label: 'Property Input' },
+  { id: 'ai-analysis', label: 'AI Analysis' },
+  { id: 'comparables', label: 'Comparables' },
+  { id: 'market-intelligence', label: 'Market Intelligence' },
+  { id: 'report', label: 'Report' },
+]
