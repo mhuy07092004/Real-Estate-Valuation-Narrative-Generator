@@ -4,6 +4,7 @@ import { Card } from '../../components/ui/card/card'
 import { MOCK_APPRAISAL_STEPS } from '../../services/mock-common'
 import { PropertyInputPanel } from '../../features/dashboard/components/generate-report/property-input-panel'
 import { AiAnalysisPanel } from '../../features/dashboard/components/generate-report/ai-analysis-panel'
+import { ComparablesPanel } from '../../features/dashboard/components/generate-report/comparables-panel'
 
 export function GenerateReport() {
   const [currentStep, setCurrentStep] = useState(0)
@@ -33,7 +34,14 @@ export function GenerateReport() {
           />
         ) : null}
 
-        {currentStep >= 2 ? (
+        {currentStep === 2 ? (
+          <ComparablesPanel
+            onBack={() => setCurrentStep(1)}
+            onContinue={() => setCurrentStep(3)}
+          />
+        ) : null}
+
+        {currentStep >= 3 ? (
           <Card>
             <p className="text-sm text-relaive-gray">
               Coming soon — this step isn&apos;t built yet.

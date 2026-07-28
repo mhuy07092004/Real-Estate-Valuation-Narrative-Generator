@@ -207,3 +207,59 @@ const AI_ANALYSIS_SUMMARY: AiAnalysisSummaryNotification = {
 export function getAiAnalysisSummaryNotification(): AiAnalysisSummaryNotification {
   return AI_ANALYSIS_SUMMARY
 }
+
+// ---------------------------------------------------------------------------
+// Comparable Sales (Generate Appraisal — step 3)
+// ---------------------------------------------------------------------------
+
+export type ComparableSale = {
+  id: string
+  address: string
+  price: number
+  soldAgo: string
+  beds: number
+  baths: number
+  parking: number
+  areaSqm: number
+  matchPercent: number
+  distanceKm: number
+}
+
+export const MOCK_COMPARABLE_SALES: ComparableSale[] = [
+  {
+    id: 'comp-smith-st',
+    address: '125 Smith Street, Melbourne VIC',
+    price: 840000,
+    soldAgo: '2 weeks ago',
+    beds: 3,
+    baths: 2,
+    parking: 2,
+    areaSqm: 450,
+    matchPercent: 95,
+    distanceKm: 0.2,
+  },
+  {
+    id: 'comp-collins-ave',
+    address: '89 Collins Avenue, Melbourne VIC',
+    price: 825000,
+    soldAgo: '1 month ago',
+    beds: 3,
+    baths: 2,
+    parking: 1,
+    areaSqm: 420,
+    matchPercent: 88,
+    distanceKm: 0.5,
+  },
+  {
+    id: 'comp-park-st',
+    address: '234 Park Street, Melbourne VIC',
+    price: 865000,
+    soldAgo: '3 weeks ago',
+    beds: 4,
+    baths: 2,
+    parking: 2,
+    areaSqm: 480,
+    matchPercent: 82,
+    distanceKm: 0.8,
+  },
+]
