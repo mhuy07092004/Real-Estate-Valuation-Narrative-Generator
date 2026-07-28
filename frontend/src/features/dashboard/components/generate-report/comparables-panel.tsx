@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Card, CardTitle } from '../../../../components/ui/card/card'
 import { MOCK_COMPARABLE_SALES, type ComparableSale } from '../../../../services/mock-common'
 import { BuildingIcon } from './generate-report-icons'
@@ -62,9 +63,24 @@ function formatPrice(price: number): string {
   }).format(price)
 }
 
-function ComparableSaleRow({ sale }: { sale: ComparableSale }) {
+type ComparableSaleRowProps = {
+  sale: ComparableSale
+  selected: boolean
+  onSelect: (id: string) => void
+}
+
+function ComparableSaleRow({ sale, selected, onSelect }: ComparableSaleRowProps) {
   return (
-    <div className="border-b border-black/5 py-5 last:border-b-0">
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={() => onSelect(sale.id)}
+      className={`w-full rounded-2xl border px-4 py-5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary focus-visible:ring-offset-2 sm:px-5 ${
+        selected
+          ? 'border-relaive-secondary bg-[#EAF7F6] shadow-sm'
+          : 'border-black/5 bg-white hover:border-relaive-primary/20 hover:bg-slate-50'
+      }`}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h4 className="text-[15px] font-semibold text-relaive-navy">{sale.address}</h4>
@@ -107,14 +123,9 @@ function ComparableSaleRow({ sale }: { sale: ComparableSale }) {
           </span>
         </div>
 
-        <button
-          type="button"
-          className="text-sm font-medium text-relaive-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
-        >
-          View Details
-        </button>
+        <span className="text-sm font-medium text-relaive-primary">View Details</span>
       </div>
-    </div>
+    </button>
   )
 }
 
@@ -124,6 +135,12 @@ type ComparablesPanelProps = {
 }
 
 export function ComparablesPanel({ onBack, onContinue }: ComparablesPanelProps) {
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+
+  const handleSelect = (id: string) => {
+    setSelectedId((current) => (current === id ? null : id))
+  }
+
   return (
     <Card>
       <div className="flex items-center gap-3.5">
@@ -136,13 +153,22 @@ export function ComparablesPanel({ onBack, onContinue }: ComparablesPanelProps) 
         </div>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4 flex flex-col gap-3">
         {MOCK_COMPARABLE_SALES.map((sale) => (
-          <ComparableSaleRow key={sale.id} sale={sale} />
+          <ComparableSaleRow
+            key={sale.id}
+            sale={sale}
+            selected={sale.id === selectedId}
+            onSelect={handleSelect}
+          />
         ))}
       </div>
 
-      <StepActions onBack={onBack} onContinue={onContinue} />
+      <StepActions
+        onBack={onBack}
+        onContinue={onContinue}
+        continueDisabled={!selectedId}
+      />
     </Card>
   )
 }
