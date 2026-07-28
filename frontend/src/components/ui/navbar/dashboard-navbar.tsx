@@ -70,18 +70,10 @@ const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
       items: [
         { label: 'Search Properties', icon: NavPlaceholderIcon },
         { label: 'Saved', icon: NavPlaceholderIcon },
-      ],
-    },
-    {
-      title: 'Decision Tools',
-      items: [
         { label: 'Affordability', icon: NavPlaceholderIcon },
         { label: 'Buyer Report', icon: NavPlaceholderIcon },
+        { label: 'Suburb Explorer', icon: NavPlaceholderIcon },
       ],
-    },
-    {
-      title: 'Location',
-      items: [{ label: 'Suburb Explorer', icon: NavPlaceholderIcon }],
     },
   ],
   investor: [
