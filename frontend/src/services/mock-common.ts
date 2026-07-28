@@ -172,3 +172,38 @@ export const PROPERTY_INPUT_METHODS: PropertyInputMethodOption[] = [
 ]
 
 export const PROPERTY_TYPE_OPTIONS = ['House', 'Unit', 'Townhouse'] as const
+
+// ---------------------------------------------------------------------------
+// AI Property Analysis (Generate Appraisal — step 2)
+// ---------------------------------------------------------------------------
+
+export type AiAnalysisMetricTone = 'blue' | 'teal' | 'orange' | 'sky'
+
+export type AiAnalysisMetric = {
+  id: string
+  label: string
+  value: number
+  tone: AiAnalysisMetricTone
+}
+
+export const MOCK_AI_ANALYSIS_METRICS: AiAnalysisMetric[] = [
+  { id: 'location-quality', label: 'Location Quality', value: 92, tone: 'blue' },
+  { id: 'property-condition', label: 'Property Condition', value: 85, tone: 'teal' },
+  { id: 'market-demand', label: 'Market Demand', value: 88, tone: 'orange' },
+  { id: 'growth-potential', label: 'Growth Potential', value: 78, tone: 'sky' },
+]
+
+export type AiAnalysisSummaryNotification = {
+  title: string
+  message: string
+}
+
+const AI_ANALYSIS_SUMMARY: AiAnalysisSummaryNotification = {
+  title: 'AI-Generated Summary',
+  message:
+    'This 3-bedroom house is located in a highly desirable area with strong market fundamentals. The property shows excellent location attributes including proximity to amenities, transport, and quality schools. Current market conditions indicate steady demand with moderate growth potential.',
+}
+
+export function getAiAnalysisSummaryNotification(): AiAnalysisSummaryNotification {
+  return AI_ANALYSIS_SUMMARY
+}

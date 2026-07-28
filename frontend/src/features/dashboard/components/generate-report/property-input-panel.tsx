@@ -6,6 +6,7 @@ import { Button } from '../../../../components/ui/button/button'
 import { PROPERTY_INPUT_METHODS } from '../../../../services/mock-common'
 import { getPropertyInputMethodIcon } from './generate-report-icons'
 import { EnterAddressForm } from './enter-address-form'
+import { StepActions } from './step-actions'
 
 const OPTION_ITEMS: OptionCardItem[] = PROPERTY_INPUT_METHODS.map((method) => ({
   id: method.id,
@@ -40,7 +41,11 @@ function UploadFilePanel() {
   )
 }
 
-export function PropertyInputPanel() {
+type PropertyInputPanelProps = {
+  onContinue: () => void
+}
+
+export function PropertyInputPanel({ onContinue }: PropertyInputPanelProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const handleSelect = (id: string) => {
@@ -62,6 +67,9 @@ export function PropertyInputPanel() {
           {selectedId === 'upload-file' ? <UploadFilePanel /> : null}
         </div>
       ) : null}
+
+      {/* Step 1 — no Back button */}
+      <StepActions onContinue={onContinue} continueDisabled={!selectedId} />
     </Card>
   )
 }
