@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react'
-import type { PropertyInputMethodIconKey } from '../../../../services/mock-common'
+import type {
+  PropertyInputMethodIconKey,
+  ReportTemplateIconKey,
+} from '../../../../services/mock-common'
 
 function LocationPinIcon() {
   return (
@@ -96,6 +99,85 @@ export function ChartTrendIcon({ size = 20 }: { size?: number }) {
   )
 }
 
+export function ReportDocumentIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M7 3.5h7.5L19 8v12.5a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="M14.5 3.5V8H19" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path
+        d="M9 12h6M9 15.5h6M9 18.5h4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function VendorReportIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function BankReportIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 10h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M12 4 4 9.5h16L12 4Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M6.5 10v7M10 10v7M14 10v7M17.5 10v7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M4 17.5h16M5 20.5h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function BuyerReportIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M5 19.5c1.2-3.2 3.6-4.8 7-4.8s5.8 1.6 7 4.8"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function InvestmentReportIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 19h16M6 16l4-5 3 3 5-7"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M15 7h3v3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 const PROPERTY_INPUT_ICONS: Record<PropertyInputMethodIconKey, () => ReactNode> = {
   address: LocationPinIcon,
   search: SearchIcon,
@@ -104,4 +186,15 @@ const PROPERTY_INPUT_ICONS: Record<PropertyInputMethodIconKey, () => ReactNode> 
 
 export function getPropertyInputMethodIcon(key: PropertyInputMethodIconKey): ReactNode {
   return PROPERTY_INPUT_ICONS[key]()
+}
+
+const REPORT_TEMPLATE_ICONS: Record<ReportTemplateIconKey, () => ReactNode> = {
+  vendor: VendorReportIcon,
+  bank: BankReportIcon,
+  buyer: BuyerReportIcon,
+  investment: InvestmentReportIcon,
+}
+
+export function getReportTemplateIcon(key: ReportTemplateIconKey): ReactNode {
+  return REPORT_TEMPLATE_ICONS[key]()
 }

@@ -297,3 +297,43 @@ export const MOCK_DEMAND_SIGNALS: DemandSignal[] = [
   { id: 'supply-level', label: 'Supply Level', level: 'Medium', percent: 50, tone: 'medium' },
   { id: 'price-growth', label: 'Price Growth', level: 'Strong', percent: 85, tone: 'strong' },
 ]
+
+// ---------------------------------------------------------------------------
+// Report Configuration (Generate Appraisal — step 5)
+// ---------------------------------------------------------------------------
+
+export type ReportTemplateIconKey = 'vendor' | 'bank' | 'buyer' | 'investment'
+
+export type ReportTemplateOption = {
+  id: string
+  title: string
+  description: string
+  iconKey: ReportTemplateIconKey
+}
+
+export const REPORT_TEMPLATES: ReportTemplateOption[] = [
+  {
+    id: 'vendor-appraisal',
+    title: 'Vendor Appraisal',
+    description: 'For sellers listing property',
+    iconKey: 'vendor',
+  },
+  {
+    id: 'bank-valuation',
+    title: 'Bank Valuation',
+    description: 'Formal lending valuation',
+    iconKey: 'bank',
+  },
+  {
+    id: 'buyer-advisory',
+    title: 'Buyer Advisory',
+    description: 'Purchase decision support',
+    iconKey: 'buyer',
+  },
+  {
+    id: 'investment-report',
+    title: 'Investment Report',
+    description: 'ROI and yield analysis',
+    iconKey: 'investment',
+  },
+]

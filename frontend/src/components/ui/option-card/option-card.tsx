@@ -37,12 +37,24 @@ type OptionCardGroupProps = {
   items: OptionCardItem[]
   selectedId: string | null
   onSelect: (id: string) => void
+  columns?: 2 | 3
   className?: string
 }
 
-export function OptionCardGroup({ items, selectedId, onSelect, className = '' }: OptionCardGroupProps) {
+const COLUMNS_CLASS: Record<2 | 3, string> = {
+  2: 'sm:grid-cols-2',
+  3: 'sm:grid-cols-3',
+}
+
+export function OptionCardGroup({
+  items,
+  selectedId,
+  onSelect,
+  columns = 3,
+  className = '',
+}: OptionCardGroupProps) {
   return (
-    <div className={`grid grid-cols-1 gap-4 sm:grid-cols-3 ${className}`}>
+    <div className={`grid grid-cols-1 gap-4 ${COLUMNS_CLASS[columns]} ${className}`}>
       {items.map((item) => (
         <OptionCard key={item.id} {...item} selected={item.id === selectedId} onSelect={onSelect} />
       ))}
