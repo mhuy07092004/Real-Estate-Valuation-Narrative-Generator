@@ -263,3 +263,37 @@ export const MOCK_COMPARABLE_SALES: ComparableSale[] = [
     distanceKm: 0.8,
   },
 ]
+
+// ---------------------------------------------------------------------------
+// Market Intelligence (Generate Appraisal — step 4)
+// ---------------------------------------------------------------------------
+
+export type SuburbOverviewMetric = {
+  id: string
+  label: string
+  value: string
+  tone?: 'positive' | 'default'
+}
+
+export const MOCK_SUBURB_OVERVIEW: SuburbOverviewMetric[] = [
+  { id: 'median-price', label: 'Median House Price', value: '$845,000' },
+  { id: 'growth-12m', label: '12-Month Growth', value: '+8.5%', tone: 'positive' },
+  { id: 'rental-yield', label: 'Rental Yield', value: '3.8%' },
+  { id: 'days-on-market', label: 'Days on Market', value: '28 days' },
+]
+
+export type DemandSignalTone = 'high' | 'medium' | 'strong'
+
+export type DemandSignal = {
+  id: string
+  label: string
+  level: string
+  percent: number
+  tone: DemandSignalTone
+}
+
+export const MOCK_DEMAND_SIGNALS: DemandSignal[] = [
+  { id: 'buyer-interest', label: 'Buyer Interest', level: 'High', percent: 100, tone: 'high' },
+  { id: 'supply-level', label: 'Supply Level', level: 'Medium', percent: 50, tone: 'medium' },
+  { id: 'price-growth', label: 'Price Growth', level: 'Strong', percent: 85, tone: 'strong' },
+]

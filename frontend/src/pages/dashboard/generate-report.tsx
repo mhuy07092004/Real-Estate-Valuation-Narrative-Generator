@@ -5,6 +5,7 @@ import { MOCK_APPRAISAL_STEPS } from '../../services/mock-common'
 import { PropertyInputPanel } from '../../features/dashboard/components/generate-report/property-input-panel'
 import { AiAnalysisPanel } from '../../features/dashboard/components/generate-report/ai-analysis-panel'
 import { ComparablesPanel } from '../../features/dashboard/components/generate-report/comparables-panel'
+import { MarketIntelligencePanel } from '../../features/dashboard/components/generate-report/market-intelligence-panel'
 
 export function GenerateReport() {
   const [currentStep, setCurrentStep] = useState(0)
@@ -41,7 +42,14 @@ export function GenerateReport() {
           />
         ) : null}
 
-        {currentStep >= 3 ? (
+        {currentStep === 3 ? (
+          <MarketIntelligencePanel
+            onBack={() => setCurrentStep(2)}
+            onContinue={() => setCurrentStep(4)}
+          />
+        ) : null}
+
+        {currentStep >= 4 ? (
           <Card>
             <p className="text-sm text-relaive-gray">
               Coming soon — this step isn&apos;t built yet.
