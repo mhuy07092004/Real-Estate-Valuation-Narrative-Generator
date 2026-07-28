@@ -26,6 +26,7 @@ import { BuyerReport } from '../pages/dashboard/buyer/buyer-report'
 import { RoiCalculation } from '../pages/dashboard/investor/ROI-calculation'
 import { AffordabilityCalculation } from '../pages/dashboard/buyer/affortability-calculation'
 import { NotificationPage } from '../pages/dashboard/notification'
+import { GenerateReport } from '../pages/dashboard/generate-report'
 import { ProtectedRoute } from '../features/auth/components/protected-route'
 
 function DashboardReport() {
@@ -67,6 +68,7 @@ export function AppRoutes() {
           <Route path="roi-calculation" element={<RoiCalculation />} />
           <Route path="affortability-calculation" element={<AffordabilityCalculation />} />
           <Route path="notifications" element={<NotificationPage />} />
+          <Route path="generate-report" element={<GenerateReport />} />
           <Route path="mock" element={<MockPageRoute />} />
         </Route>
       </Route>

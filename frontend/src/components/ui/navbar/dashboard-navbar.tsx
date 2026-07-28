@@ -88,13 +88,8 @@ const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
     {
       title: 'Market Intelligence',
       items: [
+        { label: 'Generate Report', icon: NavPlaceholderIcon },
         { label: 'Market Comparison', icon: NavPlaceholderIcon },
-        { label: 'Forecasting', icon: NavPlaceholderIcon },
-      ],
-    },
-    {
-      title: 'Financial Analysis',
-      items: [
         { label: 'ROI Calculator', icon: NavPlaceholderIcon },
         { label: 'Investor Report', icon: NavPlaceholderIcon },
       ],
@@ -135,6 +130,12 @@ function resolveActiveNavFromPath(pathname: string): string {
   if (pathname.endsWith('/copilot')) return 'AI Copilot'
   if (pathname.endsWith('/notifications')) return 'Alert'
   if (pathname.endsWith('/affortability-calculation')) return 'Affordability'
+  if (pathname.endsWith('/generate-report')) {
+    const role = extractRoleFromPathname(pathname)
+    if (role === 'valuer') return 'New Valuation'
+    if (role === 'investor') return 'Generate Report'
+    return 'Generate Appraisal'
+  }
   if (/^\/dashboard\/[^/]+\/?$/.test(pathname)) return 'Dashboard'
   return 'Dashboard'
 }
@@ -208,6 +209,14 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       setActiveNav('AI Copilot')
     } else if (pathname.endsWith('/notifications')) {
       setActiveNav('Alert')
+    } else if (pathname.endsWith('/generate-report')) {
+      if (resolvedRole === 'valuer') {
+        setActiveNav('New Valuation')
+      } else if (resolvedRole === 'investor') {
+        setActiveNav('Generate Report')
+      } else {
+        setActiveNav('Generate Appraisal')
+      }
     } else if (/^\/dashboard\/[^/]+\/?$/.test(pathname)) {
       setActiveNav('Dashboard')
     }
@@ -276,6 +285,12 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate(`/dashboard/${resolvedRole}/roi-calculation`)
     } else if (label === 'Affordability' && resolvedRole === 'buyer') {
       navigate('/dashboard/buyer/affortability-calculation')
+    } else if (label === 'Generate Appraisal' && resolvedRole === 'agent') {
+      navigate('/dashboard/agent/generate-report')
+    } else if (label === 'New Valuation' && resolvedRole === 'valuer') {
+      navigate('/dashboard/valuer/generate-report')
+    } else if (label === 'Generate Report' && resolvedRole === 'investor') {
+      navigate('/dashboard/investor/generate-report')
     } else {
       navigate(`/dashboard/${resolvedRole}/mock`)
     }
