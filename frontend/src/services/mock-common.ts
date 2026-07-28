@@ -136,3 +136,39 @@ export const MOCK_APPRAISAL_STEPS: StepperStep[] = [
   { id: 'market-intelligence', label: 'Market Intelligence' },
   { id: 'report', label: 'Report' },
 ]
+
+// ---------------------------------------------------------------------------
+// Property input method (Generate Appraisal — step 1)
+// ---------------------------------------------------------------------------
+
+export type PropertyInputMethodIconKey = 'address' | 'search' | 'upload'
+
+export type PropertyInputMethodOption = {
+  id: string
+  title: string
+  description: string
+  iconKey: PropertyInputMethodIconKey
+}
+
+export const PROPERTY_INPUT_METHODS: PropertyInputMethodOption[] = [
+  {
+    id: 'enter-address',
+    title: 'Enter Address',
+    description: 'Type the full property address',
+    iconKey: 'address',
+  },
+  {
+    id: 'search-property',
+    title: 'Search Property',
+    description: 'Search our property database',
+    iconKey: 'search',
+  },
+  {
+    id: 'upload-file',
+    title: 'Upload File',
+    description: 'Import from CSV or spreadsheet',
+    iconKey: 'upload',
+  },
+]
+
+export const PROPERTY_TYPE_OPTIONS = ['House', 'Unit', 'Townhouse'] as const

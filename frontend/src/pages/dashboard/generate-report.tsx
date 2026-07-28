@@ -1,5 +1,6 @@
 import { Stepper } from '../../components/ui/Progress-Bar/Stepper'
 import { MOCK_APPRAISAL_STEPS } from '../../services/mock-common'
+import { PropertyInputPanel } from '../../features/dashboard/components/generate-report/property-input-panel'
 
 export function GenerateReport() {
   return (
@@ -15,6 +16,7 @@ export function GenerateReport() {
 
       <div className="flex flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:p-8">
         <Stepper steps={MOCK_APPRAISAL_STEPS} activeStep={0} />
+        <PropertyInputPanel />
       </div>
     </div>
   )
