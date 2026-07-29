@@ -3,6 +3,7 @@
 import type { AiInsight } from '../features/dashboard/components/ai-insights-panel'
 import type { QuickActionTone } from '../features/dashboard/components/quick-actions-panel'
 import type { RecentReport } from '../features/dashboard/components/recent-reports-panel'
+import { simulateRequest } from './api-client'
 import type {
   DashboardActionIconKey,
   DashboardMockPayload,
@@ -269,27 +270,27 @@ const INVESTOR_REPORT_LIST: InvestorReportItem[] = [
 // Getters
 // ---------------------------------------------------------------------------
 
-export function getRoiCalculationMockData(): RoiCalculationMock {
-  return ROI_CALCULATION_DATA
+export function getRoiCalculationMockData(): Promise<RoiCalculationMock> {
+  return simulateRequest(ROI_CALCULATION_DATA)
 }
 
-export function getInvestorDashboardMockData(): DashboardMockPayload {
-  return INVESTOR_DASHBOARD_DATA
+export function getInvestorDashboardMockData(): Promise<DashboardMockPayload> {
+  return simulateRequest(INVESTOR_DASHBOARD_DATA)
 }
 
-export function getInvestorReportListMockData(): InvestorReportItem[] {
-  return INVESTOR_REPORT_LIST
+export function getInvestorReportListMockData(): Promise<InvestorReportItem[]> {
+  return simulateRequest(INVESTOR_REPORT_LIST)
 }
 
-export function getInvestorReportSummary(): InvestorReportSummary {
+export function getInvestorReportSummary(): Promise<InvestorReportSummary> {
   const draftCount = INVESTOR_REPORT_LIST.filter((item) => item.status === 'draft').length
   const sharedCount = INVESTOR_REPORT_LIST.filter((item) => item.status === 'shared').length
 
-  return {
+  return simulateRequest({
     totalReports: INVESTOR_REPORT_LIST.length,
     draftCount,
     sharedCount,
-  }
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -359,10 +360,10 @@ export const MOCK_INVESTOR_NOTIFICATIONS: InboxNotification[] = [
   },
 ]
 
-export function getInvestorNotifications(): InboxNotification[] {
-  return MOCK_INVESTOR_NOTIFICATIONS
+export function getInvestorNotifications(): Promise<InboxNotification[]> {
+  return simulateRequest(MOCK_INVESTOR_NOTIFICATIONS)
 }
 
-export function getInvestorUnreadNotificationCount(): number {
-  return MOCK_INVESTOR_NOTIFICATIONS.filter((n) => !n.isRead).length
+export function getInvestorUnreadNotificationCount(): Promise<number> {
+  return simulateRequest(MOCK_INVESTOR_NOTIFICATIONS.filter((n) => !n.isRead).length)
 }

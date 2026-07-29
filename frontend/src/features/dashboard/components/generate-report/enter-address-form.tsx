@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent } from 'react'
 import { Input } from '../../../../components/ui/input/input'
-import { PROPERTY_TYPE_OPTIONS } from '../../../../services/mock-common'
+import { useAsyncData } from '../../../../hooks/use-async-data'
+import { getPropertyTypeOptions } from '../../../../services/mock-common'
 
 type EnterAddressFormState = {
   address: string
@@ -22,6 +23,7 @@ const INITIAL_STATE: EnterAddressFormState = {
 
 export function EnterAddressForm() {
   const [form, setForm] = useState<EnterAddressFormState>(INITIAL_STATE)
+  const { data: propertyTypeOptions } = useAsyncData(getPropertyTypeOptions, [])
 
   const handleChange =
     (field: keyof EnterAddressFormState) => (event: ChangeEvent<HTMLInputElement>) => {
@@ -48,7 +50,7 @@ export function EnterAddressForm() {
             onChange={handleChange('propertyType')}
           />
           <datalist id="property-type-options">
-            {PROPERTY_TYPE_OPTIONS.map((type) => (
+            {(propertyTypeOptions ?? []).map((type) => (
               <option key={type} value={type} />
             ))}
           </datalist>

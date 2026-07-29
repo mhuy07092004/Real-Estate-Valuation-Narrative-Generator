@@ -1,5 +1,6 @@
 import type { DataTableTab } from '../../../components/ui/table/data-table'
 import { CaseTable } from '../../../components/ui/table/case-table'
+import { useAsyncData } from '../../../hooks/use-async-data'
 import type { CaseItem } from '../../../services/mock-dashboard'
 import { getBuyerReportListMockData } from '../../../services/mock-buyer'
 
@@ -23,7 +24,11 @@ const REPORT_TABS: DataTableTab<CaseItem>[] = [
 ]
 
 export function BuyerReport() {
-  const cases = getBuyerReportListMockData()
+  const { data: cases } = useAsyncData(getBuyerReportListMockData, [])
+
+  if (!cases) {
+    return <div className="p-6 text-sm text-relaive-gray sm:p-8">Loading reports…</div>
+  }
 
   return (
     <div className="flex flex-col">

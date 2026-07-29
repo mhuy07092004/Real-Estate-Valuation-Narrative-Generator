@@ -12,6 +12,7 @@ import {
   ClientStatusBadge,
   getClientStatusLabel,
 } from '../../../components/ui/table/status-badge'
+import { useAsyncData } from '../../../hooks/use-async-data'
 import {
   getClientListMockData,
   getClientListSummary,
@@ -48,8 +49,8 @@ const CLIENT_TABS: DataTableTab<ClientItem>[] = [
 ]
 
 export function ClientAgent() {
-  const clients = getClientListMockData()
-  const { totalClients, followUpsDueSoon } = getClientListSummary()
+  const { data: clients } = useAsyncData(getClientListMockData, [])
+  const { data: summary } = useAsyncData(getClientListSummary, [])
 
   const columns = useMemo<ColumnDef<ClientItem, unknown>[]>(
     () => [
@@ -139,6 +140,10 @@ export function ClientAgent() {
     [],
   )
 
+  if (!clients || !summary) {
+    return <div className="p-6 text-sm text-relaive-gray sm:p-8">Loading clients…</div>
+  }
+
   return (
     <div className="flex flex-col">
       <header className="font-sans px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pt-8">
@@ -146,7 +151,7 @@ export function ClientAgent() {
           Clients
         </h1>
         <p className="mt-1 text-sm text-[#1C2A3880] sm:text-base">
-          {totalClients} clients, {followUpsDueSoon} follow-ups due soon
+          {summary.totalClients} clients, {summary.followUpsDueSoon} follow-ups due soon
         </p>
       </header>
 

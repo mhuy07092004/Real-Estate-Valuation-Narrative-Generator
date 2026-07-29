@@ -4,6 +4,7 @@
 import type { AiInsight } from '../features/dashboard/components/ai-insights-panel'
 import type { QuickActionTone } from '../features/dashboard/components/quick-actions-panel'
 import type { RecentReport } from '../features/dashboard/components/recent-reports-panel'
+import { simulateRequest } from './api-client'
 import type { DashboardRole } from '../features/dashboard/utils/dashboard-role'
 import { getInvestorDashboardMockData } from './mock-investor'
 
@@ -358,13 +359,19 @@ const BUYER_DATA: DashboardMockPayload = {
   ],
 }
 
-const DATA_BY_ROLE: Record<DashboardRole, DashboardMockPayload> = {
+// Investor's payload is owned by mock-investor.ts and fetched asynchronously
+// (its getter simulates a request), so it can't be spread into a plain
+// synchronous record like the other three roles.
+const STATIC_DATA_BY_ROLE: Partial<Record<DashboardRole, DashboardMockPayload>> = {
   agent: AGENT_DATA,
   valuer: VALUER_DATA,
-  investor: getInvestorDashboardMockData(),
   buyer: BUYER_DATA,
 }
 
-export function getDashboardMockData(role: DashboardRole): DashboardMockPayload {
-  return DATA_BY_ROLE[role]
+export function getDashboardMockData(role: DashboardRole): Promise<DashboardMockPayload> {
+  if (role === 'investor') {
+    return getInvestorDashboardMockData()
+  }
+
+  return simulateRequest(STATIC_DATA_BY_ROLE[role] as DashboardMockPayload)
 }

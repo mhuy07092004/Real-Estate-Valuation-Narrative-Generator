@@ -1,13 +1,18 @@
 import { CaseTable } from '../../../components/ui/table/case-table'
 import { StatCard } from '../../../components/ui/stat-card/stat-card'
+import { useAsyncData } from '../../../hooks/use-async-data'
 import {
   getValuationCasesMockData,
   getValuerCaseListMockData,
 } from '../../../services/mock-valuer'
 
 export function ValuationCases() {
-  const data = getValuationCasesMockData()
-  const cases = getValuerCaseListMockData()
+  const { data } = useAsyncData(getValuationCasesMockData, [])
+  const { data: cases } = useAsyncData(getValuerCaseListMockData, [])
+
+  if (!data || !cases) {
+    return <div className="p-6 text-sm text-relaive-gray sm:p-8">Loading valuation cases…</div>
+  }
 
   return (
     <div className="flex flex-col">

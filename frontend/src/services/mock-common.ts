@@ -1,5 +1,7 @@
 // Shared mock data — used by all 4 roles (notifications, AI copilot, date helpers).
 
+import { simulateRequest } from './api-client'
+
 // ---------------------------------------------------------------------------
 // Date helpers
 // ---------------------------------------------------------------------------
@@ -39,8 +41,8 @@ const ROI_DISCLAIMER: NotificationMock = {
     'MOCK ONLY! - These calculations are estimates for indicative purposes only. They do not constitute financial advice. Consult a qualified financial adviser before making investment decisions.',
 }
 
-export function getRoiDisclaimerNotification(): NotificationMock {
-  return ROI_DISCLAIMER
+export function getRoiDisclaimerNotification(): Promise<NotificationMock> {
+  return simulateRequest(ROI_DISCLAIMER)
 }
 
 const AFFORDABILITY_DISCLAIMER: NotificationMock = {
@@ -48,8 +50,8 @@ const AFFORDABILITY_DISCLAIMER: NotificationMock = {
     'MOCK ONLY! - These affordability figures are estimates for indicative purposes only. They do not constitute financial or lending advice. Confirm borrowing capacity with your lender before making purchase decisions.',
 }
 
-export function getAffordabilityDisclaimerNotification(): NotificationMock {
-  return AFFORDABILITY_DISCLAIMER
+export function getAffordabilityDisclaimerNotification(): Promise<NotificationMock> {
+  return simulateRequest(AFFORDABILITY_DISCLAIMER)
 }
 
 // ---------------------------------------------------------------------------
@@ -77,7 +79,7 @@ export type CopilotMessage = {
   content: string
 }
 
-export const MOCK_COPILOT_CONVERSATIONS: CopilotConversation[] = [
+const COPILOT_CONVERSATIONS_DATA: CopilotConversation[] = [
   {
     id: 'conv-richmond',
     title: 'Richmond Market Analysis',
@@ -88,7 +90,11 @@ export const MOCK_COPILOT_CONVERSATIONS: CopilotConversation[] = [
   },
 ]
 
-export const MOCK_COPILOT_SUGGESTIONS: CopilotSuggestion[] = [
+export function getCopilotConversations(): Promise<CopilotConversation[]> {
+  return simulateRequest(COPILOT_CONVERSATIONS_DATA)
+}
+
+const COPILOT_SUGGESTIONS_DATA: CopilotSuggestion[] = [
   {
     id: 'sug-1',
     label: 'What are the market trends in Richmond VIC?',
@@ -111,7 +117,11 @@ export const MOCK_COPILOT_SUGGESTIONS: CopilotSuggestion[] = [
   },
 ]
 
-export const MOCK_COPILOT_MESSAGES: CopilotMessage[] = [
+export function getCopilotSuggestions(): Promise<CopilotSuggestion[]> {
+  return simulateRequest(COPILOT_SUGGESTIONS_DATA)
+}
+
+const COPILOT_MESSAGES_DATA: CopilotMessage[] = [
   {
     id: 'msg-welcome',
     role: 'assistant',
@@ -119,6 +129,10 @@ export const MOCK_COPILOT_MESSAGES: CopilotMessage[] = [
       "Hello! I'm your Relaive AI Copilot. I can help you analyse properties, understand market trends, explain valuations, and draft professional reports. What would you like to explore today?",
   },
 ]
+
+export function getCopilotMessages(): Promise<CopilotMessage[]> {
+  return simulateRequest(COPILOT_MESSAGES_DATA)
+}
 
 // ---------------------------------------------------------------------------
 // Stepper (appraisal / payment flows)
@@ -129,13 +143,17 @@ export type StepperStep = {
   label: string
 }
 
-export const MOCK_APPRAISAL_STEPS: StepperStep[] = [
+const APPRAISAL_STEPS_DATA: StepperStep[] = [
   { id: 'property-input', label: 'Property Input' },
   { id: 'ai-analysis', label: 'AI Analysis' },
   { id: 'comparables', label: 'Comparables' },
   { id: 'market-intelligence', label: 'Market Intelligence' },
   { id: 'report', label: 'Report' },
 ]
+
+export function getAppraisalSteps(): Promise<StepperStep[]> {
+  return simulateRequest(APPRAISAL_STEPS_DATA)
+}
 
 // ---------------------------------------------------------------------------
 // Property input method (Generate Appraisal — step 1)
@@ -150,7 +168,7 @@ export type PropertyInputMethodOption = {
   iconKey: PropertyInputMethodIconKey
 }
 
-export const PROPERTY_INPUT_METHODS: PropertyInputMethodOption[] = [
+const PROPERTY_INPUT_METHODS_DATA: PropertyInputMethodOption[] = [
   {
     id: 'enter-address',
     title: 'Enter Address',
@@ -171,7 +189,15 @@ export const PROPERTY_INPUT_METHODS: PropertyInputMethodOption[] = [
   },
 ]
 
-export const PROPERTY_TYPE_OPTIONS = ['House', 'Unit', 'Townhouse'] as const
+export function getPropertyInputMethods(): Promise<PropertyInputMethodOption[]> {
+  return simulateRequest(PROPERTY_INPUT_METHODS_DATA)
+}
+
+const PROPERTY_TYPE_OPTIONS_DATA = ['House', 'Unit', 'Townhouse'] as const
+
+export function getPropertyTypeOptions(): Promise<readonly string[]> {
+  return simulateRequest(PROPERTY_TYPE_OPTIONS_DATA)
+}
 
 // ---------------------------------------------------------------------------
 // AI Property Analysis (Generate Appraisal — step 2)
@@ -186,12 +212,16 @@ export type AiAnalysisMetric = {
   tone: AiAnalysisMetricTone
 }
 
-export const MOCK_AI_ANALYSIS_METRICS: AiAnalysisMetric[] = [
+const AI_ANALYSIS_METRICS_DATA: AiAnalysisMetric[] = [
   { id: 'location-quality', label: 'Location Quality', value: 92, tone: 'blue' },
   { id: 'property-condition', label: 'Property Condition', value: 85, tone: 'teal' },
   { id: 'market-demand', label: 'Market Demand', value: 88, tone: 'orange' },
   { id: 'growth-potential', label: 'Growth Potential', value: 78, tone: 'sky' },
 ]
+
+export function getAiAnalysisMetrics(): Promise<AiAnalysisMetric[]> {
+  return simulateRequest(AI_ANALYSIS_METRICS_DATA)
+}
 
 export type AiAnalysisSummaryNotification = {
   title: string
@@ -204,8 +234,8 @@ const AI_ANALYSIS_SUMMARY: AiAnalysisSummaryNotification = {
     'This 3-bedroom house is located in a highly desirable area with strong market fundamentals. The property shows excellent location attributes including proximity to amenities, transport, and quality schools. Current market conditions indicate steady demand with moderate growth potential.',
 }
 
-export function getAiAnalysisSummaryNotification(): AiAnalysisSummaryNotification {
-  return AI_ANALYSIS_SUMMARY
+export function getAiAnalysisSummaryNotification(): Promise<AiAnalysisSummaryNotification> {
+  return simulateRequest(AI_ANALYSIS_SUMMARY)
 }
 
 // ---------------------------------------------------------------------------
@@ -225,7 +255,7 @@ export type ComparableSale = {
   distanceKm: number
 }
 
-export const MOCK_COMPARABLE_SALES: ComparableSale[] = [
+const COMPARABLE_SALES_DATA: ComparableSale[] = [
   {
     id: 'comp-smith-st',
     address: '125 Smith Street, Melbourne VIC',
@@ -264,6 +294,10 @@ export const MOCK_COMPARABLE_SALES: ComparableSale[] = [
   },
 ]
 
+export function getComparableSales(): Promise<ComparableSale[]> {
+  return simulateRequest(COMPARABLE_SALES_DATA)
+}
+
 // ---------------------------------------------------------------------------
 // Market Intelligence (Generate Appraisal — step 4)
 // ---------------------------------------------------------------------------
@@ -275,12 +309,16 @@ export type SuburbOverviewMetric = {
   tone?: 'positive' | 'default'
 }
 
-export const MOCK_SUBURB_OVERVIEW: SuburbOverviewMetric[] = [
+const SUBURB_OVERVIEW_DATA: SuburbOverviewMetric[] = [
   { id: 'median-price', label: 'Median House Price', value: '$845,000' },
   { id: 'growth-12m', label: '12-Month Growth', value: '+8.5%', tone: 'positive' },
   { id: 'rental-yield', label: 'Rental Yield', value: '3.8%' },
   { id: 'days-on-market', label: 'Days on Market', value: '28 days' },
 ]
+
+export function getSuburbOverview(): Promise<SuburbOverviewMetric[]> {
+  return simulateRequest(SUBURB_OVERVIEW_DATA)
+}
 
 export type DemandSignalTone = 'high' | 'medium' | 'strong'
 
@@ -292,11 +330,15 @@ export type DemandSignal = {
   tone: DemandSignalTone
 }
 
-export const MOCK_DEMAND_SIGNALS: DemandSignal[] = [
+const DEMAND_SIGNALS_DATA: DemandSignal[] = [
   { id: 'buyer-interest', label: 'Buyer Interest', level: 'High', percent: 100, tone: 'high' },
   { id: 'supply-level', label: 'Supply Level', level: 'Medium', percent: 50, tone: 'medium' },
   { id: 'price-growth', label: 'Price Growth', level: 'Strong', percent: 85, tone: 'strong' },
 ]
+
+export function getDemandSignals(): Promise<DemandSignal[]> {
+  return simulateRequest(DEMAND_SIGNALS_DATA)
+}
 
 // ---------------------------------------------------------------------------
 // Report Configuration (Generate Appraisal — step 5)
@@ -311,7 +353,7 @@ export type ReportTemplateOption = {
   iconKey: ReportTemplateIconKey
 }
 
-export const REPORT_TEMPLATES: ReportTemplateOption[] = [
+const REPORT_TEMPLATES_DATA: ReportTemplateOption[] = [
   {
     id: 'vendor-appraisal',
     title: 'Vendor Appraisal',
@@ -337,3 +379,7 @@ export const REPORT_TEMPLATES: ReportTemplateOption[] = [
     iconKey: 'investment',
   },
 ]
+
+export function getReportTemplates(): Promise<ReportTemplateOption[]> {
+  return simulateRequest(REPORT_TEMPLATES_DATA)
+}

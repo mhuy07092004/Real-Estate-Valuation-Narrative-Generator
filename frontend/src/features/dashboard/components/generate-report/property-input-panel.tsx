@@ -1,19 +1,13 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Card, CardTitle } from '../../../../components/ui/card/card'
 import { OptionCardGroup, type OptionCardItem } from '../../../../components/ui/option-card/option-card'
 import { AddressSearch } from '../../../../components/ui/search-bar/address-search'
 import { Button } from '../../../../components/ui/button/button'
-import { PROPERTY_INPUT_METHODS } from '../../../../services/mock-common'
+import { useAsyncData } from '../../../../hooks/use-async-data'
+import { getPropertyInputMethods } from '../../../../services/mock-common'
 import { getPropertyInputMethodIcon } from './generate-report-icons'
 import { EnterAddressForm } from './enter-address-form'
 import { StepActions } from './step-actions'
-
-const OPTION_ITEMS: OptionCardItem[] = PROPERTY_INPUT_METHODS.map((method) => ({
-  id: method.id,
-  title: method.title,
-  description: method.description,
-  icon: getPropertyInputMethodIcon(method.iconKey),
-}))
 
 function SearchPropertyPanel() {
   return (
@@ -47,6 +41,17 @@ type PropertyInputPanelProps = {
 
 export function PropertyInputPanel({ onContinue }: PropertyInputPanelProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const { data: inputMethods } = useAsyncData(getPropertyInputMethods, [])
+  const optionItems = useMemo<OptionCardItem[]>(
+    () =>
+      (inputMethods ?? []).map((method) => ({
+        id: method.id,
+        title: method.title,
+        description: method.description,
+        icon: getPropertyInputMethodIcon(method.iconKey),
+      })),
+    [inputMethods],
+  )
 
   const handleSelect = (id: string) => {
     setSelectedId((current) => (current === id ? null : id))
@@ -57,7 +62,7 @@ export function PropertyInputPanel({ onContinue }: PropertyInputPanelProps) {
       <CardTitle>Choose Property Input Method</CardTitle>
 
       <div className="mt-6">
-        <OptionCardGroup items={OPTION_ITEMS} selectedId={selectedId} onSelect={handleSelect} />
+        <OptionCardGroup items={optionItems} selectedId={selectedId} onSelect={handleSelect} />
       </div>
 
       {selectedId ? (

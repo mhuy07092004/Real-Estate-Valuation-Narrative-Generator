@@ -1,5 +1,6 @@
 // Buyer-only mock data — affordability calculator + property search/saved + reports.
 
+import { simulateRequest } from './api-client'
 import type { PropertyCardData } from '../components/ui/property-card/property-card'
 import type { CaseItem } from './mock-dashboard'
 import { daysAgo, hoursAgo, type InboxNotification } from './mock-common'
@@ -71,15 +72,15 @@ const AFFORDABILITY_CALCULATION_DATA: AffordabilityCalculationMock = {
   ],
 }
 
-export function getAffordabilityCalculationMockData(): AffordabilityCalculationMock {
-  return AFFORDABILITY_CALCULATION_DATA
+export function getAffordabilityCalculationMockData(): Promise<AffordabilityCalculationMock> {
+  return simulateRequest(AFFORDABILITY_CALCULATION_DATA)
 }
 
 // ---------------------------------------------------------------------------
 // Data — property search / saved
 // ---------------------------------------------------------------------------
 
-export const MOCK_PROPERTIES: PropertyCardData[] = [
+const SEARCH_PROPERTIES_DATA: PropertyCardData[] = [
   {
     id: 'prop-1',
     address: {
@@ -172,7 +173,11 @@ export const MOCK_PROPERTIES: PropertyCardData[] = [
   },
 ]
 
-export const MOCK_SAVED_PROPERTIES: PropertyCardData[] = [
+export function getSearchProperties(): Promise<PropertyCardData[]> {
+  return simulateRequest(SEARCH_PROPERTIES_DATA)
+}
+
+const SAVED_PROPERTIES_DATA: PropertyCardData[] = [
   {
     id: 'saved-1',
     address: {
@@ -204,6 +209,10 @@ export const MOCK_SAVED_PROPERTIES: PropertyCardData[] = [
     status: 'below_range',
   },
 ]
+
+export function getSavedProperties(): Promise<PropertyCardData[]> {
+  return simulateRequest(SAVED_PROPERTIES_DATA)
+}
 
 // ---------------------------------------------------------------------------
 // Buyer reports
@@ -245,15 +254,15 @@ const BUYER_REPORT_LIST: CaseItem[] = [
   },
 ]
 
-export function getBuyerReportListMockData(): CaseItem[] {
-  return BUYER_REPORT_LIST
+export function getBuyerReportListMockData(): Promise<CaseItem[]> {
+  return simulateRequest(BUYER_REPORT_LIST)
 }
 
 // ---------------------------------------------------------------------------
 // Notifications
 // ---------------------------------------------------------------------------
 
-export const MOCK_BUYER_NOTIFICATIONS: InboxNotification[] = [
+const BUYER_NOTIFICATIONS_DATA: InboxNotification[] = [
   {
     id: 'buyer-notif-1',
     title: 'Price Drop – 123 Smith St',
@@ -316,10 +325,10 @@ export const MOCK_BUYER_NOTIFICATIONS: InboxNotification[] = [
   },
 ]
 
-export function getBuyerNotifications(): InboxNotification[] {
-  return MOCK_BUYER_NOTIFICATIONS
+export function getBuyerNotifications(): Promise<InboxNotification[]> {
+  return simulateRequest(BUYER_NOTIFICATIONS_DATA)
 }
 
-export function getBuyerUnreadNotificationCount(): number {
-  return MOCK_BUYER_NOTIFICATIONS.filter((n) => !n.isRead).length
+export function getBuyerUnreadNotificationCount(): Promise<number> {
+  return simulateRequest(BUYER_NOTIFICATIONS_DATA.filter((n) => !n.isRead).length)
 }

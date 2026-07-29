@@ -6,6 +6,7 @@ import {
   isDashboardRole,
   type DashboardRole,
 } from '../../features/dashboard/utils/dashboard-role'
+import { useAsyncData } from '../../hooks/use-async-data'
 import {
   getAgentNotifications,
   getAgentUnreadNotificationCount,
@@ -174,32 +175,40 @@ const ICON_MAP: Record<NotificationIconKind, ReactNode> = {
   report: <ReportIcon />,
 }
 
-function getNotificationsForRole(role: DashboardRole): {
+async function fetchNotificationsForRole(role: DashboardRole): Promise<{
   items: InboxNotification[]
   unreadCount: number
-} {
+}> {
   switch (role) {
-    case 'buyer':
-      return {
-        items: getBuyerNotifications(),
-        unreadCount: getBuyerUnreadNotificationCount(),
-      }
-    case 'investor':
-      return {
-        items: getInvestorNotifications(),
-        unreadCount: getInvestorUnreadNotificationCount(),
-      }
-    case 'valuer':
-      return {
-        items: getValuerNotifications(),
-        unreadCount: getValuerUnreadNotificationCount(),
-      }
+    case 'buyer': {
+      const [items, unreadCount] = await Promise.all([
+        getBuyerNotifications(),
+        getBuyerUnreadNotificationCount(),
+      ])
+      return { items, unreadCount }
+    }
+    case 'investor': {
+      const [items, unreadCount] = await Promise.all([
+        getInvestorNotifications(),
+        getInvestorUnreadNotificationCount(),
+      ])
+      return { items, unreadCount }
+    }
+    case 'valuer': {
+      const [items, unreadCount] = await Promise.all([
+        getValuerNotifications(),
+        getValuerUnreadNotificationCount(),
+      ])
+      return { items, unreadCount }
+    }
     case 'agent':
-    default:
-      return {
-        items: getAgentNotifications(),
-        unreadCount: getAgentUnreadNotificationCount(),
-      }
+    default: {
+      const [items, unreadCount] = await Promise.all([
+        getAgentNotifications(),
+        getAgentUnreadNotificationCount(),
+      ])
+      return { items, unreadCount }
+    }
   }
 }
 
@@ -207,7 +216,9 @@ export function NotificationPage() {
   const { role: roleParam } = useParams<{ role: string }>()
   const role: DashboardRole =
     roleParam && isDashboardRole(roleParam) ? roleParam : 'agent'
-  const { items, unreadCount } = getNotificationsForRole(role)
+  const { data } = useAsyncData(() => fetchNotificationsForRole(role), [role])
+  const items = data?.items ?? []
+  const unreadCount = data?.unreadCount ?? 0
 
   return (
     <div className="flex flex-col">

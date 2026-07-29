@@ -1,6 +1,7 @@
 // Agent-only mock data — CRM client list + client reports.
 
 import dayjs from 'dayjs'
+import { simulateRequest } from './api-client'
 import type { CaseItem } from './mock-dashboard'
 import { daysAgo, hoursAgo, type InboxNotification } from './mock-common'
 
@@ -167,20 +168,20 @@ const AGENT_REPORT_LIST: CaseItem[] = [
 // Getters
 // ---------------------------------------------------------------------------
 
-export function getClientListMockData(): ClientItem[] {
-  return CLIENT_LIST_DATA
+export function getClientListMockData(): Promise<ClientItem[]> {
+  return simulateRequest(CLIENT_LIST_DATA)
 }
 
-export function getClientListSummary(): ClientListSummary {
+export function getClientListSummary(): Promise<ClientListSummary> {
   const clients = CLIENT_LIST_DATA
-  return {
+  return simulateRequest({
     totalClients: clients.length,
     followUpsDueSoon: clients.filter((client) => isFollowUpDueSoon(client.followUpAt)).length,
-  }
+  })
 }
 
-export function getAgentReportListMockData(): CaseItem[] {
-  return AGENT_REPORT_LIST
+export function getAgentReportListMockData(): Promise<CaseItem[]> {
+  return simulateRequest(AGENT_REPORT_LIST)
 }
 
 // ---------------------------------------------------------------------------
@@ -250,10 +251,10 @@ export const MOCK_AGENT_NOTIFICATIONS: InboxNotification[] = [
   },
 ]
 
-export function getAgentNotifications(): InboxNotification[] {
-  return MOCK_AGENT_NOTIFICATIONS
+export function getAgentNotifications(): Promise<InboxNotification[]> {
+  return simulateRequest(MOCK_AGENT_NOTIFICATIONS)
 }
 
-export function getAgentUnreadNotificationCount(): number {
-  return MOCK_AGENT_NOTIFICATIONS.filter((n) => !n.isRead).length
+export function getAgentUnreadNotificationCount(): Promise<number> {
+  return simulateRequest(MOCK_AGENT_NOTIFICATIONS.filter((n) => !n.isRead).length)
 }

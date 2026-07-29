@@ -1,18 +1,12 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Card, CardTitle } from '../../../../components/ui/card/card'
 import { OptionCardGroup, type OptionCardItem } from '../../../../components/ui/option-card/option-card'
 import { Button } from '../../../../components/ui/button/button'
 import { Notification } from '../../../../components/notification/notification'
-import { REPORT_TEMPLATES } from '../../../../services/mock-common'
+import { useAsyncData } from '../../../../hooks/use-async-data'
+import { getReportTemplates } from '../../../../services/mock-common'
 import { getReportTemplateIcon, ReportDocumentIcon } from './generate-report-icons'
 import { StepActions } from './step-actions'
-
-const OPTION_ITEMS: OptionCardItem[] = REPORT_TEMPLATES.map((template) => ({
-  id: template.id,
-  title: template.title,
-  description: template.description,
-  icon: getReportTemplateIcon(template.iconKey),
-}))
 
 type ReportConfigurationPanelProps = {
   onBack: () => void
@@ -21,8 +15,19 @@ type ReportConfigurationPanelProps = {
 export function ReportConfigurationPanel({ onBack }: ReportConfigurationPanelProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
+  const { data: templates } = useAsyncData(getReportTemplates, [])
 
-  const selectedTemplate = REPORT_TEMPLATES.find((template) => template.id === selectedId)
+  const optionItems = useMemo<OptionCardItem[]>(
+    () =>
+      (templates ?? []).map((template) => ({
+        id: template.id,
+        title: template.title,
+        description: template.description,
+        icon: getReportTemplateIcon(template.iconKey),
+      })),
+    [templates],
+  )
+  const selectedTemplate = (templates ?? []).find((template) => template.id === selectedId)
 
   const handleSelect = (id: string) => {
     if (submitted) return
@@ -43,7 +48,7 @@ export function ReportConfigurationPanel({ onBack }: ReportConfigurationPanelPro
 
       <div className="mt-6">
         <OptionCardGroup
-          items={OPTION_ITEMS}
+          items={optionItems}
           selectedId={selectedId}
           onSelect={handleSelect}
           columns={2}

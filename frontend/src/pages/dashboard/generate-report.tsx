@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Stepper } from '../../components/ui/Progress-Bar/Stepper'
-import { MOCK_APPRAISAL_STEPS } from '../../services/mock-common'
+import { useAsyncData } from '../../hooks/use-async-data'
+import { getAppraisalSteps } from '../../services/mock-common'
 import { PropertyInputPanel } from '../../features/dashboard/components/generate-report/property-input-panel'
 import { AiAnalysisPanel } from '../../features/dashboard/components/generate-report/ai-analysis-panel'
 import { ComparablesPanel } from '../../features/dashboard/components/generate-report/comparables-panel'
@@ -9,6 +10,7 @@ import { ReportConfigurationPanel } from '../../features/dashboard/components/ge
 
 export function GenerateReport() {
   const [currentStep, setCurrentStep] = useState(0)
+  const { data: steps } = useAsyncData(getAppraisalSteps, [])
 
   return (
     <div className="flex flex-col">
@@ -22,7 +24,7 @@ export function GenerateReport() {
       </header>
 
       <div className="flex flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:p-8">
-        <Stepper steps={MOCK_APPRAISAL_STEPS} activeStep={currentStep} />
+        <Stepper steps={steps ?? []} activeStep={currentStep} />
 
         {currentStep === 0 ? (
           <PropertyInputPanel onContinue={() => setCurrentStep(1)} />

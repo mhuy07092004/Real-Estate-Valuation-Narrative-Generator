@@ -3,6 +3,7 @@ import { getActionIcon, getStatIcon } from './dashboard-icons'
 import { QuickActionsPanel } from './quick-actions-panel'
 import { RecentReportsPanel } from './recent-reports-panel'
 import { StatCard } from '../../../components/ui/stat-card/stat-card'
+import { useAsyncData } from '../../../hooks/use-async-data'
 import type { DashboardRole } from '../utils/dashboard-role'
 import { getDashboardMockData } from '../../../services/mock-dashboard'
 
@@ -11,7 +12,11 @@ type RoleDashboardViewProps = {
 }
 
 export function RoleDashboardView({ role }: RoleDashboardViewProps) {
-  const data = getDashboardMockData(role)
+  const { data } = useAsyncData(() => getDashboardMockData(role), [role])
+
+  if (!data) {
+    return <div className="p-6 text-sm text-relaive-gray sm:p-8">Loading dashboard…</div>
+  }
 
   return (
     <div className="flex flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:p-8">

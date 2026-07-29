@@ -1,9 +1,10 @@
 import { Card, CardTitle } from '../../../../components/ui/card/card'
 import { Notification } from '../../../../components/notification/notification'
+import { useAsyncData } from '../../../../hooks/use-async-data'
 import {
   getAiAnalysisSummaryNotification,
-  MOCK_DEMAND_SIGNALS,
-  MOCK_SUBURB_OVERVIEW,
+  getDemandSignals,
+  getSuburbOverview,
   type DemandSignal,
   type DemandSignalTone,
   type SuburbOverviewMetric,
@@ -57,7 +58,9 @@ type MarketIntelligencePanelProps = {
 }
 
 export function MarketIntelligencePanel({ onBack, onContinue }: MarketIntelligencePanelProps) {
-  const summary = getAiAnalysisSummaryNotification()
+  const { data: summary } = useAsyncData(getAiAnalysisSummaryNotification, [])
+  const { data: suburbOverview } = useAsyncData(getSuburbOverview, [])
+  const { data: demandSignals } = useAsyncData(getDemandSignals, [])
 
   return (
     <Card>
@@ -75,7 +78,7 @@ export function MarketIntelligencePanel({ onBack, onContinue }: MarketIntelligen
         <div>
           <h4 className="text-sm font-semibold text-relaive-navy sm:text-base">Suburb Overview</h4>
           <div className="mt-2">
-            {MOCK_SUBURB_OVERVIEW.map((metric) => (
+            {(suburbOverview ?? []).map((metric) => (
               <SuburbOverviewRow key={metric.id} metric={metric} />
             ))}
           </div>
@@ -84,20 +87,22 @@ export function MarketIntelligencePanel({ onBack, onContinue }: MarketIntelligen
         <div>
           <h4 className="text-sm font-semibold text-relaive-navy sm:text-base">Demand Signals</h4>
           <div className="mt-2">
-            {MOCK_DEMAND_SIGNALS.map((signal) => (
+            {(demandSignals ?? []).map((signal) => (
               <DemandSignalRow key={signal.id} signal={signal} />
             ))}
           </div>
         </div>
       </div>
 
-      <Notification
-        className="mt-6"
-        icon={<ChartTrendIcon size={18} />}
-      >
-        <p className="font-semibold">AI Market Analysis</p>
-        <p className="mt-1">{summary.message}</p>
-      </Notification>
+      {summary ? (
+        <Notification
+          className="mt-6"
+          icon={<ChartTrendIcon size={18} />}
+        >
+          <p className="font-semibold">AI Market Analysis</p>
+          <p className="mt-1">{summary.message}</p>
+        </Notification>
+      ) : null}
 
       <StepActions onBack={onBack} onContinue={onContinue} />
     </Card>

@@ -9,6 +9,7 @@ import {
   REPORT_PAGE_TITLE,
   setActiveDashboardRole,
 } from '../../../features/dashboard/utils/dashboard-role'
+import { useAsyncData } from '../../../hooks/use-async-data'
 import { useClickOutside } from '../../../hooks/use-click-outside'
 import { getAgentUnreadNotificationCount } from '../../../services/mock-agent'
 import { getBuyerUnreadNotificationCount } from '../../../services/mock-buyer'
@@ -168,7 +169,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   const displayName = user ? formatShortName(user.fullName) : 'User'
   const displayEmail = user?.email ?? ''
   const userInitials = user ? getInitials(user.fullName) : 'U'
-  const unreadNotificationCount = useMemo(() => {
+  const { data: unreadNotificationCount } = useAsyncData(() => {
     switch (resolvedRole) {
       case 'buyer':
         return getBuyerUnreadNotificationCount()
@@ -336,7 +337,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
           onNavigateToSettings={handleNavigateToSettings}
           onNavigateToCopilot={handleNavigateToCopilot}
           onNavigateToNotifications={handleNavigateToNotifications}
-          unreadNotificationCount={unreadNotificationCount}
+          unreadNotificationCount={unreadNotificationCount ?? 0}
           onSignOut={handleSignOut}
         />
 

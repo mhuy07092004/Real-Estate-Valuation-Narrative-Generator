@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Card, CardTitle } from '../../../../components/ui/card/card'
-import { MOCK_COMPARABLE_SALES, type ComparableSale } from '../../../../services/mock-common'
+import { useAsyncData } from '../../../../hooks/use-async-data'
+import { getComparableSales, type ComparableSale } from '../../../../services/mock-common'
 import { BuildingIcon } from './generate-report-icons'
 import { StepActions } from './step-actions'
 
@@ -136,6 +137,7 @@ type ComparablesPanelProps = {
 
 export function ComparablesPanel({ onBack, onContinue }: ComparablesPanelProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const { data: sales } = useAsyncData(getComparableSales, [])
 
   const handleSelect = (id: string) => {
     setSelectedId((current) => (current === id ? null : id))
@@ -154,7 +156,7 @@ export function ComparablesPanel({ onBack, onContinue }: ComparablesPanelProps) 
       </div>
 
       <div className="mt-4 flex flex-col gap-3">
-        {MOCK_COMPARABLE_SALES.map((sale) => (
+        {(sales ?? []).map((sale) => (
           <ComparableSaleRow
             key={sale.id}
             sale={sale}

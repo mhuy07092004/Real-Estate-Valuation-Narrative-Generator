@@ -3,6 +3,7 @@ import { Card } from '../../../components/ui/card/card'
 import { Input } from '../../../components/ui/input/input'
 import { StatCard } from '../../../components/ui/stat-card/stat-card'
 import { Notification } from '../../../components/notification/notification'
+import { useAsyncData } from '../../../hooks/use-async-data'
 import { getAffordabilityDisclaimerNotification } from '../../../services/mock-common'
 import {
   getAffordabilityCalculationMockData,
@@ -61,8 +62,12 @@ function SummaryRow({ label, value, valueClassName, emphasize = false, isLast = 
 }
 
 export function AffordabilityCalculation() {
-  const data = getAffordabilityCalculationMockData()
-  const disclaimer = getAffordabilityDisclaimerNotification()
+  const { data } = useAsyncData(getAffordabilityCalculationMockData, [])
+  const { data: disclaimer } = useAsyncData(getAffordabilityDisclaimerNotification, [])
+
+  if (!data || !disclaimer) {
+    return <div className="p-6 text-sm text-relaive-gray sm:p-8">Loading affordability calculator…</div>
+  }
 
   return (
     <div className="flex flex-col">

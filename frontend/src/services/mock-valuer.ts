@@ -1,5 +1,6 @@
 // Valuer-only mock data — evidence centre + valuation cases / reports.
 
+import { simulateRequest } from './api-client'
 import type { CaseItem } from './mock-dashboard'
 import { daysAgo, hoursAgo, type InboxNotification } from './mock-common'
 
@@ -193,17 +194,17 @@ const EVIDENCE_LIST_DATA: EvidenceItem[] = [
   },
 ]
 
-export function getEvidenceListMockData(): EvidenceItem[] {
-  return EVIDENCE_LIST_DATA
+export function getEvidenceListMockData(): Promise<EvidenceItem[]> {
+  return simulateRequest(EVIDENCE_LIST_DATA)
 }
 
-export function getEvidenceCentreMockData(): EvidenceCentreMockPayload {
+export function getEvidenceCentreMockData(): Promise<EvidenceCentreMockPayload> {
   const comparable = EVIDENCE_LIST_DATA.filter((item) => item.category === 'comparable').length
   const market = EVIDENCE_LIST_DATA.filter((item) => item.category === 'market').length
   const documents = EVIDENCE_LIST_DATA.filter((item) => item.category === 'document').length
   const missing = EVIDENCE_LIST_DATA.filter((item) => item.category === 'missing').length
 
-  return {
+  return simulateRequest({
     totalItems: EVIDENCE_LIST_DATA.length,
     missingCount: missing,
     stats: [
@@ -212,7 +213,7 @@ export function getEvidenceCentreMockData(): EvidenceCentreMockPayload {
       { label: 'Documents', value: String(documents), tone: 'sky' },
       { label: 'Missing Evidence', value: String(missing), tone: 'orange' },
     ],
-  }
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -314,12 +315,12 @@ const VALUATION_CASES_DATA: ValuationCasesMockPayload = {
   ],
 }
 
-export function getValuationCasesMockData(): ValuationCasesMockPayload {
-  return VALUATION_CASES_DATA
+export function getValuationCasesMockData(): Promise<ValuationCasesMockPayload> {
+  return simulateRequest(VALUATION_CASES_DATA)
 }
 
-export function getValuerCaseListMockData(): CaseItem[] {
-  return VALUER_CASE_LIST
+export function getValuerCaseListMockData(): Promise<CaseItem[]> {
+  return simulateRequest(VALUER_CASE_LIST)
 }
 
 // ---------------------------------------------------------------------------
@@ -389,10 +390,10 @@ export const MOCK_VALUER_NOTIFICATIONS: InboxNotification[] = [
   },
 ]
 
-export function getValuerNotifications(): InboxNotification[] {
-  return MOCK_VALUER_NOTIFICATIONS
+export function getValuerNotifications(): Promise<InboxNotification[]> {
+  return simulateRequest(MOCK_VALUER_NOTIFICATIONS)
 }
 
-export function getValuerUnreadNotificationCount(): number {
-  return MOCK_VALUER_NOTIFICATIONS.filter((n) => !n.isRead).length
+export function getValuerUnreadNotificationCount(): Promise<number> {
+  return simulateRequest(MOCK_VALUER_NOTIFICATIONS.filter((n) => !n.isRead).length)
 }

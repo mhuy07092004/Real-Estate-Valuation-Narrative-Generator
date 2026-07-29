@@ -2,9 +2,13 @@ import { AddressSearch } from '../../../components/ui/search-bar/address-search'
 import { Button } from '../../../components/ui/button/button'
 import { FilterButton } from '../../../components/ui/button/filter-button'
 import { PropertyCard } from '../../../components/ui/property-card/property-card'
-import { MOCK_SAVED_PROPERTIES } from '../../../services/mock-buyer'
+import { useAsyncData } from '../../../hooks/use-async-data'
+import { getSavedProperties } from '../../../services/mock-buyer'
 
 export function SavedProperty() {
+  const { data: properties } = useAsyncData(getSavedProperties, [])
+  const propertyList = properties ?? []
+
   return (
     <div className="flex flex-col">
       <header className="font-sans px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pt-8">
@@ -12,7 +16,7 @@ export function SavedProperty() {
           Saved Properties
         </h1>
         <p className="mt-1 text-sm text-[#1C2A3880] sm:text-base">
-          {MOCK_SAVED_PROPERTIES.length} saved properties
+          {propertyList.length} saved properties
         </p>
       </header>
 
@@ -26,7 +30,7 @@ export function SavedProperty() {
         </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {MOCK_SAVED_PROPERTIES.map((property) => (
+          {propertyList.map((property) => (
             <PropertyCard key={property.id} property={property} />
           ))}
         </div>

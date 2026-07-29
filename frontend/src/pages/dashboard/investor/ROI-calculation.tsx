@@ -3,6 +3,7 @@ import { Card } from '../../../components/ui/card/card'
 import { Input } from '../../../components/ui/input/input'
 import { StatCard } from '../../../components/ui/stat-card/stat-card'
 import { Notification } from '../../../components/notification/notification'
+import { useAsyncData } from '../../../hooks/use-async-data'
 import { getRoiDisclaimerNotification } from '../../../services/mock-common'
 import {
   getRoiCalculationMockData,
@@ -61,8 +62,12 @@ function SummaryRow({ label, value, valueClassName, emphasize = false, isLast = 
 }
 
 export function RoiCalculation() {
-  const data = getRoiCalculationMockData()
-  const disclaimer = getRoiDisclaimerNotification()
+  const { data } = useAsyncData(getRoiCalculationMockData, [])
+  const { data: disclaimer } = useAsyncData(getRoiDisclaimerNotification, [])
+
+  if (!data || !disclaimer) {
+    return <div className="p-6 text-sm text-relaive-gray sm:p-8">Loading ROI calculator…</div>
+  }
 
   return (
     <div className="flex flex-col">

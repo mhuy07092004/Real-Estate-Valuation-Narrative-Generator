@@ -9,6 +9,7 @@ import {
   EvidenceStatusBadge,
   getEvidenceStatusLabel,
 } from '../../../components/ui/table/status-badge'
+import { useAsyncData } from '../../../hooks/use-async-data'
 import {
   getEvidenceCentreMockData,
   getEvidenceListMockData,
@@ -55,8 +56,8 @@ const EVIDENCE_TABS: DataTableTab<EvidenceItem>[] = [
 ]
 
 export function EvidenceCentre() {
-  const data = getEvidenceCentreMockData()
-  const evidence = getEvidenceListMockData()
+  const { data } = useAsyncData(getEvidenceCentreMockData, [])
+  const { data: evidence } = useAsyncData(getEvidenceListMockData, [])
 
   const columns = useMemo<ColumnDef<EvidenceItem, unknown>[]>(
     () => [
@@ -130,6 +131,10 @@ export function EvidenceCentre() {
     ],
     [],
   )
+
+  if (!data || !evidence) {
+    return <div className="p-6 text-sm text-relaive-gray sm:p-8">Loading evidence centre…</div>
+  }
 
   return (
     <div className="flex flex-col">

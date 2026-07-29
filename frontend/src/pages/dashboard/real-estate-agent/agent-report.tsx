@@ -1,5 +1,6 @@
 import type { DataTableTab } from '../../../components/ui/table/data-table'
 import { CaseTable } from '../../../components/ui/table/case-table'
+import { useAsyncData } from '../../../hooks/use-async-data'
 import type { CaseItem } from '../../../services/mock-dashboard'
 import { getAgentReportListMockData } from '../../../services/mock-agent'
 
@@ -23,7 +24,11 @@ const REPORT_TABS: DataTableTab<CaseItem>[] = [
 ]
 
 export function AgentReport() {
-  const cases = getAgentReportListMockData()
+  const { data: cases } = useAsyncData(getAgentReportListMockData, [])
+
+  if (!cases) {
+    return <div className="p-6 text-sm text-relaive-gray sm:p-8">Loading reports…</div>
+  }
 
   return (
     <div className="flex flex-col">

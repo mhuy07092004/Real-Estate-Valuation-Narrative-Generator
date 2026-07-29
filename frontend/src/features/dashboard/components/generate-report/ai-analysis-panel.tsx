@@ -1,8 +1,9 @@
 import { Card, CardTitle } from '../../../../components/ui/card/card'
 import { Notification } from '../../../../components/notification/notification'
+import { useAsyncData } from '../../../../hooks/use-async-data'
 import {
+  getAiAnalysisMetrics,
   getAiAnalysisSummaryNotification,
-  MOCK_AI_ANALYSIS_METRICS,
   type AiAnalysisMetric,
   type AiAnalysisMetricTone,
 } from '../../../../services/mock-common'
@@ -45,7 +46,8 @@ type AiAnalysisPanelProps = {
 }
 
 export function AiAnalysisPanel({ onBack, onContinue }: AiAnalysisPanelProps) {
-  const summary = getAiAnalysisSummaryNotification()
+  const { data: summary } = useAsyncData(getAiAnalysisSummaryNotification, [])
+  const { data: metrics } = useAsyncData(getAiAnalysisMetrics, [])
 
   return (
     <Card>
@@ -59,13 +61,15 @@ export function AiAnalysisPanel({ onBack, onContinue }: AiAnalysisPanelProps) {
         </div>
       </div>
 
-      <Notification className="mt-6">
-        <p className="font-semibold">{summary.title}</p>
-        <p className="mt-1">{summary.message}</p>
-      </Notification>
+      {summary ? (
+        <Notification className="mt-6">
+          <p className="font-semibold">{summary.title}</p>
+          <p className="mt-1">{summary.message}</p>
+        </Notification>
+      ) : null}
 
       <div className="mt-6 grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
-        {MOCK_AI_ANALYSIS_METRICS.map((metric) => (
+        {(metrics ?? []).map((metric) => (
           <MetricProgress key={metric.id} metric={metric} />
         ))}
       </div>

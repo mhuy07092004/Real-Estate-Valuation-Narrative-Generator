@@ -1,7 +1,8 @@
+import { useAsyncData } from '../../../../hooks/use-async-data'
 import {
-  MOCK_COPILOT_CONVERSATIONS,
-  MOCK_COPILOT_MESSAGES,
-  MOCK_COPILOT_SUGGESTIONS,
+  getCopilotConversations,
+  getCopilotMessages,
+  getCopilotSuggestions,
   type CopilotSuggestion,
 } from '../../../../services/mock-common'
 import {
@@ -51,9 +52,9 @@ function SuggestionCard({ suggestion }: { suggestion: CopilotSuggestion }) {
 }
 
 export function CopilotPage() {
-  const conversations = MOCK_COPILOT_CONVERSATIONS
-  const suggestions = MOCK_COPILOT_SUGGESTIONS
-  const messages = MOCK_COPILOT_MESSAGES
+  const { data: conversations } = useAsyncData(getCopilotConversations, [])
+  const { data: suggestions } = useAsyncData(getCopilotSuggestions, [])
+  const { data: messages } = useAsyncData(getCopilotMessages, [])
 
   return (
     <div className="flex h-[calc(100dvh-3.5rem)] min-h-0 overflow-hidden bg-white">
@@ -87,7 +88,7 @@ export function CopilotPage() {
 
         <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
           <ul className="flex flex-col gap-1">
-            {conversations.map((conversation) => (
+            {(conversations ?? []).map((conversation) => (
               <li key={conversation.id}>
                 <button
                   type="button"
@@ -174,13 +175,13 @@ export function CopilotPage() {
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-8">
           <div className="mx-auto flex max-w-3xl flex-col gap-6">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {suggestions.map((suggestion) => (
+              {(suggestions ?? []).map((suggestion) => (
                 <SuggestionCard key={suggestion.id} suggestion={suggestion} />
               ))}
             </div>
 
             <div className="flex flex-col gap-4">
-              {messages.map((message) => (
+              {(messages ?? []).map((message) => (
                 <div key={message.id} className="flex items-start gap-3">
                   <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-relaive-secondary to-relaive-primary text-white">
                     <SparkleIcon className="h-4 w-4" />
