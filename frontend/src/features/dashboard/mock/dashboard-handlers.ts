@@ -1,73 +1,8 @@
-// Shared mock data — role-parametrized dashboard home (all 4 roles).
-// Per-role report/case lists live in mock-{agent,valuer,buyer,investor}.ts.
-
-import type { AiInsight } from '../features/dashboard/components/ai-insights-panel'
-import type { QuickActionTone } from '../features/dashboard/components/quick-actions-panel'
-import type { RecentReport } from '../features/dashboard/components/recent-reports-panel'
-import { simulateRequest } from './api-client'
-import type { DashboardRole } from '../features/dashboard/utils/dashboard-role'
-import { getInvestorDashboardMockData } from './mock-investor'
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-export type DashboardStatIconKey = 'document' | 'users' | 'trend' | 'clock'
-export type DashboardActionIconKey = 'sparkle' | 'document' | 'users'
-
-export type DashboardStat = {
-  label: string
-  value: string
-  trend: string
-  tone: 'blue' | 'teal' | 'orange' | 'sky'
-  iconKey: DashboardStatIconKey
-}
-
-export type DashboardQuickActionData = {
-  id: string
-  title: string
-  subtitle: string
-  tone: QuickActionTone
-  iconKey: DashboardActionIconKey
-}
-
-export type DashboardMockPayload = {
-  welcomeSubtitle: string
-  stats: DashboardStat[]
-  reports: RecentReport[]
-  insights: AiInsight[]
-  quickActions: DashboardQuickActionData[]
-}
-
-export type CaseStatus =
-  | 'valuer_review'
-  | 'evidence_collection'
-  | 'reviewer_approval'
-  | 'approved'
-  | 'exported'
-  | 'draft'
-  | 'returned_for_revision'
-
-/**
- * Shape the backend should return for each row of the valuation case /
- * report list. Role-scoped lists live in mock-{role}.ts — this type is
- * the shared contract for CaseTable.
- */
-export type CaseItem = {
-  id: string
-  address: string
-  suburb: string
-  clientName: string
-  status: CaseStatus
-  purpose: string
-  confidence: number | null
-  updatedAt: string
-  hasWarning: boolean
-}
-
-// ---------------------------------------------------------------------------
-// Dashboard home data (per role)
-// ---------------------------------------------------------------------------
+import { http, HttpResponse } from 'msw'
+import type { DashboardMockPayload } from '../../../services/dashboard'
+import type { DashboardRole } from '../utils/dashboard-role'
+import { INVESTOR_DASHBOARD_DATA } from './investor-handlers'
+import { simulateLatency } from './mock-utils'
 
 const AGENT_DATA: DashboardMockPayload = {
   welcomeSubtitle: '4 pending client reports • 12 active listings',
@@ -359,19 +294,26 @@ const BUYER_DATA: DashboardMockPayload = {
   ],
 }
 
-// Investor's payload is owned by mock-investor.ts and fetched asynchronously
-// (its getter simulates a request), so it can't be spread into a plain
-// synchronous record like the other three roles.
-const STATIC_DATA_BY_ROLE: Partial<Record<DashboardRole, DashboardMockPayload>> = {
+const DATA_BY_ROLE: Record<DashboardRole, DashboardMockPayload> = {
   agent: AGENT_DATA,
   valuer: VALUER_DATA,
   buyer: BUYER_DATA,
+  investor: INVESTOR_DASHBOARD_DATA,
 }
 
-export function getDashboardMockData(role: DashboardRole): Promise<DashboardMockPayload> {
-  if (role === 'investor') {
-    return getInvestorDashboardMockData()
-  }
-
-  return simulateRequest(STATIC_DATA_BY_ROLE[role] as DashboardMockPayload)
+function isDashboardRole(value: string): value is DashboardRole {
+  return value === 'agent' || value === 'valuer' || value === 'buyer' || value === 'investor'
 }
+
+export const dashboardHandlers = [
+  http.get('/api/dashboard/:role', async ({ params }) => {
+    await simulateLatency()
+
+    const role = String(params.role)
+    if (!isDashboardRole(role)) {
+      return HttpResponse.json({ message: `Unknown dashboard role: ${role}` }, { status: 404 })
+    }
+
+    return HttpResponse.json(DATA_BY_ROLE[role])
+  }),
+]

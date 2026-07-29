@@ -4,12 +4,12 @@ import { Input } from '../../../components/ui/input/input'
 import { StatCard } from '../../../components/ui/stat-card/stat-card'
 import { Notification } from '../../../components/notification/notification'
 import { useAsyncData } from '../../../hooks/use-async-data'
-import { getAffordabilityDisclaimerNotification } from '../../../services/mock-common'
+import { getAffordabilityDisclaimerNotification } from '../../../services/common'
 import {
   getAffordabilityCalculationMockData,
   type AffordabilityReturnTone,
   type AffordabilitySummaryTone,
-} from '../../../services/mock-buyer'
+} from '../../../services/buyer'
 
 const INPUT_CLASS =
   '!border-relaive-primary/25 !bg-relaive-primary/[0.06] !text-relaive-navy [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'

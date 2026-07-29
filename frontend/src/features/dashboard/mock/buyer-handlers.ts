@@ -1,46 +1,17 @@
-// Buyer-only mock data — affordability calculator + property search/saved + reports.
+import { http, HttpResponse } from 'msw'
+import type { PropertyCardData } from '../../../components/ui/property-card/property-card'
+import type { AffordabilityCalculationMock } from '../../../services/buyer'
+import type { CaseItem } from '../../../services/dashboard'
+import type { InboxNotification } from '../../../services/common'
+import { simulateLatency } from './mock-utils'
 
-import { simulateRequest } from './api-client'
-import type { PropertyCardData } from '../components/ui/property-card/property-card'
-import type { CaseItem } from './mock-dashboard'
-import { daysAgo, hoursAgo, type InboxNotification } from './mock-common'
-
-// ---------------------------------------------------------------------------
-// Types — affordability
-// ---------------------------------------------------------------------------
-
-export type AffordabilitySummaryTone = 'green' | 'red' | 'navy' | 'net'
-
-export type AffordabilitySummaryRow = {
-  label: string
-  amount: number
-  tone: AffordabilitySummaryTone
+function hoursAgo(hours: number): string {
+  return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
 }
 
-export type AffordabilityStatMetric = {
-  label: string
-  value: string
-  trend: string
-  tone: 'blue' | 'teal' | 'orange' | 'sky'
+function daysAgo(days: number): string {
+  return hoursAgo(days * 24)
 }
-
-export type AffordabilityReturnTone = 'green' | 'red' | 'navy'
-
-export type AffordabilityReturnRow = {
-  label: string
-  display: string
-  tone: AffordabilityReturnTone
-}
-
-export type AffordabilityCalculationMock = {
-  annualSummary: AffordabilitySummaryRow[]
-  metrics: AffordabilityStatMetric[]
-  investmentReturns: AffordabilityReturnRow[]
-}
-
-// ---------------------------------------------------------------------------
-// Data — affordability
-// ---------------------------------------------------------------------------
 
 const AFFORDABILITY_CALCULATION_DATA: AffordabilityCalculationMock = {
   annualSummary: [
@@ -71,14 +42,6 @@ const AFFORDABILITY_CALCULATION_DATA: AffordabilityCalculationMock = {
     { label: 'Cash-on-Cash Returns', display: '1.8%', tone: 'navy' },
   ],
 }
-
-export function getAffordabilityCalculationMockData(): Promise<AffordabilityCalculationMock> {
-  return simulateRequest(AFFORDABILITY_CALCULATION_DATA)
-}
-
-// ---------------------------------------------------------------------------
-// Data — property search / saved
-// ---------------------------------------------------------------------------
 
 const SEARCH_PROPERTIES_DATA: PropertyCardData[] = [
   {
@@ -173,10 +136,6 @@ const SEARCH_PROPERTIES_DATA: PropertyCardData[] = [
   },
 ]
 
-export function getSearchProperties(): Promise<PropertyCardData[]> {
-  return simulateRequest(SEARCH_PROPERTIES_DATA)
-}
-
 const SAVED_PROPERTIES_DATA: PropertyCardData[] = [
   {
     id: 'saved-1',
@@ -209,14 +168,6 @@ const SAVED_PROPERTIES_DATA: PropertyCardData[] = [
     status: 'below_range',
   },
 ]
-
-export function getSavedProperties(): Promise<PropertyCardData[]> {
-  return simulateRequest(SAVED_PROPERTIES_DATA)
-}
-
-// ---------------------------------------------------------------------------
-// Buyer reports
-// ---------------------------------------------------------------------------
 
 const BUYER_REPORT_LIST: CaseItem[] = [
   {
@@ -253,14 +204,6 @@ const BUYER_REPORT_LIST: CaseItem[] = [
     hasWarning: false,
   },
 ]
-
-export function getBuyerReportListMockData(): Promise<CaseItem[]> {
-  return simulateRequest(BUYER_REPORT_LIST)
-}
-
-// ---------------------------------------------------------------------------
-// Notifications
-// ---------------------------------------------------------------------------
 
 const BUYER_NOTIFICATIONS_DATA: InboxNotification[] = [
   {
@@ -306,8 +249,7 @@ const BUYER_NOTIFICATIONS_DATA: InboxNotification[] = [
   {
     id: 'buyer-notif-5',
     title: 'Buyer Advisory Ready',
-    description:
-      'Your advisory report for Carlton North is ready to view in Reports.',
+    description: 'Your advisory report for Carlton North is ready to view in Reports.',
     priority: 'low',
     timestamp: '1 day ago',
     isRead: true,
@@ -316,8 +258,7 @@ const BUYER_NOTIFICATIONS_DATA: InboxNotification[] = [
   {
     id: 'buyer-notif-6',
     title: 'Suburb Forecast – Fitzroy',
-    description:
-      'AI growth outlook for Fitzroy moved from Moderate to Strong (6.8% p.a.).',
+    description: 'AI growth outlook for Fitzroy moved from Moderate to Strong (6.8% p.a.).',
     priority: 'low',
     timestamp: '3 days ago',
     isRead: true,
@@ -325,10 +266,34 @@ const BUYER_NOTIFICATIONS_DATA: InboxNotification[] = [
   },
 ]
 
-export function getBuyerNotifications(): Promise<InboxNotification[]> {
-  return simulateRequest(BUYER_NOTIFICATIONS_DATA)
-}
+export const buyerHandlers = [
+  http.get('/api/buyer/affordability-calculation', async () => {
+    await simulateLatency()
+    return HttpResponse.json(AFFORDABILITY_CALCULATION_DATA)
+  }),
 
-export function getBuyerUnreadNotificationCount(): Promise<number> {
-  return simulateRequest(BUYER_NOTIFICATIONS_DATA.filter((n) => !n.isRead).length)
-}
+  http.get('/api/buyer/properties/search', async () => {
+    await simulateLatency()
+    return HttpResponse.json(SEARCH_PROPERTIES_DATA)
+  }),
+
+  http.get('/api/buyer/properties/saved', async () => {
+    await simulateLatency()
+    return HttpResponse.json(SAVED_PROPERTIES_DATA)
+  }),
+
+  http.get('/api/buyer/reports', async () => {
+    await simulateLatency()
+    return HttpResponse.json(BUYER_REPORT_LIST)
+  }),
+
+  http.get('/api/buyer/notifications', async () => {
+    await simulateLatency()
+    return HttpResponse.json(BUYER_NOTIFICATIONS_DATA)
+  }),
+
+  http.get('/api/buyer/notifications/unread-count', async () => {
+    await simulateLatency()
+    return HttpResponse.json(BUYER_NOTIFICATIONS_DATA.filter((n) => !n.isRead).length)
+  }),
+]

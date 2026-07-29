@@ -4,7 +4,7 @@ import { OptionCardGroup, type OptionCardItem } from '../../../../components/ui/
 import { Button } from '../../../../components/ui/button/button'
 import { Notification } from '../../../../components/notification/notification'
 import { useAsyncData } from '../../../../hooks/use-async-data'
-import { getReportTemplates } from '../../../../services/mock-common'
+import { getReportTemplates } from '../../../../services/common'
 import { getReportTemplateIcon, ReportDocumentIcon } from './generate-report-icons'
 import { StepActions } from './step-actions'
 

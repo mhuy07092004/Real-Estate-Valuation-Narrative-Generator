@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Stepper } from '../../components/ui/Progress-Bar/Stepper'
 import { useAsyncData } from '../../hooks/use-async-data'
-import { getAppraisalSteps } from '../../services/mock-common'
+import { getAppraisalSteps } from '../../services/common'
 import { PropertyInputPanel } from '../../features/dashboard/components/generate-report/property-input-panel'
 import { AiAnalysisPanel } from '../../features/dashboard/components/generate-report/ai-analysis-panel'
 import { ComparablesPanel } from '../../features/dashboard/components/generate-report/comparables-panel'

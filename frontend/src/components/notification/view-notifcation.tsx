@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { NotificationPriority } from '../../services/mock-common'
+import type { NotificationPriority } from '../../services/common'
 
 const PRIORITY_STYLES: Record<NotificationPriority, string> = {
   high: 'bg-red-50 text-red-600',

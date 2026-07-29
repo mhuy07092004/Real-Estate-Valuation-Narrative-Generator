@@ -18,7 +18,7 @@ import {
   getInvestorReportListMockData,
   getInvestorReportSummary,
   type InvestorReportItem,
-} from '../../../services/mock-investor'
+} from '../../../services/investor'
 
 dayjs.extend(relativeTime)
 

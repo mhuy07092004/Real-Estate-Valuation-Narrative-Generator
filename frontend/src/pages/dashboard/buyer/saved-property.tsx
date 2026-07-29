@@ -3,7 +3,7 @@ import { Button } from '../../../components/ui/button/button'
 import { FilterButton } from '../../../components/ui/button/filter-button'
 import { PropertyCard } from '../../../components/ui/property-card/property-card'
 import { useAsyncData } from '../../../hooks/use-async-data'
-import { getSavedProperties } from '../../../services/mock-buyer'
+import { getSavedProperties } from '../../../services/buyer'
 
 export function SavedProperty() {
   const { data: properties } = useAsyncData(getSavedProperties, [])

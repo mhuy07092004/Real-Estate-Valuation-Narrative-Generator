@@ -4,12 +4,12 @@ import { Input } from '../../../components/ui/input/input'
 import { StatCard } from '../../../components/ui/stat-card/stat-card'
 import { Notification } from '../../../components/notification/notification'
 import { useAsyncData } from '../../../hooks/use-async-data'
-import { getRoiDisclaimerNotification } from '../../../services/mock-common'
+import { getRoiDisclaimerNotification } from '../../../services/common'
 import {
   getRoiCalculationMockData,
   type RoiReturnTone,
   type RoiSummaryTone,
-} from '../../../services/mock-investor'
+} from '../../../services/investor'
 
 const INPUT_CLASS =
   '!border-relaive-primary/25 !bg-relaive-primary/[0.06] !text-relaive-navy [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'

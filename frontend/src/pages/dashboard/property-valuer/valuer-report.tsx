@@ -1,8 +1,8 @@
 import type { DataTableTab } from '../../../components/ui/table/data-table'
 import { CaseTable } from '../../../components/ui/table/case-table'
 import { useAsyncData } from '../../../hooks/use-async-data'
-import type { CaseItem } from '../../../services/mock-dashboard'
-import { getValuerCaseListMockData } from '../../../services/mock-valuer'
+import type { CaseItem } from '../../../services/dashboard'
+import { getValuerCaseListMockData } from '../../../services/valuer'
 
 const REPORT_TABS: DataTableTab<CaseItem>[] = [
   { id: 'recent', label: 'Recent' },

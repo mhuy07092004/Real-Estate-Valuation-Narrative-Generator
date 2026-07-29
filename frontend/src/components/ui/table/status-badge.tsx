@@ -1,7 +1,7 @@
-import type { CaseStatus } from '../../../services/mock-dashboard'
-import type { ClientStatus } from '../../../services/mock-agent'
-import type { EvidenceStatus } from '../../../services/mock-valuer'
-import type { InvestorReportStatus } from '../../../services/mock-investor'
+import type { CaseStatus } from '../../../services/dashboard'
+import type { ClientStatus } from '../../../services/agent'
+import type { EvidenceStatus } from '../../../services/valuer'
+import type { InvestorReportStatus } from '../../../services/investor'
 
 const STATUS_STYLES: Record<CaseStatus, { bg: string; text: string; dot: string; label: string }> = {
   valuer_review: {

@@ -3,7 +3,7 @@ import { Button } from '../../../components/ui/button/button'
 import { FilterButton } from '../../../components/ui/button/filter-button'
 import { PropertyCard } from '../../../components/ui/property-card/property-card'
 import { useAsyncData } from '../../../hooks/use-async-data'
-import { getSearchProperties } from '../../../services/mock-buyer'
+import { getSearchProperties } from '../../../services/buyer'
 
 export function SearchProperty() {
   const { data: properties } = useAsyncData(getSearchProperties, [])
