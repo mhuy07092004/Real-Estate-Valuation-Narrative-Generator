@@ -5,3 +5,4 @@ uvicorn
 pandas
 undetected_chromedriver
 webdriver-manager
+openpyxl
