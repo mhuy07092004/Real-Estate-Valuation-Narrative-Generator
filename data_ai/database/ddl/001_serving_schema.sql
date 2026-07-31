@@ -35,18 +35,6 @@ CREATE TABLE gold_property_model_ready (
   is_seed_data BOOLEAN NOT NULL DEFAULT FALSE
 );
 
-CREATE TABLE gold_suburb_aggregates (
-  suburb VARCHAR NOT NULL,
-  period_start DATE NOT NULL,
-  period_end DATE NOT NULL,
-  median_price DECIMAL(14,2) NOT NULL,
-  listing_count INT NOT NULL,
-  avg_days_on_market DECIMAL(10,2) NOT NULL,
-  growth_pct_yoy DECIMAL(10,4) NOT NULL,
-  is_seed_data BOOLEAN NOT NULL DEFAULT FALSE,
-  PRIMARY KEY (suburb, period_start)
-);
-
 CREATE TABLE gold_narrative_training_pairs (
   pair_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id UUID NOT NULL REFERENCES gold_property_model_ready(property_id),

@@ -17,7 +17,13 @@ docker exec -i relaive-ai-db psql -U relaive -d relaive_ai < database/ddl/001_se
 
 docker exec -i relaive-ai-db psql -U relaive -d relaive_ai < database/ddl/002_bronze_ingestion_schema.sql
 
-docker exec -it relaive-ai-db psql -U relaive -d relaive_ai
+docker exec -i relaive-ai-db psql -U relaive -d relaive_ai < database/ddl/003_bronze_macro_indicators.sql
+
+docker exec -i relaive-ai-db psql -U relaive -d relaive_ai < database/ddl/004_silver_listings_clean.sql
+
+docker exec -i relaive-ai-db psql -U relaive -d relaive_ai < database/ddl/005_gold_suburb_aggregates.sql
+
+docker exec -it relaive-ai-db psql -U relaive -d relaive_ai 
 
 ## Install Python deps
 python -m venv venv
