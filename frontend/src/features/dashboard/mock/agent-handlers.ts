@@ -1,40 +1,17 @@
-// Agent-only mock data — CRM client list + client reports.
-
 import dayjs from 'dayjs'
-import { simulateRequest } from './api-client'
-import type { CaseItem } from './mock-dashboard'
-import { daysAgo, hoursAgo, type InboxNotification } from './mock-common'
+import { http, HttpResponse } from 'msw'
+import type { ClientItem, ClientListSummary } from '../../../services/agent'
+import type { CaseItem } from '../../../services/dashboard'
+import type { InboxNotification } from '../../../services/common'
+import { simulateLatency } from './mock-utils'
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-export type ClientStatus =
-  | 'prospecting'
-  | 'active'
-  | 'appraisal_sent'
-  | 'listing'
-  | 'sold'
-
-export type ClientItem = {
-  id: string
-  name: string
-  initials: string
-  isStarred: boolean
-  address: string | null
-  reportCount: number
-  status: ClientStatus
-  followUpAt: string
+function hoursAgo(hours: number): string {
+  return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
 }
 
-export type ClientListSummary = {
-  totalClients: number
-  followUpsDueSoon: number
+function daysAgo(days: number): string {
+  return hoursAgo(days * 24)
 }
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 function startOfDayOffset(days: number): string {
   return dayjs().startOf('day').add(days, 'day').toISOString()
@@ -46,10 +23,6 @@ function isFollowUpDueSoon(followUpAt: string): boolean {
   const tomorrow = today.add(1, 'day')
   return followUp.isSame(today, 'day') || followUp.isSame(tomorrow, 'day')
 }
-
-// ---------------------------------------------------------------------------
-// Data
-// ---------------------------------------------------------------------------
 
 const CLIENT_LIST_DATA: ClientItem[] = [
   {
@@ -124,10 +97,6 @@ const CLIENT_LIST_DATA: ClientItem[] = [
   },
 ]
 
-// ---------------------------------------------------------------------------
-// Client reports
-// ---------------------------------------------------------------------------
-
 const AGENT_REPORT_LIST: CaseItem[] = [
   {
     id: 'AG-3021',
@@ -164,31 +133,7 @@ const AGENT_REPORT_LIST: CaseItem[] = [
   },
 ]
 
-// ---------------------------------------------------------------------------
-// Getters
-// ---------------------------------------------------------------------------
-
-export function getClientListMockData(): Promise<ClientItem[]> {
-  return simulateRequest(CLIENT_LIST_DATA)
-}
-
-export function getClientListSummary(): Promise<ClientListSummary> {
-  const clients = CLIENT_LIST_DATA
-  return simulateRequest({
-    totalClients: clients.length,
-    followUpsDueSoon: clients.filter((client) => isFollowUpDueSoon(client.followUpAt)).length,
-  })
-}
-
-export function getAgentReportListMockData(): Promise<CaseItem[]> {
-  return simulateRequest(AGENT_REPORT_LIST)
-}
-
-// ---------------------------------------------------------------------------
-// Notifications
-// ---------------------------------------------------------------------------
-
-export const MOCK_AGENT_NOTIFICATIONS: InboxNotification[] = [
+const AGENT_NOTIFICATIONS: InboxNotification[] = [
   {
     id: 'agent-notif-1',
     title: 'AI Valuation Update',
@@ -251,10 +196,35 @@ export const MOCK_AGENT_NOTIFICATIONS: InboxNotification[] = [
   },
 ]
 
-export function getAgentNotifications(): Promise<InboxNotification[]> {
-  return simulateRequest(MOCK_AGENT_NOTIFICATIONS)
-}
+export const agentHandlers = [
+  http.get('/api/agent/clients', async () => {
+    await simulateLatency()
+    return HttpResponse.json(CLIENT_LIST_DATA)
+  }),
 
-export function getAgentUnreadNotificationCount(): Promise<number> {
-  return simulateRequest(MOCK_AGENT_NOTIFICATIONS.filter((n) => !n.isRead).length)
-}
+  http.get('/api/agent/clients/summary', async () => {
+    await simulateLatency()
+    const summary: ClientListSummary = {
+      totalClients: CLIENT_LIST_DATA.length,
+      followUpsDueSoon: CLIENT_LIST_DATA.filter((client) =>
+        isFollowUpDueSoon(client.followUpAt),
+      ).length,
+    }
+    return HttpResponse.json(summary)
+  }),
+
+  http.get('/api/agent/reports', async () => {
+    await simulateLatency()
+    return HttpResponse.json(AGENT_REPORT_LIST)
+  }),
+
+  http.get('/api/agent/notifications', async () => {
+    await simulateLatency()
+    return HttpResponse.json(AGENT_NOTIFICATIONS)
+  }),
+
+  http.get('/api/agent/notifications/unread-count', async () => {
+    await simulateLatency()
+    return HttpResponse.json(AGENT_NOTIFICATIONS.filter((n) => !n.isRead).length)
+  }),
+]

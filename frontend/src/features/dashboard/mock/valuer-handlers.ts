@@ -1,55 +1,20 @@
-// Valuer-only mock data — evidence centre + valuation cases / reports.
+import { http, HttpResponse } from 'msw'
+import type { CaseItem } from '../../../services/dashboard'
+import type {
+  EvidenceCentreMockPayload,
+  EvidenceItem,
+  ValuationCasesMockPayload,
+} from '../../../services/valuer'
+import type { InboxNotification } from '../../../services/common'
+import { simulateLatency } from './mock-utils'
 
-import { simulateRequest } from './api-client'
-import type { CaseItem } from './mock-dashboard'
-import { daysAgo, hoursAgo, type InboxNotification } from './mock-common'
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-export type EvidenceCategory = 'comparable' | 'market' | 'document' | 'history' | 'missing'
-export type EvidenceStatus = 'verified' | 'pending' | 'missing'
-
-/** Shape the backend should return for each row of the evidence centre list. */
-export type EvidenceItem = {
-  id: string
-  title: string
-  detail: string
-  category: EvidenceCategory
-  source: string
-  status: EvidenceStatus
-  confidence: number | null
-  updatedAt: string
+function hoursAgo(hours: number): string {
+  return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
 }
 
-export type EvidenceCentreStat = {
-  label: string
-  value: string
-  tone: 'blue' | 'teal' | 'orange' | 'sky'
+function daysAgo(days: number): string {
+  return hoursAgo(days * 24)
 }
-
-export type EvidenceCentreMockPayload = {
-  totalItems: number
-  missingCount: number
-  stats: EvidenceCentreStat[]
-}
-
-export type ValuationCasesStat = {
-  label: string
-  value: string
-  tone: 'blue' | 'teal' | 'orange' | 'sky'
-}
-
-export type ValuationCasesMockPayload = {
-  totalCases: number
-  returnedForRevision: number
-  stats: ValuationCasesStat[]
-}
-
-// ---------------------------------------------------------------------------
-// Evidence centre data
-// ---------------------------------------------------------------------------
 
 const EVIDENCE_LIST_DATA: EvidenceItem[] = [
   {
@@ -194,32 +159,6 @@ const EVIDENCE_LIST_DATA: EvidenceItem[] = [
   },
 ]
 
-export function getEvidenceListMockData(): Promise<EvidenceItem[]> {
-  return simulateRequest(EVIDENCE_LIST_DATA)
-}
-
-export function getEvidenceCentreMockData(): Promise<EvidenceCentreMockPayload> {
-  const comparable = EVIDENCE_LIST_DATA.filter((item) => item.category === 'comparable').length
-  const market = EVIDENCE_LIST_DATA.filter((item) => item.category === 'market').length
-  const documents = EVIDENCE_LIST_DATA.filter((item) => item.category === 'document').length
-  const missing = EVIDENCE_LIST_DATA.filter((item) => item.category === 'missing').length
-
-  return simulateRequest({
-    totalItems: EVIDENCE_LIST_DATA.length,
-    missingCount: missing,
-    stats: [
-      { label: 'Comparable Sales', value: String(comparable), tone: 'blue' },
-      { label: 'Market Sources', value: String(market), tone: 'teal' },
-      { label: 'Documents', value: String(documents), tone: 'sky' },
-      { label: 'Missing Evidence', value: String(missing), tone: 'orange' },
-    ],
-  })
-}
-
-// ---------------------------------------------------------------------------
-// Valuation cases / reports list
-// ---------------------------------------------------------------------------
-
 const VALUER_CASE_LIST: CaseItem[] = [
   {
     id: 'VC-2047',
@@ -300,10 +239,6 @@ const VALUER_CASE_LIST: CaseItem[] = [
   },
 ]
 
-// ---------------------------------------------------------------------------
-// Valuation cases stats
-// ---------------------------------------------------------------------------
-
 const VALUATION_CASES_DATA: ValuationCasesMockPayload = {
   totalCases: 28,
   returnedForRevision: 3,
@@ -315,24 +250,11 @@ const VALUATION_CASES_DATA: ValuationCasesMockPayload = {
   ],
 }
 
-export function getValuationCasesMockData(): Promise<ValuationCasesMockPayload> {
-  return simulateRequest(VALUATION_CASES_DATA)
-}
-
-export function getValuerCaseListMockData(): Promise<CaseItem[]> {
-  return simulateRequest(VALUER_CASE_LIST)
-}
-
-// ---------------------------------------------------------------------------
-// Notifications
-// ---------------------------------------------------------------------------
-
-export const MOCK_VALUER_NOTIFICATIONS: InboxNotification[] = [
+const VALUER_NOTIFICATIONS: InboxNotification[] = [
   {
     id: 'valuer-notif-1',
     title: 'Case Assigned – 45 Park Ave',
-    description:
-      'A new valuation case was assigned to you. Target turnaround: 48 hours.',
+    description: 'A new valuation case was assigned to you. Target turnaround: 48 hours.',
     priority: 'high',
     timestamp: '10 mins ago',
     isRead: false,
@@ -371,8 +293,7 @@ export const MOCK_VALUER_NOTIFICATIONS: InboxNotification[] = [
   {
     id: 'valuer-notif-5',
     title: 'Market Brief – Richmond',
-    description:
-      'Weekly market brief ready: clearance 82%, median house $1.29M.',
+    description: 'Weekly market brief ready: clearance 82%, median house $1.29M.',
     priority: 'medium',
     timestamp: '1 day ago',
     isRead: true,
@@ -381,8 +302,7 @@ export const MOCK_VALUER_NOTIFICATIONS: InboxNotification[] = [
   {
     id: 'valuer-notif-6',
     title: 'Report Exported',
-    description:
-      'Valuation report for Surry Hills unit was exported successfully.',
+    description: 'Valuation report for Surry Hills unit was exported successfully.',
     priority: 'low',
     timestamp: '2 days ago',
     isRead: true,
@@ -390,10 +310,49 @@ export const MOCK_VALUER_NOTIFICATIONS: InboxNotification[] = [
   },
 ]
 
-export function getValuerNotifications(): Promise<InboxNotification[]> {
-  return simulateRequest(MOCK_VALUER_NOTIFICATIONS)
-}
+export const valuerHandlers = [
+  http.get('/api/valuer/evidence', async () => {
+    await simulateLatency()
+    return HttpResponse.json(EVIDENCE_LIST_DATA)
+  }),
 
-export function getValuerUnreadNotificationCount(): Promise<number> {
-  return simulateRequest(MOCK_VALUER_NOTIFICATIONS.filter((n) => !n.isRead).length)
-}
+  http.get('/api/valuer/evidence/summary', async () => {
+    await simulateLatency()
+    const comparable = EVIDENCE_LIST_DATA.filter((item) => item.category === 'comparable').length
+    const market = EVIDENCE_LIST_DATA.filter((item) => item.category === 'market').length
+    const documents = EVIDENCE_LIST_DATA.filter((item) => item.category === 'document').length
+    const missing = EVIDENCE_LIST_DATA.filter((item) => item.category === 'missing').length
+
+    const summary: EvidenceCentreMockPayload = {
+      totalItems: EVIDENCE_LIST_DATA.length,
+      missingCount: missing,
+      stats: [
+        { label: 'Comparable Sales', value: String(comparable), tone: 'blue' },
+        { label: 'Market Sources', value: String(market), tone: 'teal' },
+        { label: 'Documents', value: String(documents), tone: 'sky' },
+        { label: 'Missing Evidence', value: String(missing), tone: 'orange' },
+      ],
+    }
+    return HttpResponse.json(summary)
+  }),
+
+  http.get('/api/valuer/cases', async () => {
+    await simulateLatency()
+    return HttpResponse.json(VALUER_CASE_LIST)
+  }),
+
+  http.get('/api/valuer/cases/summary', async () => {
+    await simulateLatency()
+    return HttpResponse.json(VALUATION_CASES_DATA)
+  }),
+
+  http.get('/api/valuer/notifications', async () => {
+    await simulateLatency()
+    return HttpResponse.json(VALUER_NOTIFICATIONS)
+  }),
+
+  http.get('/api/valuer/notifications/unread-count', async () => {
+    await simulateLatency()
+    return HttpResponse.json(VALUER_NOTIFICATIONS.filter((n) => !n.isRead).length)
+  }),
+]

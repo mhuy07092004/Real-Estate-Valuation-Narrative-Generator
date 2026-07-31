@@ -5,7 +5,7 @@ import { RecentReportsPanel } from './recent-reports-panel'
 import { StatCard } from '../../../components/ui/stat-card/stat-card'
 import { useAsyncData } from '../../../hooks/use-async-data'
 import type { DashboardRole } from '../utils/dashboard-role'
-import { getDashboardMockData } from '../../../services/mock-dashboard'
+import { getDashboardMockData } from '../../../services/dashboard'
 
 type RoleDashboardViewProps = {
   role: DashboardRole

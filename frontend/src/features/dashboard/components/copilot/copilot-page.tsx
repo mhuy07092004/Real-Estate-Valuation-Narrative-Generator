@@ -4,7 +4,7 @@ import {
   getCopilotMessages,
   getCopilotSuggestions,
   type CopilotSuggestion,
-} from '../../../../services/mock-common'
+} from '../../../../services/common'
 import {
   BuildingIcon,
   ChartIcon,

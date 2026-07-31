@@ -17,7 +17,7 @@ import {
   getClientListMockData,
   getClientListSummary,
   type ClientItem,
-} from '../../../services/mock-agent'
+} from '../../../services/agent'
 
 const CLIENT_TABS: DataTableTab<ClientItem>[] = [
   { id: 'all', label: 'All' },

@@ -15,7 +15,7 @@ import {
   getEvidenceListMockData,
   type EvidenceCategory,
   type EvidenceItem,
-} from '../../../services/mock-valuer'
+} from '../../../services/valuer'
 
 dayjs.extend(relativeTime)
 

@@ -6,7 +6,7 @@ import {
   getAiAnalysisSummaryNotification,
   type AiAnalysisMetric,
   type AiAnalysisMetricTone,
-} from '../../../../services/mock-common'
+} from '../../../../services/common'
 import { AiSparkleIcon } from './generate-report-icons'
 import { StepActions } from './step-actions'
 

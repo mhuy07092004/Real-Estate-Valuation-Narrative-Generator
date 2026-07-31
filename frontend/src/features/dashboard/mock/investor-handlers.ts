@@ -1,76 +1,27 @@
-// Investor-only mock data — dashboard home, reports, ROI calculator.
-
-import type { AiInsight } from '../features/dashboard/components/ai-insights-panel'
-import type { QuickActionTone } from '../features/dashboard/components/quick-actions-panel'
-import type { RecentReport } from '../features/dashboard/components/recent-reports-panel'
-import { simulateRequest } from './api-client'
+import { http, HttpResponse } from 'msw'
+import type { AiInsight } from '../components/ai-insights-panel'
+import type { QuickActionTone } from '../components/quick-actions-panel'
+import type { RecentReport } from '../components/recent-reports-panel'
 import type {
   DashboardActionIconKey,
   DashboardMockPayload,
   DashboardStat,
-} from './mock-dashboard'
-import { daysAgo, hoursAgo, type InboxNotification } from './mock-common'
+} from '../../../services/dashboard'
+import type {
+  InvestorReportItem,
+  InvestorReportSummary,
+  RoiCalculationMock,
+} from '../../../services/investor'
+import type { InboxNotification } from '../../../services/common'
+import { simulateLatency } from './mock-utils'
 
-// ---------------------------------------------------------------------------
-// ROI calculator types
-// ---------------------------------------------------------------------------
-
-export type RoiSummaryTone = 'green' | 'red' | 'navy' | 'net'
-
-export type RoiSummaryRow = {
-  label: string
-  amount: number
-  tone: RoiSummaryTone
+function hoursAgo(hours: number): string {
+  return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
 }
 
-export type RoiStatMetric = {
-  label: string
-  value: string
-  trend: string
-  tone: 'blue' | 'teal' | 'orange' | 'sky'
+function daysAgo(days: number): string {
+  return hoursAgo(days * 24)
 }
-
-export type RoiReturnTone = 'green' | 'red' | 'navy'
-
-export type RoiReturnRow = {
-  label: string
-  display: string
-  tone: RoiReturnTone
-}
-
-export type RoiCalculationMock = {
-  annualSummary: RoiSummaryRow[]
-  metrics: RoiStatMetric[]
-  investmentReturns: RoiReturnRow[]
-}
-
-// ---------------------------------------------------------------------------
-// Investor report list types
-// ---------------------------------------------------------------------------
-
-export type InvestorReportStatus = 'draft' | 'in_review' | 'shared' | 'archived'
-
-export type InvestorReportItem = {
-  id: string
-  propertyName: string
-  suburb: string
-  portfolio: string
-  reportType: string
-  status: InvestorReportStatus
-  purchaseValue: number
-  grossYield: number | null
-  updatedAt: string
-}
-
-export type InvestorReportSummary = {
-  totalReports: number
-  draftCount: number
-  sharedCount: number
-}
-
-// ---------------------------------------------------------------------------
-// ROI calculator data
-// ---------------------------------------------------------------------------
 
 const ROI_CALCULATION_DATA: RoiCalculationMock = {
   annualSummary: [
@@ -102,11 +53,7 @@ const ROI_CALCULATION_DATA: RoiCalculationMock = {
   ],
 }
 
-// ---------------------------------------------------------------------------
-// Dashboard home data
-// ---------------------------------------------------------------------------
-
-const INVESTOR_DASHBOARD_DATA: DashboardMockPayload = {
+export const INVESTOR_DASHBOARD_DATA: DashboardMockPayload = {
   welcomeSubtitle: '2 portfolios tracked • 5 ROI scenarios saved',
   stats: [
     {
@@ -204,10 +151,6 @@ const INVESTOR_DASHBOARD_DATA: DashboardMockPayload = {
   }[],
 }
 
-// ---------------------------------------------------------------------------
-// Investor report list data
-// ---------------------------------------------------------------------------
-
 const INVESTOR_REPORT_LIST: InvestorReportItem[] = [
   {
     id: 'IN-4102',
@@ -266,38 +209,7 @@ const INVESTOR_REPORT_LIST: InvestorReportItem[] = [
   },
 ]
 
-// ---------------------------------------------------------------------------
-// Getters
-// ---------------------------------------------------------------------------
-
-export function getRoiCalculationMockData(): Promise<RoiCalculationMock> {
-  return simulateRequest(ROI_CALCULATION_DATA)
-}
-
-export function getInvestorDashboardMockData(): Promise<DashboardMockPayload> {
-  return simulateRequest(INVESTOR_DASHBOARD_DATA)
-}
-
-export function getInvestorReportListMockData(): Promise<InvestorReportItem[]> {
-  return simulateRequest(INVESTOR_REPORT_LIST)
-}
-
-export function getInvestorReportSummary(): Promise<InvestorReportSummary> {
-  const draftCount = INVESTOR_REPORT_LIST.filter((item) => item.status === 'draft').length
-  const sharedCount = INVESTOR_REPORT_LIST.filter((item) => item.status === 'shared').length
-
-  return simulateRequest({
-    totalReports: INVESTOR_REPORT_LIST.length,
-    draftCount,
-    sharedCount,
-  })
-}
-
-// ---------------------------------------------------------------------------
-// Notifications
-// ---------------------------------------------------------------------------
-
-export const MOCK_INVESTOR_NOTIFICATIONS: InboxNotification[] = [
+const INVESTOR_NOTIFICATIONS: InboxNotification[] = [
   {
     id: 'investor-notif-1',
     title: 'ROI Alert – 45 Park Ave',
@@ -351,8 +263,7 @@ export const MOCK_INVESTOR_NOTIFICATIONS: InboxNotification[] = [
   {
     id: 'investor-notif-6',
     title: 'Approval Reminder',
-    description:
-      'Draft ROI scenario for Kew VIC is waiting for your final confirmation.',
+    description: 'Draft ROI scenario for Kew VIC is waiting for your final confirmation.',
     priority: 'low',
     timestamp: '2 days ago',
     isRead: true,
@@ -360,10 +271,39 @@ export const MOCK_INVESTOR_NOTIFICATIONS: InboxNotification[] = [
   },
 ]
 
-export function getInvestorNotifications(): Promise<InboxNotification[]> {
-  return simulateRequest(MOCK_INVESTOR_NOTIFICATIONS)
-}
+export const investorHandlers = [
+  http.get('/api/investor/roi-calculation', async () => {
+    await simulateLatency()
+    return HttpResponse.json(ROI_CALCULATION_DATA)
+  }),
 
-export function getInvestorUnreadNotificationCount(): Promise<number> {
-  return simulateRequest(MOCK_INVESTOR_NOTIFICATIONS.filter((n) => !n.isRead).length)
-}
+  http.get('/api/dashboard/investor', async () => {
+    await simulateLatency()
+    return HttpResponse.json(INVESTOR_DASHBOARD_DATA)
+  }),
+
+  http.get('/api/investor/reports', async () => {
+    await simulateLatency()
+    return HttpResponse.json(INVESTOR_REPORT_LIST)
+  }),
+
+  http.get('/api/investor/reports/summary', async () => {
+    await simulateLatency()
+    const summary: InvestorReportSummary = {
+      totalReports: INVESTOR_REPORT_LIST.length,
+      draftCount: INVESTOR_REPORT_LIST.filter((item) => item.status === 'draft').length,
+      sharedCount: INVESTOR_REPORT_LIST.filter((item) => item.status === 'shared').length,
+    }
+    return HttpResponse.json(summary)
+  }),
+
+  http.get('/api/investor/notifications', async () => {
+    await simulateLatency()
+    return HttpResponse.json(INVESTOR_NOTIFICATIONS)
+  }),
+
+  http.get('/api/investor/notifications/unread-count', async () => {
+    await simulateLatency()
+    return HttpResponse.json(INVESTOR_NOTIFICATIONS.filter((n) => !n.isRead).length)
+  }),
+]

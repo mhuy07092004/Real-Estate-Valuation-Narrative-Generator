@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent } from 'react'
 import { Input } from '../../../../components/ui/input/input'
 import { useAsyncData } from '../../../../hooks/use-async-data'
-import { getPropertyTypeOptions } from '../../../../services/mock-common'
+import { getPropertyTypeOptions } from '../../../../services/common'
 
 type EnterAddressFormState = {
   address: string

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import type {
   PropertyInputMethodIconKey,
   ReportTemplateIconKey,
-} from '../../../../services/mock-common'
+} from '../../../../services/common'
 
 function LocationPinIcon() {
   return (

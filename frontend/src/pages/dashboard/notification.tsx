@@ -10,23 +10,23 @@ import { useAsyncData } from '../../hooks/use-async-data'
 import {
   getAgentNotifications,
   getAgentUnreadNotificationCount,
-} from '../../services/mock-agent'
+} from '../../services/agent'
 import {
   getBuyerNotifications,
   getBuyerUnreadNotificationCount,
-} from '../../services/mock-buyer'
+} from '../../services/buyer'
 import type {
   InboxNotification,
   NotificationIconKind,
-} from '../../services/mock-common'
+} from '../../services/common'
 import {
   getInvestorNotifications,
   getInvestorUnreadNotificationCount,
-} from '../../services/mock-investor'
+} from '../../services/investor'
 import {
   getValuerNotifications,
   getValuerUnreadNotificationCount,
-} from '../../services/mock-valuer'
+} from '../../services/valuer'
 
 function CheckIcon() {
   return (

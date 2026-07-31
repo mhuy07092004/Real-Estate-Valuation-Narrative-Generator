@@ -1,6 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import dayjs from 'dayjs'
-import type { ClientItem } from '../../../services/mock-agent'
+import type { ClientItem } from '../../../services/agent'
 import { DataTable, type DataTableTab } from './data-table'
 import { getClientStatusLabel } from './status-badge'
 

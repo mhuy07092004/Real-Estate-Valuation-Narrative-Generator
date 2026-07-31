@@ -11,10 +11,10 @@ import {
 } from '../../../features/dashboard/utils/dashboard-role'
 import { useAsyncData } from '../../../hooks/use-async-data'
 import { useClickOutside } from '../../../hooks/use-click-outside'
-import { getAgentUnreadNotificationCount } from '../../../services/mock-agent'
-import { getBuyerUnreadNotificationCount } from '../../../services/mock-buyer'
-import { getInvestorUnreadNotificationCount } from '../../../services/mock-investor'
-import { getValuerUnreadNotificationCount } from '../../../services/mock-valuer'
+import { getAgentUnreadNotificationCount } from '../../../services/agent'
+import { getBuyerUnreadNotificationCount } from '../../../services/buyer'
+import { getInvestorUnreadNotificationCount } from '../../../services/investor'
+import { getValuerUnreadNotificationCount } from '../../../services/valuer'
 import {
   BellIcon,
   BookmarkIcon,

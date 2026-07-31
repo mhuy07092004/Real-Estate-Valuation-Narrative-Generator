@@ -1,11 +1,12 @@
 import { setupWorker } from 'msw/browser'
+import { dashboardHandlers } from '../../dashboard/mock/handlers'
 import { authHandlers } from './handlers'
 
 /**
  * MSW browser worker instance.
  * Registers all mock API handlers for the browser environment.
  */
-export const worker = setupWorker(...authHandlers)
+export const worker = setupWorker(...authHandlers, ...dashboardHandlers)
 
 /**
  * Conditionally start the MSW mock server.

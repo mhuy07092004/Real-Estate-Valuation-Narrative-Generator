@@ -4,7 +4,7 @@ import { OptionCardGroup, type OptionCardItem } from '../../../../components/ui/
 import { AddressSearch } from '../../../../components/ui/search-bar/address-search'
 import { Button } from '../../../../components/ui/button/button'
 import { useAsyncData } from '../../../../hooks/use-async-data'
-import { getPropertyInputMethods } from '../../../../services/mock-common'
+import { getPropertyInputMethods } from '../../../../services/common'
 import { getPropertyInputMethodIcon } from './generate-report-icons'
 import { EnterAddressForm } from './enter-address-form'
 import { StepActions } from './step-actions'

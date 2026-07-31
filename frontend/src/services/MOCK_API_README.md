@@ -1,25 +1,26 @@
 # Mock API Reference (for Backend team)
 
-This document lists **every placeholder "API" the frontend currently calls**, where it lives, what it should
-return, and what the current mock data looks like. Each function below is a stand-in for a real backend
-endpoint — the frontend already calls them asynchronously (`await` / `useEffect`), so replacing the body with
-a real `fetch(...)` call is a **drop-in swap**: no component changes needed.
+This document lists **every API the frontend currently calls**, where it lives, what it should
+return, and what the current mock data looks like. Each function below is a thin `fetchJson`
+wrapper over a real HTTP path — today MSW intercepts those paths; once a real backend exists,
+only the server side changes. No component changes needed.
 
-> Frontend contract: every function returns a `Promise<T>`. Today `T` is produced instantly from a local
-> mock array/object via `simulateRequest()` ([`api-client.ts`](./api-client.ts)). Once a real endpoint
-> exists, only the function body changes (`return fetch('/api/...').then(r => r.json())`), the return type
-> `T` should stay the same shape.
+> Frontend contract: every function returns a `Promise<T>` via `fetchJson()` ([`api-client.ts`](./api-client.ts)).
+> Responses are **plain JSON** of type `T` (no `{ success, data }` envelope — auth is the exception).
 
 ```ts
-// services/api-client.ts — current placeholder
-export function simulateRequest<T>(data: T, delayMs = 300): Promise<T> {
-  return new Promise((resolve) => setTimeout(() => resolve(data), delayMs))
+// services/api-client.ts
+export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(path, init)
+  if (!response.ok) {
+    throw new Error(`Request to ${path} failed with status ${response.status}`)
+  }
+  return (await response.json()) as T
 }
 ```
 
-The only **real** HTTP service so far is [`auth.ts`](./auth.ts) (`login`, session helpers) — it already
-calls `POST /api/auth/login` etc. Use it as the reference for what a "real" service function should look
-like once the backend is ready.
+MSW handlers live in `features/dashboard/mock/` (plus `features/auth/mock/` for auth).
+Enable with `VITE_ENABLE_MOCKS=true` in `frontend/.env.development`.
 
 ---
 
@@ -27,29 +28,31 @@ like once the backend is ready.
 
 | File | Domain | Used by |
 |---|---|---|
-| [`mock-common.ts`](./mock-common.ts) | Shared: notifications helpers, AI Copilot, Generate Appraisal wizard (steps 1–5) | All roles |
-| [`mock-agent.ts`](./mock-agent.ts) | Real-Estate Agent: CRM client list, client reports, notifications | Agent |
-| [`mock-buyer.ts`](./mock-buyer.ts) | Buyer: affordability calculator, property search/saved, reports, notifications | Buyer |
-| [`mock-investor.ts`](./mock-investor.ts) | Investor: dashboard home, ROI calculator, reports, notifications | Investor |
-| [`mock-valuer.ts`](./mock-valuer.ts) | Property Valuer: evidence centre, valuation cases/reports, notifications | Valuer |
-| [`mock-dashboard.ts`](./mock-dashboard.ts) | Shared: role-parametrized dashboard home + `CaseItem`/`DashboardMockPayload` contracts | All roles |
-| [`auth.ts`](./auth.ts) | Real backend already implemented | All roles |
+| [`common.ts`](./common.ts) | Shared: notifications helpers, AI Copilot, Generate Appraisal wizard (steps 1–5) | All roles |
+| [`agent.ts`](./agent.ts) | Real-Estate Agent: CRM client list, client reports, notifications | Agent |
+| [`buyer.ts`](./buyer.ts) | Buyer: affordability calculator, property search/saved, reports, notifications | Buyer |
+| [`investor.ts`](./investor.ts) | Investor: dashboard home, ROI calculator, reports, notifications | Investor |
+| [`valuer.ts`](./valuer.ts) | Property Valuer: evidence centre, valuation cases/reports, notifications | Valuer |
+| [`dashboard.ts`](./dashboard.ts) | Shared: role-parametrized dashboard home + `CaseItem`/`DashboardMockPayload` contracts | All roles |
+| [`auth.ts`](./auth.ts) | Auth (envelope response) — reference for auth-style APIs | All roles |
+
+MSW handlers: `features/dashboard/mock/{common,agent,buyer,investor,valuer,dashboard}-handlers.ts`
 
 ---
 
-## `mock-common.ts`
+## `common.ts`
 
 ### `getRoiDisclaimerNotification(): Promise<NotificationMock>`
-Static disclaimer text shown above the ROI calculator.
+`GET /api/notifications/roi-disclaimer`
 ```ts
 type NotificationMock = { message: string }
 ```
 
 ### `getAffordabilityDisclaimerNotification(): Promise<NotificationMock>`
-Same shape as above, shown on the Affordability calculator.
+`GET /api/notifications/affordability-disclaimer`
 
 ### `getCopilotConversations(): Promise<CopilotConversation[]>`
-AI Copilot sidebar conversation list.
+`GET /api/copilot/conversations`
 ```ts
 type CopilotConversation = {
   id: string
@@ -62,7 +65,7 @@ type CopilotConversation = {
 ```
 
 ### `getCopilotSuggestions(): Promise<CopilotSuggestion[]>`
-Suggested-prompt cards shown in an empty Copilot chat.
+`GET /api/copilot/suggestions`
 ```ts
 type CopilotSuggestion = {
   id: string
@@ -72,7 +75,7 @@ type CopilotSuggestion = {
 ```
 
 ### `getCopilotMessages(): Promise<CopilotMessage[]>`
-Chat message history for the active conversation.
+`GET /api/copilot/messages`
 ```ts
 type CopilotMessage = {
   id: string
@@ -82,13 +85,13 @@ type CopilotMessage = {
 ```
 
 ### `getAppraisalSteps(): Promise<StepperStep[]>`
-Step labels for the "Generate Appraisal" wizard progress bar.
+`GET /api/appraisal/steps`
 ```ts
 type StepperStep = { id: string; label: string }
 ```
 
 ### `getPropertyInputMethods(): Promise<PropertyInputMethodOption[]>`
-Choices on step 1 of the appraisal wizard (Enter Address / Search Property / Upload File).
+`GET /api/appraisal/property-input-methods`
 ```ts
 type PropertyInputMethodOption = {
   id: string
@@ -99,10 +102,11 @@ type PropertyInputMethodOption = {
 ```
 
 ### `getPropertyTypeOptions(): Promise<readonly string[]>`
-Datalist options for the "Property Type" field, e.g. `['House', 'Unit', 'Townhouse']`.
+`GET /api/appraisal/property-types`
+e.g. `['House', 'Unit', 'Townhouse']`
 
 ### `getAiAnalysisMetrics(): Promise<AiAnalysisMetric[]>`
-Step 2 (AI Analysis) score bars.
+`GET /api/appraisal/ai-analysis-metrics`
 ```ts
 type AiAnalysisMetric = {
   id: string
@@ -113,13 +117,13 @@ type AiAnalysisMetric = {
 ```
 
 ### `getAiAnalysisSummaryNotification(): Promise<AiAnalysisSummaryNotification>`
-AI-generated summary paragraph shown on steps 2 and 4.
+`GET /api/appraisal/ai-analysis-summary`
 ```ts
 type AiAnalysisSummaryNotification = { title: string; message: string }
 ```
 
 ### `getComparableSales(): Promise<ComparableSale[]>`
-Step 3 (Comparables) list of similar recent sales.
+`GET /api/appraisal/comparable-sales`
 ```ts
 type ComparableSale = {
   id: string
@@ -136,7 +140,7 @@ type ComparableSale = {
 ```
 
 ### `getSuburbOverview(): Promise<SuburbOverviewMetric[]>`
-Step 4 (Market Intelligence) suburb stat rows (median price, growth, yield, days on market).
+`GET /api/appraisal/suburb-overview`
 ```ts
 type SuburbOverviewMetric = {
   id: string
@@ -147,7 +151,7 @@ type SuburbOverviewMetric = {
 ```
 
 ### `getDemandSignals(): Promise<DemandSignal[]>`
-Step 4 demand-signal progress rows (buyer interest, supply, price growth).
+`GET /api/appraisal/demand-signals`
 ```ts
 type DemandSignal = {
   id: string
@@ -159,7 +163,7 @@ type DemandSignal = {
 ```
 
 ### `getReportTemplates(): Promise<ReportTemplateOption[]>`
-Step 5 report template picker (Vendor Appraisal / Bank Valuation / Buyer Advisory / Investment Report).
+`GET /api/appraisal/report-templates`
 ```ts
 type ReportTemplateOption = {
   id: string
@@ -171,14 +175,13 @@ type ReportTemplateOption = {
 
 ### Shared types also defined here
 - `InboxNotification` — used by every role's notification list (see `get*Notifications()` below).
-- `hoursAgo(hours)` / `daysAgo(days)` — local helpers that generate ISO timestamps for mock data; **not** endpoints, no backend equivalent needed.
 
 ---
 
-## `mock-agent.ts` (Real-Estate Agent)
+## `agent.ts` (Real-Estate Agent)
 
 ### `getClientListMockData(): Promise<ClientItem[]>`
-Full CRM client list.
+`GET /api/agent/clients`
 ```ts
 type ClientItem = {
   id: string
@@ -193,24 +196,26 @@ type ClientItem = {
 ```
 
 ### `getClientListSummary(): Promise<ClientListSummary>`
-Header counters above the client table.
+`GET /api/agent/clients/summary`
 ```ts
 type ClientListSummary = { totalClients: number; followUpsDueSoon: number }
 ```
 
 ### `getAgentReportListMockData(): Promise<CaseItem[]>`
-Agent's report list (see `CaseItem` under `mock-dashboard.ts`).
+`GET /api/agent/reports`
 
 ### `getAgentNotifications(): Promise<InboxNotification[]>`
+`GET /api/agent/notifications`
+
 ### `getAgentUnreadNotificationCount(): Promise<number>`
-Agent's notification inbox + unread badge count. `InboxNotification` defined in `mock-common.ts`.
+`GET /api/agent/notifications/unread-count`
 
 ---
 
-## `mock-buyer.ts` (Buyer)
+## `buyer.ts` (Buyer)
 
 ### `getAffordabilityCalculationMockData(): Promise<AffordabilityCalculationMock>`
-Results panel for the Affordability calculator.
+`GET /api/buyer/affordability-calculation`
 ```ts
 type AffordabilityCalculationMock = {
   annualSummary: { label: string; amount: number; tone: 'green' | 'red' | 'navy' | 'net' }[]
@@ -220,7 +225,7 @@ type AffordabilityCalculationMock = {
 ```
 
 ### `getSearchProperties(): Promise<PropertyCardData[]>`
-Listings shown on the "Search Properties" page.
+`GET /api/buyer/properties/search`
 ```ts
 type PropertyCardData = {
   id: string
@@ -233,24 +238,25 @@ type PropertyCardData = {
   status: 'within_range' | 'below_range' | 'above_range'
 }
 ```
-(defined in `components/ui/property-card/property-card.tsx`)
 
 ### `getSavedProperties(): Promise<PropertyCardData[]>`
-Same shape as above, for the "Saved Properties" page.
+`GET /api/buyer/properties/saved`
 
 ### `getBuyerReportListMockData(): Promise<CaseItem[]>`
-Buyer's report list (see `CaseItem` under `mock-dashboard.ts`).
+`GET /api/buyer/reports`
 
 ### `getBuyerNotifications(): Promise<InboxNotification[]>`
+`GET /api/buyer/notifications`
+
 ### `getBuyerUnreadNotificationCount(): Promise<number>`
-Buyer's notification inbox + unread badge count.
+`GET /api/buyer/notifications/unread-count`
 
 ---
 
-## `mock-investor.ts` (Investor)
+## `investor.ts` (Investor)
 
 ### `getRoiCalculationMockData(): Promise<RoiCalculationMock>`
-Same shape family as `AffordabilityCalculationMock` above, but for the ROI calculator:
+`GET /api/investor/roi-calculation`
 ```ts
 type RoiCalculationMock = {
   annualSummary: { label: string; amount: number; tone: 'green' | 'red' | 'navy' | 'net' }[]
@@ -260,9 +266,10 @@ type RoiCalculationMock = {
 ```
 
 ### `getInvestorDashboardMockData(): Promise<DashboardMockPayload>`
-Investor's dashboard home payload (see `DashboardMockPayload` under `mock-dashboard.ts`).
+`GET /api/dashboard/investor`
 
 ### `getInvestorReportListMockData(): Promise<InvestorReportItem[]>`
+`GET /api/investor/reports`
 ```ts
 type InvestorReportItem = {
   id: string
@@ -278,20 +285,23 @@ type InvestorReportItem = {
 ```
 
 ### `getInvestorReportSummary(): Promise<InvestorReportSummary>`
+`GET /api/investor/reports/summary`
 ```ts
 type InvestorReportSummary = { totalReports: number; draftCount: number; sharedCount: number }
 ```
 
 ### `getInvestorNotifications(): Promise<InboxNotification[]>`
+`GET /api/investor/notifications`
+
 ### `getInvestorUnreadNotificationCount(): Promise<number>`
-Investor's notification inbox + unread badge count.
+`GET /api/investor/notifications/unread-count`
 
 ---
 
-## `mock-valuer.ts` (Property Valuer)
+## `valuer.ts` (Property Valuer)
 
 ### `getEvidenceListMockData(): Promise<EvidenceItem[]>`
-Full Evidence Centre row list.
+`GET /api/valuer/evidence`
 ```ts
 type EvidenceItem = {
   id: string
@@ -306,9 +316,7 @@ type EvidenceItem = {
 ```
 
 ### `getEvidenceCentreMockData(): Promise<EvidenceCentreMockPayload>`
-Header counters + stat cards above the evidence table (currently computed client-side by filtering
-`EvidenceItem[]` — backend can either compute these server-side or the frontend can keep deriving them
-from the full list).
+`GET /api/valuer/evidence/summary`
 ```ts
 type EvidenceCentreMockPayload = {
   totalItems: number
@@ -318,7 +326,7 @@ type EvidenceCentreMockPayload = {
 ```
 
 ### `getValuationCasesMockData(): Promise<ValuationCasesMockPayload>`
-Header counters + stat cards above the valuation cases table.
+`GET /api/valuer/cases/summary`
 ```ts
 type ValuationCasesMockPayload = {
   totalCases: number
@@ -328,18 +336,20 @@ type ValuationCasesMockPayload = {
 ```
 
 ### `getValuerCaseListMockData(): Promise<CaseItem[]>`
-Valuer's case/report list (see `CaseItem` under `mock-dashboard.ts`).
+`GET /api/valuer/cases`
 
 ### `getValuerNotifications(): Promise<InboxNotification[]>`
+`GET /api/valuer/notifications`
+
 ### `getValuerUnreadNotificationCount(): Promise<number>`
-Valuer's notification inbox + unread badge count.
+`GET /api/valuer/notifications/unread-count`
 
 ---
 
-## `mock-dashboard.ts` (shared)
+## `dashboard.ts` (shared)
 
 ### `getDashboardMockData(role: DashboardRole): Promise<DashboardMockPayload>`
-Dashboard home payload for whichever role is active (`'agent' | 'valuer' | 'buyer' | 'investor'`).
+`GET /api/dashboard/:role` where `role` is `'agent' | 'valuer' | 'buyer' | 'investor'`
 ```ts
 type DashboardMockPayload = {
   welcomeSubtitle: string
@@ -349,10 +359,8 @@ type DashboardMockPayload = {
   quickActions: { id: string; title: string; subtitle: string; tone: string; iconKey: 'sparkle' | 'document' | 'users' }[]
 }
 ```
-> Note: for `role === 'investor'` this just forwards to `getInvestorDashboardMockData()` in `mock-investor.ts` — same payload shape either way.
 
 ### Shared type: `CaseItem`
-Row shape for every report/case table across all 4 roles (agent reports, buyer reports, investor reports use `InvestorReportItem` instead, valuer cases/reports):
 ```ts
 type CaseItem = {
   id: string
@@ -369,11 +377,11 @@ type CaseItem = {
 
 ---
 
-## `auth.ts` (already real — reference implementation)
+## `auth.ts` (envelope response — reference)
 
 ```
 POST /api/auth/login        { email, password } -> { success, data: { user, accessToken, refreshToken, expiresIn } }
 ```
-See [`types/auth.ts`](../types/auth.ts) for `User`, `AuthSession`, `ApiResponse`, `AuthError`. Once other
-endpoints above are ready, follow this same pattern: a `services/*.ts` function does the `fetch`, parses
-`ApiResponse<T>`, throws on `!success`, returns the typed data — no `fetch` calls in components.
+See [`types/auth.ts`](../types/auth.ts) for `User`, `AuthSession`, `ApiResponse`, `AuthError`.
+
+Auth uses the `{ success, data }` envelope. All other endpoints above return **plain JSON** of type `T`.

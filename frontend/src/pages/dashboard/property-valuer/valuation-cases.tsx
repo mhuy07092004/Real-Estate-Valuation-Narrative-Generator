@@ -4,7 +4,7 @@ import { useAsyncData } from '../../../hooks/use-async-data'
 import {
   getValuationCasesMockData,
   getValuerCaseListMockData,
-} from '../../../services/mock-valuer'
+} from '../../../services/valuer'
 
 export function ValuationCases() {
   const { data } = useAsyncData(getValuationCasesMockData, [])

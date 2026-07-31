@@ -8,7 +8,7 @@ import {
   type DemandSignal,
   type DemandSignalTone,
   type SuburbOverviewMetric,
-} from '../../../../services/mock-common'
+} from '../../../../services/common'
 import { ChartTrendIcon } from './generate-report-icons'
 import { StepActions } from './step-actions'
 

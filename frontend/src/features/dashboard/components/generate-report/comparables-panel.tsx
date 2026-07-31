@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Card, CardTitle } from '../../../../components/ui/card/card'
 import { useAsyncData } from '../../../../hooks/use-async-data'
-import { getComparableSales, type ComparableSale } from '../../../../services/mock-common'
+import { getComparableSales, type ComparableSale } from '../../../../services/common'
 import { BuildingIcon } from './generate-report-icons'
 import { StepActions } from './step-actions'
 
