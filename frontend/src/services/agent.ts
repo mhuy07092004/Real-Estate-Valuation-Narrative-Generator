@@ -17,6 +17,9 @@ export type ClientItem = {
   initials: string
   isStarred: boolean
   address: string | null
+  email: string
+  phone: string
+  notes: string
   reportCount: number
   status: ClientStatus
   followUpAt: string

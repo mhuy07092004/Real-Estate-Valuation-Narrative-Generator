@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { DataTableTab } from '../../../components/ui/table/data-table'
 import {
@@ -12,6 +12,7 @@ import {
   ClientStatusBadge,
   getClientStatusLabel,
 } from '../../../components/ui/table/status-badge'
+import { DetailCard } from '../../../features/dashboard/components/detail_card'
 import { useAsyncData } from '../../../hooks/use-async-data'
 import {
   getClientListMockData,
@@ -25,11 +26,6 @@ const CLIENT_TABS: DataTableTab<ClientItem>[] = [
     id: 'prospecting',
     label: 'Prospecting',
     filter: (item) => item.status === 'prospecting',
-  },
-  {
-    id: 'active',
-    label: 'Active',
-    filter: (item) => item.status === 'active',
   },
   {
     id: 'appraisal_sent',
@@ -51,6 +47,7 @@ const CLIENT_TABS: DataTableTab<ClientItem>[] = [
 export function ClientAgent() {
   const { data: clients } = useAsyncData(getClientListMockData, [])
   const { data: summary } = useAsyncData(getClientListSummary, [])
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
 
   const columns = useMemo<ColumnDef<ClientItem, unknown>[]>(
     () => [
@@ -144,6 +141,12 @@ export function ClientAgent() {
     return <div className="p-6 text-sm text-relaive-gray sm:p-8">Loading clients…</div>
   }
 
+  const selectedClient = clients.find((client) => client.id === selectedClientId) ?? null
+
+  const handleRowClick = (item: ClientItem) => {
+    setSelectedClientId((current) => (current === item.id ? null : item.id))
+  }
+
   return (
     <div className="flex flex-col">
       <header className="font-sans px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pt-8">
@@ -156,14 +159,33 @@ export function ClientAgent() {
       </header>
 
       <div className="flex flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:p-8">
-        <ClientTable
-          clients={clients}
-          columns={columns}
-          tabs={CLIENT_TABS}
-          defaultTabId="all"
-          searchPlaceholder="Search clients, properties..."
-          emptyMessage="No clients match your search."
-        />
+        <div
+          className={
+            selectedClient
+              ? 'flex flex-col gap-5 lg:flex-row lg:items-start'
+              : undefined
+          }
+        >
+          <div className={selectedClient ? 'min-w-0 lg:flex-[7]' : undefined}>
+            <ClientTable
+              clients={clients}
+              columns={columns}
+              tabs={CLIENT_TABS}
+              defaultTabId="all"
+              compactTabs={selectedClient != null}
+              searchPlaceholder="Search clients, properties..."
+              emptyMessage="No clients match your search."
+              onRowClick={handleRowClick}
+              selectedRowId={selectedClientId ?? undefined}
+            />
+          </div>
+
+          {selectedClient && (
+            <div className="lg:flex-[3]">
+              <DetailCard client={selectedClient} />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
