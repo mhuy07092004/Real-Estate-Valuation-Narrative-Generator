@@ -62,8 +62,8 @@ export function StatCard({
       )}
       <p className="text-sm text-relaive-gray">{label}</p>
       <p
-        className={`mt-1 font-bold tracking-tight text-relaive-navy ${
-          valueClassName || 'text-2xl sm:text-3xl'
+        className={`mt-1 font-bold tracking-tight ${
+          valueClassName ? valueClassName : 'text-2xl sm:text-3xl text-relaive-navy'
         }`}
       >
         {value}
