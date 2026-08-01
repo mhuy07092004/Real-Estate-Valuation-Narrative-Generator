@@ -31,9 +31,19 @@ The frontend development server runs on **http://localhost:5173** by default.
 # 1. Install dependencies (from the root directory)
 npm install
 
-# 2. Start the development server
+# 2. Enable MSW mock API (required for sign-in without the backend)
+#    frontend/.env.development is not in Git (.gitignore). Create it locally:
+cat > frontend/.env.development << 'EOF'
+# Enable MSW mock API in development.
+# Mock login: admin@relaive.com / admin
+VITE_ENABLE_MOCKS=true
+EOF
+
+# 3. Start the development server (restart if it was already running)
 npm run dev
 ```
+
+After the dev server starts, open the browser console — you should see `[MSW] Mocking enabled`. Without `frontend/.env.development`, login calls the real API and will fail if the backend is not running.
 
 ### Backend
 
