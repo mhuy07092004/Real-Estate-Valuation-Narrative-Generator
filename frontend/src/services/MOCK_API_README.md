@@ -20,7 +20,9 @@ export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T>
 ```
 
 MSW handlers live in `features/dashboard/mock/` (plus `features/auth/mock/` for auth).
-Enable with `VITE_ENABLE_MOCKS=true` in `frontend/.env.development`.
+Enable with `VITE_ENABLE_MOCKS=true` in `frontend/.env.development` (local dev) or
+`frontend/.env.production` (Vercel / `vite build`). To use the real backend after it is ready,
+set `VITE_ENABLE_MOCKS=false` in `.env.production` and redeploy — no application code changes.
 
 ---
 

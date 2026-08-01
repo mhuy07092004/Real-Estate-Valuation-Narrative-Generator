@@ -65,6 +65,17 @@ npm run dev
 
 Without `frontend/.env.development`, sign-in calls the real backend (`/api/auth/login`) and will fail until the backend is running and wired up.
 
+### Deploy frontend on Vercel (frontend-only)
+
+The repo root [`vercel.json`](vercel.json) builds the Vite app and publishes **`frontend/dist`** only (the `backend/` folder is not deployed). Root Directory on Vercel should stay at the repo root (not `frontend`).
+
+| Setting | Value |
+|---------|--------|
+| Build Command | `npm run build` |
+| Output Directory | `frontend/dist` |
+
+Production demos use MSW via committed [`frontend/.env.production`](frontend/.env.production) (`VITE_ENABLE_MOCKS=true`). When the real API is ready, change that line to `VITE_ENABLE_MOCKS=false`, commit, and redeploy.
+
 ### Backend
 
 *(To be updated)*
