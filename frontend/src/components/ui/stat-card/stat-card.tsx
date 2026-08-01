@@ -69,7 +69,7 @@ export function StatCard({
         {value}
       </p>
       {trend != null && trend !== '' && (
-        <p className={`mt-3 text-sm font-medium ${styles.trend}`}>{trend}</p>
+        <p className="mt-3 text-sm font-medium text-relaive-primary">{trend}</p>
       )}
     </article>
   )

@@ -265,9 +265,6 @@ type RoiCalculationMock = {
 }
 ```
 
-### `getInvestorDashboardMockData(): Promise<DashboardMockPayload>`
-`GET /api/dashboard/investor`
-
 ### `getInvestorReportListMockData(): Promise<InvestorReportItem[]>`
 `GET /api/investor/reports`
 ```ts
@@ -349,7 +346,7 @@ type ValuationCasesMockPayload = {
 ## `dashboard.ts` (shared)
 
 ### `getDashboardMockData(role: DashboardRole): Promise<DashboardMockPayload>`
-`GET /api/dashboard/:role` where `role` is `'agent' | 'valuer' | 'buyer' | 'investor'`
+`GET /api/dashboard/:role` where `role` is `'agent' | 'valuer' | 'buyer' | 'investor'`. MSW payloads live in `features/dashboard/mock/dashboard-mock-data.ts`.
 ```ts
 type DashboardMockPayload = {
   welcomeSubtitle: string

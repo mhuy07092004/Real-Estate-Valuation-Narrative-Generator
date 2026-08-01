@@ -1,7 +1,6 @@
 // Investor types + HTTP service — ROI calculator, reports, notifications.
 
 import { fetchJson } from './api-client'
-import type { DashboardMockPayload } from './dashboard'
 import type { InboxNotification } from './common'
 
 export type RoiSummaryTone = 'green' | 'red' | 'navy' | 'net'
@@ -55,10 +54,6 @@ export type InvestorReportSummary = {
 
 export function getRoiCalculationMockData(): Promise<RoiCalculationMock> {
   return fetchJson('/api/investor/roi-calculation')
-}
-
-export function getInvestorDashboardMockData(): Promise<DashboardMockPayload> {
-  return fetchJson('/api/dashboard/investor')
 }
 
 export function getInvestorReportListMockData(): Promise<InvestorReportItem[]> {

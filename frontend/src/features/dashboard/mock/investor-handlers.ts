@@ -1,12 +1,4 @@
 import { http, HttpResponse } from 'msw'
-import type { AiInsight } from '../components/ai-insights-panel'
-import type { QuickActionTone } from '../components/quick-actions-panel'
-import type { RecentReport } from '../components/recent-reports-panel'
-import type {
-  DashboardActionIconKey,
-  DashboardMockPayload,
-  DashboardStat,
-} from '../../../services/dashboard'
 import type {
   InvestorReportItem,
   InvestorReportSummary,
@@ -51,104 +43,6 @@ const ROI_CALCULATION_DATA: RoiCalculationMock = {
     { label: 'Monthly Cash-Flow', display: '$2,341/mth', tone: 'red' },
     { label: 'Cash-on-Cash Returns', display: '-16.5%', tone: 'red' },
   ],
-}
-
-export const INVESTOR_DASHBOARD_DATA: DashboardMockPayload = {
-  welcomeSubtitle: '2 portfolios tracked • 5 ROI scenarios saved',
-  stats: [
-    {
-      label: 'Tracked Assets',
-      value: '11',
-      trend: '+2 this month',
-      tone: 'blue',
-      iconKey: 'document',
-    },
-    {
-      label: 'Avg Yield',
-      value: '4.8%',
-      trend: '+0.3% vs. last qtr',
-      tone: 'teal',
-      iconKey: 'trend',
-    },
-    {
-      label: 'Open Scenarios',
-      value: '5',
-      trend: '2 need refresh',
-      tone: 'orange',
-      iconKey: 'users',
-    },
-    {
-      label: 'Watchlist',
-      value: '9',
-      trend: '3 price alerts',
-      tone: 'sky',
-      iconKey: 'clock',
-    },
-  ] satisfies DashboardStat[],
-  reports: [
-    {
-      id: '1',
-      title: 'Investor Report - Parramatta Unit',
-      detail: '$620,000 • Draft',
-      timeAgo: '3 hours ago',
-    },
-    {
-      id: '2',
-      title: 'Market Comparison - Inner West',
-      detail: '$540,000 • Completed',
-      timeAgo: 'Yesterday',
-    },
-    {
-      id: '3',
-      title: 'ROI Scenario - Ashfield',
-      detail: '$715,000 • In Review',
-      timeAgo: '5 hours ago',
-    },
-    {
-      id: '4',
-      title: 'Portfolio Report - Canterbury',
-      detail: '$880,000 • Sent',
-      timeAgo: '2 days ago',
-    },
-  ] satisfies RecentReport[],
-  insights: [
-    {
-      id: '1',
-      title: 'Yield Opportunity',
-      description: 'Ashfield median rent up 2.4%',
-      badge: 'Market Update',
-      tone: 'orange',
-    },
-    {
-      id: '2',
-      title: 'Scenario Expiring',
-      description: 'Parramatta cash-flow model is 30 days old',
-      badge: 'Update',
-      tone: 'blue',
-    },
-  ] satisfies AiInsight[],
-  quickActions: [
-    {
-      id: '1',
-      title: 'Generate Report',
-      subtitle: 'Investor pack',
-      tone: 'blue',
-      iconKey: 'sparkle',
-    },
-    {
-      id: '2',
-      title: 'ROI Calculator',
-      subtitle: 'Model returns',
-      tone: 'teal',
-      iconKey: 'document',
-    },
-  ] satisfies {
-    id: string
-    title: string
-    subtitle: string
-    tone: QuickActionTone
-    iconKey: DashboardActionIconKey
-  }[],
 }
 
 const INVESTOR_REPORT_LIST: InvestorReportItem[] = [
@@ -275,11 +169,6 @@ export const investorHandlers = [
   http.get('/api/investor/roi-calculation', async () => {
     await simulateLatency()
     return HttpResponse.json(ROI_CALCULATION_DATA)
-  }),
-
-  http.get('/api/dashboard/investor', async () => {
-    await simulateLatency()
-    return HttpResponse.json(INVESTOR_DASHBOARD_DATA)
   }),
 
   http.get('/api/investor/reports', async () => {

@@ -6,7 +6,14 @@ import type { RecentReport } from '../features/dashboard/components/recent-repor
 import type { DashboardRole } from '../features/dashboard/utils/dashboard-role'
 import { fetchJson } from './api-client'
 
-export type DashboardStatIconKey = 'document' | 'users' | 'trend' | 'clock'
+export type DashboardStatIconKey =
+  | 'document'
+  | 'users'
+  | 'trend'
+  | 'clock'
+  | 'checkCircle'
+  | 'alertTriangle'
+  | 'alertCircle'
 export type DashboardActionIconKey = 'sparkle' | 'document' | 'users'
 
 export type DashboardStat = {
