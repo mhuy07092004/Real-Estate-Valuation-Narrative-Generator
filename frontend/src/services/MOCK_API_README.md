@@ -337,7 +337,6 @@ type EvidenceItem = {
 type EvidenceCentreMockPayload = {
   totalItems: number
   missingCount: number
-  stats: { label: string; value: string; tone: 'blue' | 'teal' | 'orange' | 'sky' }[]
 }
 ```
 
@@ -347,7 +346,6 @@ type EvidenceCentreMockPayload = {
 type ValuationCasesMockPayload = {
   totalCases: number
   returnedForRevision: number
-  stats: { label: string; value: string; tone: 'blue' | 'teal' | 'orange' | 'sky' }[]
 }
 ```
 

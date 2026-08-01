@@ -242,12 +242,6 @@ const VALUER_CASE_LIST: CaseItem[] = [
 const VALUATION_CASES_DATA: ValuationCasesMockPayload = {
   totalCases: 28,
   returnedForRevision: 3,
-  stats: [
-    { label: 'In Review', value: '7', tone: 'blue' },
-    { label: 'Low Confidence', value: '4', tone: 'orange' },
-    { label: 'Awaiting Approval', value: '5', tone: 'sky' },
-    { label: 'Approved this month', value: '12', tone: 'teal' },
-  ],
 }
 
 const VALUER_NOTIFICATIONS: InboxNotification[] = [
@@ -318,20 +312,11 @@ export const valuerHandlers = [
 
   http.get('/api/valuer/evidence/summary', async () => {
     await simulateLatency()
-    const comparable = EVIDENCE_LIST_DATA.filter((item) => item.category === 'comparable').length
-    const market = EVIDENCE_LIST_DATA.filter((item) => item.category === 'market').length
-    const documents = EVIDENCE_LIST_DATA.filter((item) => item.category === 'document').length
     const missing = EVIDENCE_LIST_DATA.filter((item) => item.category === 'missing').length
 
     const summary: EvidenceCentreMockPayload = {
       totalItems: EVIDENCE_LIST_DATA.length,
       missingCount: missing,
-      stats: [
-        { label: 'Comparable Sales', value: String(comparable), tone: 'blue' },
-        { label: 'Market Sources', value: String(market), tone: 'teal' },
-        { label: 'Documents', value: String(documents), tone: 'sky' },
-        { label: 'Missing Evidence', value: String(missing), tone: 'orange' },
-      ],
     }
     return HttpResponse.json(summary)
   }),

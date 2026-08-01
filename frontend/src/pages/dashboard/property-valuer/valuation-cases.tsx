@@ -1,5 +1,4 @@
 import { CaseTable } from '../../../components/ui/table/case-table'
-import { StatCard } from '../../../components/ui/stat-card/stat-card'
 import { useAsyncData } from '../../../hooks/use-async-data'
 import {
   getValuationCasesMockData,
@@ -26,12 +25,6 @@ export function ValuationCases() {
       </header>
 
       <div className="flex flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:p-8">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {data.stats.map((stat) => (
-            <StatCard key={stat.label} label={stat.label} value={stat.value} tone={stat.tone} />
-          ))}
-        </div>
-
         <CaseTable cases={cases} />
       </div>
     </div>

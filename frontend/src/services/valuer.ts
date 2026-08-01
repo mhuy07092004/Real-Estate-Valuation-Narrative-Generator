@@ -18,28 +18,14 @@ export type EvidenceItem = {
   updatedAt: string
 }
 
-export type EvidenceCentreStat = {
-  label: string
-  value: string
-  tone: 'blue' | 'teal' | 'orange' | 'sky'
-}
-
 export type EvidenceCentreMockPayload = {
   totalItems: number
   missingCount: number
-  stats: EvidenceCentreStat[]
-}
-
-export type ValuationCasesStat = {
-  label: string
-  value: string
-  tone: 'blue' | 'teal' | 'orange' | 'sky'
 }
 
 export type ValuationCasesMockPayload = {
   totalCases: number
   returnedForRevision: number
-  stats: ValuationCasesStat[]
 }
 
 export function getEvidenceListMockData(): Promise<EvidenceItem[]> {

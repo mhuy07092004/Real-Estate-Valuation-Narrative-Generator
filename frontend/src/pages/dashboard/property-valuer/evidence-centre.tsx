@@ -2,9 +2,8 @@ import { useMemo } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { StatCard } from '../../../components/ui/stat-card/stat-card'
 import { ConfidenceBar } from '../../../components/ui/table/confidence-bar'
-import { ClockIcon, DataTable, type DataTableTab } from '../../../components/ui/table/data-table'
+import { ClockIcon, DataTable } from '../../../components/ui/table/data-table'
 import {
   EvidenceStatusBadge,
   getEvidenceStatusLabel,
@@ -26,34 +25,6 @@ const CATEGORY_LABELS: Record<EvidenceCategory, string> = {
   history: 'History',
   missing: 'Missing',
 }
-
-const EVIDENCE_TABS: DataTableTab<EvidenceItem>[] = [
-  {
-    id: 'comparable',
-    label: 'Comparable',
-    filter: (item) => item.category === 'comparable',
-  },
-  {
-    id: 'market',
-    label: 'Market',
-    filter: (item) => item.category === 'market',
-  },
-  {
-    id: 'documents',
-    label: 'Documents',
-    filter: (item) => item.category === 'document',
-  },
-  {
-    id: 'history',
-    label: 'History',
-    filter: (item) => item.category === 'history',
-  },
-  {
-    id: 'missing',
-    label: 'Missing Evidence',
-    filter: (item) => item.category === 'missing',
-  },
-]
 
 export function EvidenceCentre() {
   const { data } = useAsyncData(getEvidenceCentreMockData, [])
@@ -148,17 +119,9 @@ export function EvidenceCentre() {
       </header>
 
       <div className="flex flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:p-8">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {data.stats.map((stat) => (
-            <StatCard key={stat.label} label={stat.label} value={stat.value} tone={stat.tone} />
-          ))}
-        </div>
-
         <DataTable
           data={evidence}
           columns={columns}
-          tabs={EVIDENCE_TABS}
-          defaultTabId="comparable"
           getRowId={(item) => item.id}
           searchPlaceholder="Search evidence, sources, documents..."
           searchFilter={(item, query) =>

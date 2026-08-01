@@ -124,6 +124,7 @@ function resolveActiveNavFromPath(pathname: string): string {
   if (pathname.endsWith('/copilot')) return 'AI Copilot'
   if (pathname.endsWith('/notifications')) return 'Alert'
   if (pathname.endsWith('/affortability-calculation')) return 'Affordability'
+  if (pathname.endsWith('/roi-calculation')) return 'ROI Calculator'
   if (pathname.endsWith('/generate-report')) {
     const role = extractRoleFromPathname(pathname)
     if (role === 'valuer') return 'New Valuation'
@@ -203,6 +204,10 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       setActiveNav('AI Copilot')
     } else if (pathname.endsWith('/notifications')) {
       setActiveNav('Alert')
+    } else if (pathname.endsWith('/affortability-calculation')) {
+      setActiveNav('Affordability')
+    } else if (pathname.endsWith('/roi-calculation')) {
+      setActiveNav('ROI Calculator')
     } else if (pathname.endsWith('/generate-report')) {
       if (resolvedRole === 'valuer') {
         setActiveNav('New Valuation')
@@ -243,14 +248,18 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
     navigate(`/dashboard/${resolvedRole}/settings`)
   }
 
-  function handleNavigateToCopilot() {
-    setActiveNav('AI Copilot')
-    navigate(`/dashboard/${resolvedRole}/copilot`)
-  }
-
   function handleNavigateToNotifications() {
     setActiveNav('Alert')
     navigate(`/dashboard/${resolvedRole}/notifications`)
+  }
+
+  function handleNavigateHome() {
+    navigate('/')
+  }
+
+  function handleNavigatePlatform() {
+    setActiveNav('Dashboard')
+    navigate(`/dashboard/${resolvedRole}`)
   }
 
   function handleNavChange(label: string) {
@@ -338,10 +347,12 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
           displayEmail={displayEmail}
           userInitials={userInitials}
           onNavigateToSettings={handleNavigateToSettings}
-          onNavigateToCopilot={handleNavigateToCopilot}
           onNavigateToNotifications={handleNavigateToNotifications}
           unreadNotificationCount={unreadNotificationCount ?? 0}
           onSignOut={handleSignOut}
+          activeNavLabel={activeNav}
+          onNavigateHome={handleNavigateHome}
+          onNavigatePlatform={handleNavigatePlatform}
         />
 
         <main className="min-h-0 flex-1 overflow-auto">{children}</main>
