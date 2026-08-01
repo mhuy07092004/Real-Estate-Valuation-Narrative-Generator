@@ -234,6 +234,25 @@ export const agentHandlers = [
     return HttpResponse.json(summary)
   }),
 
+  http.patch('/api/agent/clients/:id', async ({ params, request }) => {
+    await simulateLatency()
+
+    const id = String(params.id)
+    const client = CLIENT_LIST_DATA.find((item) => item.id === id)
+
+    if (!client) {
+      return HttpResponse.json({ message: `Client not found: ${id}` }, { status: 404 })
+    }
+
+    const body = (await request.json()) as { notes?: unknown }
+    if (typeof body.notes !== 'string') {
+      return HttpResponse.json({ message: 'notes must be a string' }, { status: 400 })
+    }
+
+    client.notes = body.notes
+    return HttpResponse.json(client)
+  }),
+
   http.get('/api/agent/reports', async () => {
     await simulateLatency()
     return HttpResponse.json(AGENT_REPORT_LIST)

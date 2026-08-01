@@ -45,8 +45,9 @@ const CLIENT_TABS: DataTableTab<ClientItem>[] = [
 ]
 
 export function ClientAgent() {
-  const { data: clients } = useAsyncData(getClientListMockData, [])
-  const { data: summary } = useAsyncData(getClientListSummary, [])
+  const [listVersion, setListVersion] = useState(0)
+  const { data: clients } = useAsyncData(getClientListMockData, [listVersion])
+  const { data: summary } = useAsyncData(getClientListSummary, [listVersion])
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
 
   const columns = useMemo<ColumnDef<ClientItem, unknown>[]>(
@@ -182,7 +183,10 @@ export function ClientAgent() {
 
           {selectedClient && (
             <div className="lg:flex-[3]">
-              <DetailCard client={selectedClient} />
+              <DetailCard
+                client={selectedClient}
+                onNotesUpdated={() => setListVersion((version) => version + 1)}
+              />
             </div>
           )}
         </div>

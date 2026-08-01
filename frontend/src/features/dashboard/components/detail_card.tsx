@@ -1,6 +1,7 @@
+import { useEffect, useState } from 'react'
 import { Button } from '../../../components/ui/button/button'
 import { ClientStatusBadge } from '../../../components/ui/table/status-badge'
-import type { ClientItem } from '../../../services/agent'
+import { updateClientNotes, type ClientItem } from '../../../services/agent'
 
 function EmailIcon() {
   return (
@@ -47,9 +48,48 @@ function PinIcon() {
 type DetailCardProps = {
   client: ClientItem
   className?: string
+  onNotesUpdated?: (client: ClientItem) => void
 }
 
-export function DetailCard({ client, className = '' }: DetailCardProps) {
+export function DetailCard({ client, className = '', onNotesUpdated }: DetailCardProps) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [draftNotes, setDraftNotes] = useState(client.notes)
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setIsEditing(false)
+    setDraftNotes(client.notes)
+    setError(null)
+    setIsSaving(false)
+  }, [client.id, client.notes])
+
+  const startEditing = () => {
+    setDraftNotes(client.notes)
+    setError(null)
+    setIsEditing(true)
+  }
+
+  const cancelEditing = () => {
+    setDraftNotes(client.notes)
+    setError(null)
+    setIsEditing(false)
+  }
+
+  const handleSave = async () => {
+    setIsSaving(true)
+    setError(null)
+    try {
+      const updated = await updateClientNotes(client.id, draftNotes)
+      onNotesUpdated?.(updated)
+      setIsEditing(false)
+    } catch {
+      setError('Could not save notes. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <aside
       className={`flex h-full flex-col rounded-3xl border border-black/5 bg-white p-5 shadow-[0_4px_24px_rgba(26,32,44,0.06)] sm:p-6 ${className}`}
@@ -96,7 +136,42 @@ export function DetailCard({ client, className = '' }: DetailCardProps) {
         <h3 className="text-[11px] font-semibold uppercase tracking-wider text-relaive-gray">
           Notes
         </h3>
-        <p className="mt-2.5 text-sm leading-relaxed text-relaive-navy">{client.notes}</p>
+        {isEditing ? (
+          <div className="mt-2.5 flex flex-col gap-2">
+            <textarea
+              value={draftNotes}
+              onChange={(event) => setDraftNotes(event.target.value)}
+              rows={4}
+              disabled={isSaving}
+              className="w-full resize-y rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm leading-relaxed text-relaive-navy placeholder:text-relaive-gray/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary disabled:opacity-60"
+            />
+            {error && <p className="text-xs text-red-600">{error}</p>}
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                className="w-full rounded-xl"
+                disabled={isSaving}
+                onClick={handleSave}
+              >
+                {isSaving ? 'Saving…' : 'Save'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full rounded-xl border border-black/15 bg-gray-100 hover:bg-gray-200/80"
+                disabled={isSaving}
+                onClick={cancelEditing}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-2.5 text-sm leading-relaxed text-relaive-navy">{client.notes}</p>
+        )}
       </div>
 
       <div className="mt-auto flex flex-col gap-3 pt-8">
@@ -109,6 +184,8 @@ export function DetailCard({ client, className = '' }: DetailCardProps) {
             variant="outline"
             size="md"
             className="w-full rounded-xl border border-black/15 bg-gray-100 hover:bg-gray-200/80"
+            disabled={isEditing || isSaving}
+            onClick={startEditing}
           >
             Add Note
           </Button>

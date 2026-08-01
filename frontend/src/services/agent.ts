@@ -38,6 +38,14 @@ export function getClientListSummary(): Promise<ClientListSummary> {
   return fetchJson('/api/agent/clients/summary')
 }
 
+export function updateClientNotes(id: string, notes: string): Promise<ClientItem> {
+  return fetchJson(`/api/agent/clients/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ notes }),
+  })
+}
+
 export function getAgentReportListMockData(): Promise<CaseItem[]> {
   return fetchJson('/api/agent/reports')
 }

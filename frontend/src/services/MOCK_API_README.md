@@ -204,6 +204,22 @@ type ClientItem = {
 type ClientListSummary = { totalClients: number; followUpsDueSoon: number }
 ```
 
+### `updateClientNotes(id, notes): Promise<ClientItem>`
+`PATCH /api/agent/clients/:id`
+
+Request body:
+```ts
+{ notes: string }
+```
+
+Success `200`: full `ClientItem` (same shape as list entries).
+
+Errors (plain JSON):
+```ts
+{ message: string }  // 400 if notes missing or not a string
+{ message: string }  // 404 if client id not found
+```
+
 ### `getAgentReportListMockData(): Promise<CaseItem[]>`
 `GET /api/agent/reports`
 
