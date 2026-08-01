@@ -276,15 +276,15 @@ const BUYER_DATA: DashboardMockPayload = {
   quickActions: [
     {
       id: '1',
-      title: 'Search Properties',
-      subtitle: 'Find matches',
+      title: 'Generate Report',
+      subtitle: 'Buyer pack',
       tone: 'blue',
       iconKey: 'sparkle',
     },
     {
       id: '2',
-      title: 'Buyer Report',
-      subtitle: 'Generate advisory',
+      title: 'Search Properties',
+      subtitle: 'Find matches',
       tone: 'teal',
       iconKey: 'document',
     },

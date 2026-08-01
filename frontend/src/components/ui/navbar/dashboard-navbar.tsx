@@ -69,6 +69,7 @@ const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
     {
       title: 'Property Discovery',
       items: [
+        { label: 'Generate Report', icon: NavPlaceholderIcon },
         { label: 'Search Properties', icon: NavPlaceholderIcon },
         { label: 'Saved', icon: NavPlaceholderIcon },
         { label: 'Affordability', icon: NavPlaceholderIcon },
@@ -284,6 +285,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate('/dashboard/valuer/generate-report')
     } else if (label === 'Generate Report' && resolvedRole === 'investor') {
       navigate('/dashboard/investor/generate-report')
+    } else if (label === 'Generate Report' && resolvedRole === 'buyer') {
+      navigate('/dashboard/buyer/generate-report')
     } else {
       navigate(`/dashboard/${resolvedRole}/mock`)
     }
