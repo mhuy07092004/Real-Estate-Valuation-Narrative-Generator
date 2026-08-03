@@ -1,10 +1,15 @@
 import logoIcon from '../../../assets/icon.svg'
 import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-role'
-import { ChevronDownIcon, ChevronLeftIcon, NavPlaceholderIcon } from './dashboard-navbar-icons'
+import {
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  LogOutIcon,
+  NavPlaceholderIcon,
+} from './dashboard-navbar-icons'
 import { RoleOptionsList } from './role-options-list'
 import type { RoleOption, SidebarNavSection } from './dashboard-navbar.types'
 
-const BOTTOM_NAV_ITEMS = ['Settings', 'Account'] as const
+const BOTTOM_NAV_ITEMS = ['Settings'] as const
 
 type DashboardSidebarProps = {
   collapsed: boolean
@@ -19,6 +24,7 @@ type DashboardSidebarProps = {
   navSections: SidebarNavSection[]
   activeNav: string
   onNavChange: (label: string) => void
+  onSignOut: () => void
 }
 
 export function DashboardSidebar({
@@ -34,6 +40,7 @@ export function DashboardSidebar({
   navSections,
   activeNav,
   onNavChange,
+  onSignOut,
 }: DashboardSidebarProps) {
   return (
     <aside
@@ -183,6 +190,20 @@ export function DashboardSidebar({
               </li>
             )
           })}
+          <li>
+            <button
+              type="button"
+              onClick={onSignOut}
+              title={collapsed ? 'Sign Out' : undefined}
+              className={[
+                'flex w-full items-center gap-2.5 text-xs font-semibold text-red-600 transition-all hover:bg-red-50 hover:text-red-700',
+                collapsed ? 'justify-center rounded-xl px-2 py-2' : 'rounded-xl px-3.5 py-2.5',
+              ].join(' ')}
+            >
+              <LogOutIcon className="size-4 shrink-0 text-red-600" />
+              {!collapsed && <span className="truncate">Sign Out</span>}
+            </button>
+          </li>
         </ul>
       </div>
     </aside>

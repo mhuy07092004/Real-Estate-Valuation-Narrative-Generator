@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Card, CardTitle } from '../../../../components/ui/card/card'
 import { useAsyncData } from '../../../../hooks/use-async-data'
 import { getComparableSales, type ComparableSale } from '../../../../services/common'
@@ -66,21 +65,12 @@ function formatPrice(price: number): string {
 
 type ComparableSaleRowProps = {
   sale: ComparableSale
-  selected: boolean
-  onSelect: (id: string) => void
 }
 
-function ComparableSaleRow({ sale, selected, onSelect }: ComparableSaleRowProps) {
+function ComparableSaleRow({ sale }: ComparableSaleRowProps) {
   return (
-    <button
-      type="button"
-      aria-pressed={selected}
-      onClick={() => onSelect(sale.id)}
-      className={`w-full rounded-2xl border px-4 py-5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary focus-visible:ring-offset-2 sm:px-5 ${
-        selected
-          ? 'border-relaive-secondary bg-[#EAF7F6] shadow-sm'
-          : 'border-black/5 bg-white hover:border-relaive-primary/20 hover:bg-slate-50'
-      }`}
+    <div
+      className="w-full rounded-2xl border border-black/5 bg-white px-4 py-5 text-left sm:px-5"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -126,7 +116,7 @@ function ComparableSaleRow({ sale, selected, onSelect }: ComparableSaleRowProps)
 
         <span className="text-sm font-medium text-relaive-primary">View Details</span>
       </div>
-    </button>
+    </div>
   )
 }
 
@@ -136,12 +126,7 @@ type ComparablesPanelProps = {
 }
 
 export function ComparablesPanel({ onBack, onContinue }: ComparablesPanelProps) {
-  const [selectedId, setSelectedId] = useState<string | null>(null)
   const { data: sales } = useAsyncData(getComparableSales, [])
-
-  const handleSelect = (id: string) => {
-    setSelectedId((current) => (current === id ? null : id))
-  }
 
   return (
     <Card>
@@ -157,20 +142,11 @@ export function ComparablesPanel({ onBack, onContinue }: ComparablesPanelProps) 
 
       <div className="mt-4 flex flex-col gap-3">
         {(sales ?? []).map((sale) => (
-          <ComparableSaleRow
-            key={sale.id}
-            sale={sale}
-            selected={sale.id === selectedId}
-            onSelect={handleSelect}
-          />
+          <ComparableSaleRow key={sale.id} sale={sale} />
         ))}
       </div>
 
-      <StepActions
-        onBack={onBack}
-        onContinue={onContinue}
-        continueDisabled={!selectedId}
-      />
+      <StepActions onBack={onBack} onContinue={onContinue} />
     </Card>
   )
 }

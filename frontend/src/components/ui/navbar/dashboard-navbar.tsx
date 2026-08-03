@@ -245,7 +245,6 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
     setUserMenuOpen(false)
     setRoleListOpen(false)
     setActiveNav('Settings')
-    navigate(`/dashboard/${resolvedRole}/settings`)
   }
 
   function handleNavigateToNotifications() {
@@ -328,6 +327,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
         navSections={navSections}
         activeNav={activeNav}
         onNavChange={handleNavChange}
+        onSignOut={handleSignOut}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">

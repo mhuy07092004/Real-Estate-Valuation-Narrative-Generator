@@ -1,4 +1,5 @@
 import type { RefObject } from 'react'
+import { Link } from 'react-router-dom'
 import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-role'
 import type { User } from '../../../types/auth'
 import {
@@ -172,21 +173,35 @@ export function DashboardTopbar({
               </div>
 
               <ul className="border-b border-black/5 py-1.5">
-                {ACCOUNT_MENU_ITEMS.map((label) => (
-                  <li key={label}>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        if (label === 'Account Settings') onNavigateToSettings()
-                      }}
-                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-relaive-navy transition-colors hover:bg-relaive-navy/5"
-                    >
-                      <NavPlaceholderIcon className="shrink-0 text-relaive-gray" />
-                      <span>{label}</span>
-                    </button>
-                  </li>
-                ))}
+                {ACCOUNT_MENU_ITEMS.map((label) => {
+                  const itemClassName =
+                    'flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-relaive-navy transition-colors hover:bg-relaive-navy/5'
+
+                  if (label === 'Account Settings') {
+                    return (
+                      <li key={label}>
+                        <Link
+                          to={`/dashboard/${resolvedRole}/settings`}
+                          role="menuitem"
+                          onClick={onNavigateToSettings}
+                          className={itemClassName}
+                        >
+                          <NavPlaceholderIcon className="shrink-0 text-relaive-gray" />
+                          <span>{label}</span>
+                        </Link>
+                      </li>
+                    )
+                  }
+
+                  return (
+                    <li key={label}>
+                      <button type="button" role="menuitem" className={itemClassName}>
+                        <NavPlaceholderIcon className="shrink-0 text-relaive-gray" />
+                        <span>{label}</span>
+                      </button>
+                    </li>
+                  )
+                })}
               </ul>
 
               <div className="py-1.5">
