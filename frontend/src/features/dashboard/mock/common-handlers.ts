@@ -6,6 +6,7 @@ import type {
   CopilotMessage,
   CopilotSuggestion,
   DemandSignal,
+  NarrativePreview,
   NotificationMock,
   PropertyInputMethodOption,
   ReportTemplateOption,
@@ -182,6 +183,22 @@ const REPORT_TEMPLATES_DATA: ReportTemplateOption[] = [
   },
 ]
 
+const NARRATIVE_PREVIEW_DATA: NarrativePreview = {
+  title: 'AI-Generated Narrative Preview',
+  sections: [
+    {
+      heading: 'Executive Summary:',
+      body: 'This 3-bedroom house at 123 represents a solid investment opportunity in a growing market. Our AI-powered analysis indicates a current market value of $850,000 with strong confidence based on recent comparable sales and market conditions.',
+    },
+    {
+      heading: 'Property Analysis:',
+      body: 'The property demonstrates excellent location attributes with high scores for amenity access, transport connectivity, and school quality. The property size aligns well with market expectations for this type of dwelling...',
+    },
+  ],
+  disclaimer:
+    'Full report will include comprehensive analysis, comparable sales evidence, market intelligence, and confidence scoring.',
+}
+
 export const commonHandlers = [
   http.get('/api/notifications/roi-disclaimer', async () => {
     await simulateLatency()
@@ -246,5 +263,10 @@ export const commonHandlers = [
   http.get('/api/appraisal/report-templates', async () => {
     await simulateLatency()
     return HttpResponse.json(REPORT_TEMPLATES_DATA)
+  }),
+
+  http.get('/api/appraisal/narrative-preview', async () => {
+    await simulateLatency()
+    return HttpResponse.json(NARRATIVE_PREVIEW_DATA)
   }),
 ]

@@ -181,3 +181,18 @@ export type ReportTemplateOption = {
 export function getReportTemplates(): Promise<ReportTemplateOption[]> {
   return fetchJson('/api/appraisal/report-templates')
 }
+
+export type NarrativePreviewSection = {
+  heading: string
+  body: string
+}
+
+export type NarrativePreview = {
+  title: string
+  sections: NarrativePreviewSection[]
+  disclaimer: string
+}
+
+export function getNarrativePreview(): Promise<NarrativePreview> {
+  return fetchJson('/api/appraisal/narrative-preview')
+}
