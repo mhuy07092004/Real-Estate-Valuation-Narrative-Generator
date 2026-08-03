@@ -1,24 +1,17 @@
 import logoIcon from '../../../assets/icon.svg'
-import { Button } from '../button/button'
-
-const PRODUCT_LINKS = [
-  { label: 'Features', href: '#features' },
-  { label: 'Pricing', href: '/plans' },
-  { label: 'API', href: '#api' },
-  { label: 'Integrations', href: '#integrations' },
-] as const
-
-const COMPANY_LINKS = [
-  { label: 'About', href: '/about' },
-  { label: 'Careers', href: '#careers' },
-  { label: 'Contact', href: '#contact' },
-  { label: 'Blog', href: '#blog' },
-] as const
 
 const LEGAL_LINKS = [
+  { label: 'Term of Service', href: '#terms' },
   { label: 'Privacy Policy', href: '#privacy' },
-  { label: 'Terms of Service', href: '#terms' },
-  { label: 'Cookies', href: '#cookies' },
+  { label: 'Refund Policy', href: '#refund' },
+] as const
+
+const TEAM_LINKS = [
+  { label: 'Contact', href: '#contact' },
+] as const
+
+const PRODUCT_LINKS = [
+  { label: 'Benefits', href: '#features' },
 ] as const
 
 const SOCIAL_LINKS = [
@@ -70,13 +63,13 @@ function FooterLinkGroup({
 }) {
   return (
     <div>
-      <h3 className="text-sm font-semibold text-white">{title}</h3>
+      <h3 className="text-[17px] font-semibold text-white">{title}</h3>
       <ul className="mt-4 flex flex-col gap-3">
         {links.map(({ label, href }) => (
           <li key={label}>
             <a
               href={href}
-              className="text-sm text-white/60 transition-colors hover:text-white"
+              className="text-[16px] text-white/60 transition-colors hover:text-white"
             >
               {label}
             </a>
@@ -89,86 +82,54 @@ function FooterLinkGroup({
 
 export function Footer() {
   return (
-    <footer id="resources">
-      {/* CTA section — slightly lighter than main footer */}
-      <div className="bg-[#152a42] px-6 py-20 text-center">
-        <div className="mx-auto flex max-w-3xl flex-col items-center gap-4">
-          <h2 className="text-3xl font-semibold text-white sm:text-4xl">
-            Start Your First AI Appraisal
-          </h2>
-          <p className="text-base text-white/60">
-            Join the future of property intelligence
-          </p>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
-            <Button variant="primary" size="md" href="/signup">
-              Start Free
-            </Button>
-            <Button
-              variant="link"
-              href="/signup"
-              className="rounded-lg border border-white/20 bg-white/5 px-6 py-3 text-sm font-semibold text-white no-underline hover:bg-white/10 hover:no-underline hover:text-white"
-            >
-              Create Account
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main footer */}
-      <div className="bg-[#102132] px-6 py-16">
-        <div className="mx-auto grid max-w-7xl gap-12 md:grid-cols-[2fr_1fr_1fr]">
-          {/* Brand column */}
-          <div className="flex flex-col gap-5">
-            <a href="/" className="inline-flex w-fit items-center gap-3 rounded-lg bg-white px-4 py-3">
+    <footer id="resources" className="bg-[#102132] px-6 py-16">
+      <div className="mx-auto grid max-w-7xl gap-12 md:grid-cols-[2fr_1fr_1fr]">
+        {/* Brand column */}
+        <div className="flex flex-col gap-5">
+          <a href="/" className="inline-flex w-fit items-center gap-3">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-white">
               <img src={logoIcon} alt="Relaive icon" className="h-9 w-9" />
-              <div className="flex flex-col leading-tight">
-                <span className="font-logo text-base font-bold text-relaive-navy tracking-tight">
-                  Relaive
-                </span>
-                <span className="text-[10px] text-relaive-gray">
-                  Real-estate AI Evaluation
-                </span>
-              </div>
-            </a>
-            <p className="max-w-sm text-sm leading-relaxed text-white/60">
-              AI-powered property valuation intelligence for the Australian real
-              estate market. Professional appraisals in seconds.
-            </p>
-            <div className="flex items-center gap-3">
-              {SOCIAL_LINKS.map(({ label, href, icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  aria-label={label}
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/70 transition-colors hover:bg-white/20 hover:text-white"
-                >
-                  {icon}
-                </a>
-              ))}
+            </span>
+            <div className="flex flex-col leading-tight">
+              <span className="font-logo text-lg font-bold tracking-tight text-white">
+                Relaive
+              </span>
+              <span className="text-xs text-white/50">
+                Real-estate AI Evaluation
+              </span>
             </div>
-          </div>
-
-          <FooterLinkGroup title="Product" links={PRODUCT_LINKS} />
-          <FooterLinkGroup title="Company" links={COMPANY_LINKS} />
-        </div>
-
-        {/* Bottom bar */}
-        <div className="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 sm:flex-row">
-          <p className="text-sm text-white/50">
-            © 2026 Relaive. All rights reserved.
+          </a>
+          <p className="max-w-sm text-[16px] leading-relaxed text-white/60">
+            AI-powered property valuation intelligence for the Australian real
+            estate market. Professional appraisals in seconds.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-6">
-            {LEGAL_LINKS.map(({ label, href }) => (
+          <div className="flex items-center gap-3">
+            {SOCIAL_LINKS.map(({ label, href, icon }) => (
               <a
                 key={label}
                 href={href}
-                className="text-sm text-white/50 transition-colors hover:text-white/80"
+                aria-label={label}
+                className="flex h-9 w-9 items-center justify-center rounded-md bg-white/10 text-white/70 transition-colors hover:bg-white/20 hover:text-white"
               >
-                {label}
+                {icon}
               </a>
             ))}
           </div>
         </div>
+
+        <FooterLinkGroup title="Legal" links={LEGAL_LINKS} />
+
+        <div className="flex flex-col gap-10">
+          <FooterLinkGroup title="Team" links={TEAM_LINKS} />
+          <FooterLinkGroup title="Product" links={PRODUCT_LINKS} />
+        </div>
+      </div>
+
+      {/* Bottom bar */}
+      <div className="mx-auto mt-12 max-w-7xl border-t border-white/10 pt-8">
+        <p className="text-sm text-white/50">
+          © 2026 Relaive. All rights reserved.
+        </p>
       </div>
     </footer>
   )
