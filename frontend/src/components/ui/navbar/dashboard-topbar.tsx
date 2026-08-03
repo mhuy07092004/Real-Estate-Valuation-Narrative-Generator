@@ -77,12 +77,12 @@ export function DashboardTopbar({
         <ChevronRightIcon />
         {isPlatformHome ? (
           <span className="truncate font-medium text-relaive-navy" aria-current="page">
-            Platform
+            Dashboard
           </span>
         ) : (
           <>
             <button type="button" onClick={onNavigatePlatform} className={breadcrumbLinkClass}>
-              Platform
+              Dashboard
             </button>
             <ChevronRightIcon />
             <span className="truncate font-medium text-relaive-navy" aria-current="page">
