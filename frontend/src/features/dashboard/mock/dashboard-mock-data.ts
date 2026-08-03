@@ -26,7 +26,7 @@ const AGENT_DATA: DashboardMockPayload = {
       iconKey: 'trend',
     },
     {
-      label: 'Pending Reports',
+      label: 'Draft Reports',
       value: '4',
       trend: '2 this week',
       tone: 'orange',

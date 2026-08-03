@@ -26,7 +26,7 @@ const MOCK_USERS: MockUser[] = [
   {
     id: 'usr_001',
     email: 'admin@relaive.com',
-    fullName: 'Admin User',
+    fullName: 'Minh Huy Loi',
     password: 'admin',
     roles: ['admin', 'agent', 'valuer', 'investor', 'buyer'],
     avatar: null,

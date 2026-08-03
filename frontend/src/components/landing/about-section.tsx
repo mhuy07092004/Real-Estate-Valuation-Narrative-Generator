@@ -92,7 +92,11 @@ const VALUATION_STEPS: DropCardItem[] = [
     icon: <SearchIcon />,
     title: 'Property Analysis',
     description: 'AI scans location, property attributes, features, and market data.',
-    children: 'Relaive analyses property details such as location, land size, bedrooms, bathrooms, and surrounding suburb information to understand the property\'s overall market position before generating a valuation.',
+    children: (
+    <> 
+    <strong className="font-semibold text-relaive-navy">Relaive</strong> analyses property details such as location, land size, bedrooms, bathrooms, and surrounding suburb information to understand the property's overall market position before generating a valuation.
+    </>
+    ),
   },
   {
     id: 'comparable-retrieval',

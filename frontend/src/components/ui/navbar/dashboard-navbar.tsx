@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../../features/auth/hooks/use-auth'
-import { formatShortName, getInitials } from '../../../features/dashboard/utils/dashboard-user'
+import { getInitials } from '../../../features/dashboard/utils/dashboard-user'
 import {
   type DashboardRole,
   clearActiveDashboardRole,
@@ -168,7 +168,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
     ],
     [resolvedRole],
   )
-  const displayName = user ? formatShortName(user.fullName) : 'User'
+  const displayName = user?.fullName ?? 'User'
   const displayEmail = user?.email ?? ''
   const userInitials = user ? getInitials(user.fullName) : 'U'
   const { data: unreadNotificationCount } = useAsyncData(() => {
