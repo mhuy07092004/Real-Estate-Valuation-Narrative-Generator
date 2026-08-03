@@ -103,25 +103,12 @@ export function getPropertyTypeOptions(): Promise<readonly string[]> {
 }
 
 // ---------------------------------------------------------------------------
-// AI Property Analysis (Generate Appraisal — step 2)
+// AI Analysis Summary (used by Market Intelligence)
 // ---------------------------------------------------------------------------
-
-export type AiAnalysisMetricTone = 'blue' | 'teal' | 'orange' | 'sky'
-
-export type AiAnalysisMetric = {
-  id: string
-  label: string
-  value: number
-  tone: AiAnalysisMetricTone
-}
 
 export type AiAnalysisSummaryNotification = {
   title: string
   message: string
-}
-
-export function getAiAnalysisMetrics(): Promise<AiAnalysisMetric[]> {
-  return fetchJson('/api/appraisal/ai-analysis-metrics')
 }
 
 export function getAiAnalysisSummaryNotification(): Promise<AiAnalysisSummaryNotification> {
@@ -129,7 +116,7 @@ export function getAiAnalysisSummaryNotification(): Promise<AiAnalysisSummaryNot
 }
 
 // ---------------------------------------------------------------------------
-// Comparable Sales (Generate Appraisal — step 3)
+// Comparable Sales (Generate Appraisal — step 2)
 // ---------------------------------------------------------------------------
 
 export type ComparableSale = {
@@ -150,7 +137,7 @@ export function getComparableSales(): Promise<ComparableSale[]> {
 }
 
 // ---------------------------------------------------------------------------
-// Market Intelligence (Generate Appraisal — step 4)
+// Market Intelligence (Generate Appraisal — step 3)
 // ---------------------------------------------------------------------------
 
 export type SuburbOverviewMetric = {
@@ -179,7 +166,7 @@ export function getDemandSignals(): Promise<DemandSignal[]> {
 }
 
 // ---------------------------------------------------------------------------
-// Report Configuration (Generate Appraisal — step 5)
+// Report Configuration (Generate Appraisal — step 4)
 // ---------------------------------------------------------------------------
 
 export type ReportTemplateIconKey = 'vendor' | 'bank' | 'buyer' | 'investment'

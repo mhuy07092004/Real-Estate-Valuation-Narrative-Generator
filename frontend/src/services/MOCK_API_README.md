@@ -107,17 +107,6 @@ type PropertyInputMethodOption = {
 `GET /api/appraisal/property-types`
 e.g. `['House', 'Unit', 'Townhouse']`
 
-### `getAiAnalysisMetrics(): Promise<AiAnalysisMetric[]>`
-`GET /api/appraisal/ai-analysis-metrics`
-```ts
-type AiAnalysisMetric = {
-  id: string
-  label: string
-  value: number            // 0–100
-  tone: 'blue' | 'teal' | 'orange' | 'sky'
-}
-```
-
 ### `getAiAnalysisSummaryNotification(): Promise<AiAnalysisSummaryNotification>`
 `GET /api/appraisal/ai-analysis-summary`
 ```ts

@@ -1,6 +1,5 @@
 import { http, HttpResponse } from 'msw'
 import type {
-  AiAnalysisMetric,
   AiAnalysisSummaryNotification,
   ComparableSale,
   CopilotConversation,
@@ -70,7 +69,6 @@ const COPILOT_MESSAGES_DATA: CopilotMessage[] = [
 
 const APPRAISAL_STEPS_DATA: StepperStep[] = [
   { id: 'property-input', label: 'Property Input' },
-  { id: 'ai-analysis', label: 'AI Analysis' },
   { id: 'comparables', label: 'Comparables' },
   { id: 'market-intelligence', label: 'Market Intelligence' },
   { id: 'report', label: 'Report' },
@@ -98,13 +96,6 @@ const PROPERTY_INPUT_METHODS_DATA: PropertyInputMethodOption[] = [
 ]
 
 const PROPERTY_TYPE_OPTIONS_DATA = ['House', 'Unit', 'Townhouse'] as const
-
-const AI_ANALYSIS_METRICS_DATA: AiAnalysisMetric[] = [
-  { id: 'location-quality', label: 'Location Quality', value: 92, tone: 'blue' },
-  { id: 'property-condition', label: 'Property Condition', value: 85, tone: 'teal' },
-  { id: 'market-demand', label: 'Market Demand', value: 88, tone: 'orange' },
-  { id: 'growth-potential', label: 'Growth Potential', value: 78, tone: 'sky' },
-]
 
 const AI_ANALYSIS_SUMMARY: AiAnalysisSummaryNotification = {
   title: 'AI-Generated Summary',
@@ -230,11 +221,6 @@ export const commonHandlers = [
   http.get('/api/appraisal/property-types', async () => {
     await simulateLatency()
     return HttpResponse.json(PROPERTY_TYPE_OPTIONS_DATA)
-  }),
-
-  http.get('/api/appraisal/ai-analysis-metrics', async () => {
-    await simulateLatency()
-    return HttpResponse.json(AI_ANALYSIS_METRICS_DATA)
   }),
 
   http.get('/api/appraisal/ai-analysis-summary', async () => {

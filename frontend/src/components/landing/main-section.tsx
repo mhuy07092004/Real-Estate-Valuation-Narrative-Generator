@@ -25,10 +25,10 @@ export function MainSection() {
       </p>
 
       <div className="relative mt-10 flex flex-wrap items-center justify-center gap-4">
-        <Button variant="primary" size="md">
+        <Button variant="primary" size="md" href="/signin">
           Start Demo Valuation
         </Button>
-        <Button variant="secondary" size="md" href="/signup">
+        <Button variant="secondary" size="md" href="/plans">
           Explore Plans
         </Button>
       </div>
