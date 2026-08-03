@@ -2,10 +2,26 @@ import { useMemo, useState } from 'react'
 import { Card, CardTitle } from '../../../../components/ui/card/card'
 import { OptionCardGroup, type OptionCardItem } from '../../../../components/ui/option-card/option-card'
 import { Button } from '../../../../components/ui/button/button'
+import { AppraisalSummaryCard } from '../../../../components/ui/appraisal-summary-card/appraisal-summary-card'
+import { SendReportCard } from '../../../../components/ui/send-report-card/send-report-card'
 import { Notification } from '../../../../components/notification/notification'
 import { useAsyncData } from '../../../../hooks/use-async-data'
-import { getNarrativePreview, getReportTemplates } from '../../../../services/common'
-import { getReportTemplateIcon, ReportDocumentIcon } from './generate-report-icons'
+import {
+  getAgentRecommendations,
+  getAppraisalDisclaimer,
+  getAppraisalSummary,
+  getExecutiveSummary,
+  getNarrativePreview,
+  getPropertySpecificFactors,
+  getReportTemplates,
+} from '../../../../services/common'
+import {
+  CheckCircleIcon,
+  getAgentRecommendationIcon,
+  getReportTemplateIcon,
+  ReportDocumentIcon,
+  WarningCircleIcon,
+} from './generate-report-icons'
 import { StepActions } from './step-actions'
 
 type ReportConfigurationPanelProps = {
@@ -15,8 +31,14 @@ type ReportConfigurationPanelProps = {
 export function ReportConfigurationPanel({ onBack }: ReportConfigurationPanelProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
+  const [sendToClientOpen, setSendToClientOpen] = useState(false)
   const { data: templates } = useAsyncData(getReportTemplates, [])
   const { data: narrativePreview } = useAsyncData(getNarrativePreview, [])
+  const { data: appraisalSummary } = useAsyncData(getAppraisalSummary, [])
+  const { data: executiveSummary } = useAsyncData(getExecutiveSummary, [])
+  const { data: propertyFactors } = useAsyncData(getPropertySpecificFactors, [])
+  const { data: agentRecommendations } = useAsyncData(getAgentRecommendations, [])
+  const { data: appraisalDisclaimer } = useAsyncData(getAppraisalDisclaimer, [])
 
   const optionItems = useMemo<OptionCardItem[]>(
     () =>
@@ -80,14 +102,166 @@ export function ReportConfigurationPanel({ onBack }: ReportConfigurationPanelPro
             <p className="font-semibold">Your {selectedTemplate.title} is ready</p>
           </Notification>
 
+          {appraisalSummary ? <AppraisalSummaryCard summary={appraisalSummary} /> : null}
+
+          {executiveSummary ? (
+            <section className="mt-2">
+              <div className="flex items-center gap-3">
+                <h3 className="shrink-0 text-xs font-medium tracking-[0.08em] text-relaive-gray uppercase">
+                  {executiveSummary.title}
+                </h3>
+                <div className="h-px flex-1 bg-[#E5E7EB]" />
+              </div>
+
+              <div className="mt-5 space-y-4 text-sm leading-relaxed text-relaive-navy sm:text-[15px]">
+                {executiveSummary.paragraphs.map((paragraph, index) => (
+                  <p key={index}>
+                    {paragraph.map((segment, segmentIndex) =>
+                      segment.highlight ? (
+                        <span key={segmentIndex} className="font-semibold text-emerald-600">
+                          {segment.text}
+                        </span>
+                      ) : (
+                        <span key={segmentIndex}>{segment.text}</span>
+                      ),
+                    )}
+                  </p>
+                ))}
+              </div>
+
+              <Notification className="mt-6">
+                <p className="font-semibold">{executiveSummary.observationTitle}</p>
+                <p className="mt-1">{executiveSummary.observationMessage}</p>
+              </Notification>
+            </section>
+          ) : null}
+
+          {propertyFactors ? (
+            <section className="mt-4">
+              <div className="flex items-center gap-3">
+                <h3 className="shrink-0 text-xs font-medium tracking-[0.08em] text-relaive-gray uppercase">
+                  {propertyFactors.title}
+                </h3>
+                <div className="h-px flex-1 bg-[#E5E7EB]" />
+              </div>
+
+              <div className="mt-5 grid gap-8 lg:grid-cols-2">
+                <div>
+                  <h4 className="text-xs font-semibold tracking-[0.06em] text-emerald-700 uppercase">
+                    {propertyFactors.valueAddingTitle}
+                  </h4>
+                  <ul className="mt-4 flex flex-col gap-4">
+                    {propertyFactors.valueAdding.map((item) => (
+                      <li key={item.id} className="flex items-start gap-2.5">
+                        <span className="mt-0.5 shrink-0 text-emerald-600">
+                          <CheckCircleIcon />
+                        </span>
+                        <div>
+                          <p className="text-sm font-semibold text-relaive-navy">{item.title}</p>
+                          <p className="mt-0.5 text-sm leading-relaxed text-relaive-gray">
+                            {item.description}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-semibold tracking-[0.06em] text-amber-700 uppercase">
+                    {propertyFactors.riskTitle}
+                  </h4>
+                  <ul className="mt-4 flex flex-col gap-4">
+                    {propertyFactors.risk.map((item) => (
+                      <li key={item.id} className="flex items-start gap-2.5">
+                        <span className="mt-0.5 shrink-0 text-amber-600">
+                          <WarningCircleIcon />
+                        </span>
+                        <div>
+                          <p className="text-sm font-semibold text-relaive-navy">{item.title}</p>
+                          <p className="mt-0.5 text-sm leading-relaxed text-relaive-gray">
+                            {item.description}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          {agentRecommendations ? (
+            <section className="mt-4">
+              <div className="flex items-center gap-3">
+                <h3 className="shrink-0 text-xs font-medium tracking-[0.08em] text-relaive-gray uppercase">
+                  {agentRecommendations.title}
+                </h3>
+                <div className="h-px flex-1 bg-[#E5E7EB]" />
+              </div>
+
+              <div className="mt-5 flex flex-col gap-5">
+                {agentRecommendations.items.map((item) => {
+                  const content = (
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 shrink-0 text-relaive-primary">
+                        {getAgentRecommendationIcon(item.iconKey)}
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold text-relaive-navy">{item.title}</p>
+                        <p className="mt-1 text-sm leading-relaxed text-relaive-gray">
+                          {item.description}
+                        </p>
+                      </div>
+                    </div>
+                  )
+
+                  if (item.highlighted) {
+                    return (
+                      <Notification key={item.id} icon={<span className="sr-only" />}>
+                        {content}
+                      </Notification>
+                    )
+                  }
+
+                  return <div key={item.id}>{content}</div>
+                })}
+              </div>
+            </section>
+          ) : null}
+
+          {appraisalDisclaimer ? (
+            <Notification className="mt-2">
+              <p className="leading-relaxed">
+                <span className="font-semibold">{appraisalDisclaimer.title}</span>{' '}
+                {appraisalDisclaimer.message}
+              </p>
+              <div className="mt-4 border-t border-amber-200/80 pt-3">
+                <p className="text-xs text-amber-800/80">{appraisalDisclaimer.footer}</p>
+              </div>
+            </Notification>
+          ) : null}
+
           <div className="flex flex-wrap items-center gap-3">
-            <Button type="button" variant="primary" size="md">
-              View
+            <Button type="button" variant="outline" size="md">
+              Export PDF
             </Button>
             <Button type="button" variant="outline" size="md">
-              Download
+              Edit Report
+            </Button>
+            <Button
+              type="button"
+              variant={sendToClientOpen ? 'primary' : 'outline'}
+              size="md"
+              onClick={() => setSendToClientOpen((open) => !open)}
+            >
+              Send to Client
             </Button>
           </div>
+
+          {sendToClientOpen ? (
+            <SendReportCard onClose={() => setSendToClientOpen(false)} />
+          ) : null}
         </div>
       ) : (
         <StepActions

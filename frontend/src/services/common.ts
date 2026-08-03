@@ -196,3 +196,88 @@ export type NarrativePreview = {
 export function getNarrativePreview(): Promise<NarrativePreview> {
   return fetchJson('/api/appraisal/narrative-preview')
 }
+
+export type AppraisalSummaryStat = {
+  id: string
+  value: string
+  label: string
+}
+
+export type AppraisalSummary = {
+  eyebrow: string
+  date: string
+  street: string
+  suburbLine: string
+  featuresLine: string
+  appraisalLabel: string
+  priceRange: string
+  midpointEstimate: string
+  stats: AppraisalSummaryStat[]
+}
+
+export function getAppraisalSummary(): Promise<AppraisalSummary> {
+  return fetchJson('/api/appraisal/appraisal-summary')
+}
+
+export type ExecutiveSummarySegment = {
+  text: string
+  highlight?: boolean
+}
+
+export type ExecutiveSummary = {
+  title: string
+  paragraphs: ExecutiveSummarySegment[][]
+  observationTitle: string
+  observationMessage: string
+}
+
+export function getExecutiveSummary(): Promise<ExecutiveSummary> {
+  return fetchJson('/api/appraisal/executive-summary')
+}
+
+export type PropertyFactorItem = {
+  id: string
+  title: string
+  description: string
+}
+
+export type PropertySpecificFactors = {
+  title: string
+  valueAddingTitle: string
+  valueAdding: PropertyFactorItem[]
+  riskTitle: string
+  risk: PropertyFactorItem[]
+}
+
+export function getPropertySpecificFactors(): Promise<PropertySpecificFactors> {
+  return fetchJson('/api/appraisal/property-specific-factors')
+}
+
+export type AgentRecommendationIconKey = 'campaign' | 'presentation' | 'marketing'
+
+export type AgentRecommendationItem = {
+  id: string
+  title: string
+  description: string
+  iconKey: AgentRecommendationIconKey
+  highlighted?: boolean
+}
+
+export type AgentRecommendations = {
+  title: string
+  items: AgentRecommendationItem[]
+}
+
+export function getAgentRecommendations(): Promise<AgentRecommendations> {
+  return fetchJson('/api/appraisal/agent-recommendations')
+}
+
+export type AppraisalDisclaimer = {
+  title: string
+  message: string
+  footer: string
+}
+
+export function getAppraisalDisclaimer(): Promise<AppraisalDisclaimer> {
+  return fetchJson('/api/appraisal/appraisal-disclaimer')
+}
