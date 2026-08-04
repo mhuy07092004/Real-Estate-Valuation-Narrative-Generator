@@ -9,12 +9,13 @@ import {
   HomeIcon,
   LogOutIcon,
   NavPlaceholderIcon,
+  SettingsIcon,
   UserIcon,
 } from './dashboard-navbar-icons'
 import { RoleOptionsList } from './role-options-list'
 import type { RoleOption } from './dashboard-navbar.types'
 
-const ACCOUNT_MENU_ITEMS = ['Profile', 'Account Settings', 'Security', 'Help & Support'] as const
+const ACCOUNT_MENU_ITEMS = ['Settings', 'Help & Support'] as const
 
 type DashboardTopbarProps = {
   userMenuRef: RefObject<HTMLDivElement | null>
@@ -177,7 +178,7 @@ export function DashboardTopbar({
                   const itemClassName =
                     'flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-relaive-navy transition-colors hover:bg-relaive-navy/5'
 
-                  if (label === 'Account Settings') {
+                  if (label === 'Settings') {
                     return (
                       <li key={label}>
                         <Link
@@ -186,7 +187,7 @@ export function DashboardTopbar({
                           onClick={onNavigateToSettings}
                           className={itemClassName}
                         >
-                          <NavPlaceholderIcon className="shrink-0 text-relaive-gray" />
+                          <SettingsIcon className="shrink-0 text-relaive-gray" />
                           <span>{label}</span>
                         </Link>
                       </li>

@@ -46,15 +46,6 @@ function AreaIcon() {
   )
 }
 
-function PinIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 21.5s7-6.14 7-11.5A7 7 0 0 0 5 10c0 5.36 7 11.5 7 11.5z" />
-      <circle cx="12" cy="10" r="2.5" />
-    </svg>
-  )
-}
-
 function formatPrice(price: number): string {
   return new Intl.NumberFormat('en-AU', {
     style: 'currency',
@@ -103,17 +94,7 @@ function ComparableSaleRow({ sale }: ComparableSaleRowProps) {
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-            {sale.matchPercent}% match
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-sm text-relaive-gray">
-            <PinIcon />
-            {sale.distanceKm} km away
-          </span>
-        </div>
-
+      <div className="mt-3 flex justify-end">
         <span className="text-sm font-medium text-relaive-primary">View Details</span>
       </div>
     </div>

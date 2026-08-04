@@ -32,12 +32,99 @@ export function NavPlaceholderIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+export function PlusIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  )
+}
+
+export function MarketChartIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <path d="M4 19V5" />
+      <path d="M4 19h16" />
+      <path d="M7 15l4-5 3 2.5L18 7" />
+    </svg>
+  )
+}
+
+export function CalculatorIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <rect x="5" y="3.5" width="14" height="17" rx="2" />
+      <path d="M8 8h8" />
+      <path d="M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01" />
+    </svg>
+  )
+}
+
+export function ReportDocIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <path d="M7 3.5h7l4 4V20.5H7z" />
+      <path d="M14 3.5V8h4" />
+      <path d="M10 12h6M10 16h4" />
+    </svg>
+  )
+}
+
+export function RouteIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <circle cx="6" cy="19" r="2.5" />
+      <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
+      <circle cx="18" cy="5" r="2.5" />
+    </svg>
+  )
+}
+
+export function UsersIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="3.5" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  )
+}
+
+export function SearchIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="M16.5 16.5L21 21" />
+    </svg>
+  )
+}
+
+export function CompassIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M14.5 9.5l-1.5 5-5 1.5 1.5-5z" />
+    </svg>
+  )
+}
+
 export function BriefcaseIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...iconProps(props)}>
       <rect x="3" y="8" width="18" height="12" rx="2" />
       <path d="M9 8V6.5A1.5 1.5 0 0 1 10.5 5h3A1.5 1.5 0 0 1 15 6.5V8" />
       <path d="M3 13h18" />
+    </svg>
+  )
+}
+
+export function DatabaseIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <ellipse cx="12" cy="5" rx="8" ry="3" />
+      <path d="M4 5v14c0 1.66 3.58 3 8 3s8-1.34 8-3V5" />
+      <path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3" />
     </svg>
   )
 }
@@ -141,6 +228,15 @@ export function UserIcon(props: SVGProps<SVGSVGElement>) {
     <svg {...iconProps({ width: 16, height: 16, ...props })}>
       <circle cx="12" cy="9" r="3.5" />
       <path d="M5.5 19c0-3 2.9-5 6.5-5s6.5 2 6.5 5" />
+    </svg>
+  )
+}
+
+export function SettingsIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z" />
+      <path d="M19.4 13.1a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V19a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H5a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9.5a1.65 1.65 0 0 0 1-1.51V5a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9.5a1.65 1.65 0 0 0 1.51 1H19a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
     </svg>
   )
 }

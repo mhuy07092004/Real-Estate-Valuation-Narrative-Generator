@@ -20,10 +20,18 @@ import {
   BookmarkIcon,
   BotIcon,
   BriefcaseIcon,
+  CalculatorIcon,
+  CompassIcon,
+  DatabaseIcon,
   HomeIcon,
   InvestorIcon,
-  NavPlaceholderIcon,
+  MarketChartIcon,
+  PlusIcon,
+  ReportDocIcon,
+  RouteIcon,
+  SearchIcon,
   UserIcon,
+  UsersIcon,
   ValuationIcon,
 } from './dashboard-navbar-icons'
 import { DashboardSidebar } from './dashboard-sidebar'
@@ -47,10 +55,10 @@ const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
     {
       title: 'Appraisal Workflow',
       items: [
-        { label: 'Generate Report', icon: NavPlaceholderIcon },
-        { label: 'Comparable Sales', icon: NavPlaceholderIcon },
-        { label: 'Client', icon: NavPlaceholderIcon },
-        { label: 'Client Report', icon: NavPlaceholderIcon },
+        { label: 'Generate Report', icon: PlusIcon },
+        { label: 'Comparable Sales', icon: RouteIcon },
+        { label: 'Client', icon: UsersIcon },
+        { label: 'Client Report', icon: ReportDocIcon },
       ],
     },
   ],
@@ -58,10 +66,10 @@ const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
     {
       title: 'Valuation Workflow',
       items: [
-        { label: 'New Valuation', icon: NavPlaceholderIcon },
-        { label: 'Valuation Cases', icon: NavPlaceholderIcon },
-        { label: 'Evidence Center', icon: NavPlaceholderIcon },
-        { label: 'Reports', icon: NavPlaceholderIcon },
+        { label: 'New Valuation', icon: PlusIcon },
+        { label: 'Valuation Cases', icon: BriefcaseIcon },
+        { label: 'Evidence Center', icon: DatabaseIcon },
+        { label: 'Reports', icon: ReportDocIcon },
       ],
     },
   ],
@@ -69,12 +77,11 @@ const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
     {
       title: 'Property Discovery',
       items: [
-        { label: 'Generate Report', icon: NavPlaceholderIcon },
-        { label: 'Search Properties', icon: NavPlaceholderIcon },
-        { label: 'Saved', icon: NavPlaceholderIcon },
-        { label: 'Affordability', icon: NavPlaceholderIcon },
-        { label: 'Buyer Report', icon: NavPlaceholderIcon },
-        { label: 'Suburb Explorer', icon: NavPlaceholderIcon },
+        { label: 'Generate Report', icon: PlusIcon },
+        { label: 'Search Properties', icon: SearchIcon },
+        { label: 'Affordability', icon: CalculatorIcon },
+        { label: 'Buyer Report', icon: ReportDocIcon },
+        { label: 'Suburb Explorer', icon: CompassIcon },
       ],
     },
   ],
@@ -82,10 +89,10 @@ const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
     {
       title: 'Market Intelligence',
       items: [
-        { label: 'Generate Report', icon: NavPlaceholderIcon },
-        { label: 'Market Comparison', icon: NavPlaceholderIcon },
-        { label: 'ROI Calculator', icon: NavPlaceholderIcon },
-        { label: 'Investor Report', icon: NavPlaceholderIcon },
+        { label: 'Generate Report', icon: PlusIcon },
+        { label: 'Market Comparison', icon: MarketChartIcon },
+        { label: 'ROI Calculator', icon: CalculatorIcon },
+        { label: 'Investor Report', icon: ReportDocIcon },
       ],
     },
   ],
@@ -163,7 +170,13 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
     () => [
       OVERVIEW_NAV,
       ...ROLE_NAV_SECTIONS[resolvedRole],
-      TRACKING_NAV,
+      {
+        ...TRACKING_NAV,
+        items:
+          resolvedRole === 'buyer'
+            ? [...TRACKING_NAV.items, { label: 'Saved', icon: BookmarkIcon }]
+            : TRACKING_NAV.items,
+      },
       ASSISTANCE_NAV,
     ],
     [resolvedRole],

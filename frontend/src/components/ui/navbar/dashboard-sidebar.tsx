@@ -4,7 +4,7 @@ import {
   ChevronDownIcon,
   ChevronLeftIcon,
   LogOutIcon,
-  NavPlaceholderIcon,
+  SettingsIcon,
 } from './dashboard-navbar-icons'
 import { RoleOptionsList } from './role-options-list'
 import type { RoleOption, SidebarNavSection } from './dashboard-navbar.types'
@@ -184,7 +184,7 @@ export function DashboardSidebar({
                       : 'rounded-xl font-medium text-relaive-gray hover:bg-relaive-navy/[0.04] hover:text-relaive-navy',
                   ].join(' ')}
                 >
-                  <NavPlaceholderIcon className="size-4 shrink-0" />
+                  <SettingsIcon className="size-4 shrink-0" />
                   {!collapsed && <span className="truncate">{label}</span>}
                 </a>
               </li>
