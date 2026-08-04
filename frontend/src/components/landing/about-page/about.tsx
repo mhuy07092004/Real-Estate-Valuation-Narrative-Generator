@@ -129,7 +129,7 @@ const ABOUT_CARDS: AboutCard[] = [
     icon: <TrendIcon />,
     title: 'Product Vision',
     description:
-      'We envision a future where property intelligence is instant, explainable, and accessible — empowering smarter decisions across the real estate industry.',
+      'We envision a future where property intelligence is instant, explainable, and accessible - empowering smarter decisions across the real estate industry.',
     features: [
       'Generate evidence-based appraisal narratives',
       'Analyze comparable property sales',

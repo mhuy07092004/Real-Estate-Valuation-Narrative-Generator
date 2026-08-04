@@ -1,5 +1,6 @@
 import { Suspense, useEffect } from 'react'
-import { Navigate, Outlet, useLocation, useParams } from 'react-router-dom'
+import { Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Button } from '../../components/ui/button/button'
 import { DashboardNavbar } from '../../components/ui/navbar/dashboard-navbar'
 import { useAuth } from '../../features/auth/hooks/use-auth'
 import { DashboardViewSkeleton } from './dashboard-view-skeleton.tsx'
@@ -21,6 +22,7 @@ function DashboardWelcomeHeader() {
   const { user } = useAuth()
   const { role: roleParam } = useParams<{ role: string }>()
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const displayName = user?.fullName?.trim().split(/\s+/)[0] || 'User'
   const dateLabel = formatUserDisplayDate()
 
@@ -28,9 +30,18 @@ function DashboardWelcomeHeader() {
 
   return (
     <header className="font-sans px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pt-8">
-      <h1 className="text-2xl font-semibold tracking-tight text-[#1C2A38] sm:text-[28px]">
-        Welcome Back, {displayName}
-      </h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold tracking-tight text-[#1C2A38] sm:text-[28px]">
+          Welcome Back, {displayName}
+        </h1>
+        <Button
+          size="sm"
+          className="shrink-0"
+          onClick={() => navigate(`/dashboard/${roleParam}/generate-report`)}
+        >
+          New Report
+        </Button>
+      </div>
       <p className="mt-1 text-sm text-[#1C2A3880] sm:text-base">{dateLabel}</p>
     </header>
   )

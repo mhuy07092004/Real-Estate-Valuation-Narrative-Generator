@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -22,13 +22,37 @@ type DataTableProps<T> = {
   columns: ColumnDef<T, unknown>[]
   tabs?: DataTableTab<T>[]
   defaultTabId?: string
+  compactTabs?: boolean
   getRowId: (item: T) => string
   searchPlaceholder?: string
   searchFilter?: (item: T, query: string) => boolean
   onFilterClick?: () => void
   onSortClick?: () => void
+  onRowClick?: (item: T) => void
+  selectedRowId?: string
   emptyMessage?: string
   className?: string
+}
+
+function ChevronDownIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M6 9l6 6 6-6"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
 }
 
 function SearchIcon() {
@@ -106,11 +130,14 @@ export function DataTable<T>({
   columns,
   tabs,
   defaultTabId,
+  compactTabs = false,
   getRowId,
   searchPlaceholder = 'Search...',
   searchFilter,
   onFilterClick,
   onSortClick,
+  onRowClick,
+  selectedRowId,
   emptyMessage = 'No results match your search.',
   className = '',
 }: DataTableProps<T>) {
@@ -118,6 +145,25 @@ export function DataTable<T>({
   const [sorting, setSorting] = useState<SortingState>([])
   const [globalFilter, setGlobalFilter] = useState('')
   const [activeTab, setActiveTab] = useState(initialTabId)
+  const [tabsMenuOpen, setTabsMenuOpen] = useState(false)
+  const tabsMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!tabsMenuOpen) return
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!tabsMenuRef.current?.contains(event.target as Node)) {
+        setTabsMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    return () => document.removeEventListener('mousedown', handlePointerDown)
+  }, [tabsMenuOpen])
+
+  useEffect(() => {
+    if (!compactTabs) setTabsMenuOpen(false)
+  }, [compactTabs])
 
   const tabFilteredData = useMemo(() => {
     if (!tabs || tabs.length === 0) return data
@@ -147,6 +193,7 @@ export function DataTable<T>({
   })
 
   const showTabs = tabs != null && tabs.length > 0
+  const activeTabLabel = tabs?.find((tab) => tab.id === activeTab)?.label ?? 'All'
 
   return (
     <section
@@ -168,7 +215,55 @@ export function DataTable<T>({
             </span>
           </label>
 
-          {showTabs && (
+          {showTabs && compactTabs && (
+            <div ref={tabsMenuRef} className="relative">
+              <button
+                type="button"
+                aria-haspopup="listbox"
+                aria-expanded={tabsMenuOpen}
+                onClick={() => setTabsMenuOpen((open) => !open)}
+                className="inline-flex min-w-[9.5rem] items-center justify-between gap-2 rounded-full border border-black/10 bg-gray-100 px-3.5 py-2 text-sm font-medium text-relaive-navy transition-colors hover:bg-gray-200/70"
+              >
+                <span className="truncate">{activeTabLabel}</span>
+                <ChevronDownIcon
+                  className={`shrink-0 text-relaive-gray transition-transform ${tabsMenuOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
+
+              {tabsMenuOpen && (
+                <ul
+                  role="listbox"
+                  className="absolute left-0 top-[calc(100%+6px)] z-20 min-w-full overflow-hidden rounded-xl border border-black/10 bg-white p-1.5 shadow-lg"
+                >
+                  {tabs.map((tab) => {
+                    const selected = activeTab === tab.id
+                    return (
+                      <li key={tab.id}>
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={selected}
+                          onClick={() => {
+                            setActiveTab(tab.id)
+                            setTabsMenuOpen(false)
+                          }}
+                          className={`flex w-full items-center rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                            selected
+                              ? 'bg-relaive-primary/10 font-medium text-relaive-navy'
+                              : 'text-relaive-gray hover:bg-relaive-navy/5 hover:text-relaive-navy'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {showTabs && !compactTabs && (
             <div className="inline-flex w-fit flex-wrap items-center gap-1 rounded-full bg-gray-100 p-1">
               {tabs.map((tab) => (
                 <button
@@ -225,15 +320,24 @@ export function DataTable<T>({
             ))}
           </thead>
           <tbody className="divide-y divide-black/5">
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="hover:bg-gray-50/60">
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-4 py-4 align-top sm:px-6">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
+            {table.getRowModel().rows.map((row) => {
+              const isSelected = selectedRowId != null && row.id === selectedRowId
+              return (
+                <tr
+                  key={row.id}
+                  onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                  className={`${onRowClick ? 'cursor-pointer' : ''} ${
+                    isSelected ? 'bg-relaive-primary/5' : 'hover:bg-gray-50/60'
+                  }`}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <td key={cell.id} className="px-4 py-4 align-top sm:px-6">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              )
+            })}
             {table.getRowModel().rows.length === 0 && (
               <tr>
                 <td colSpan={columns.length} className="px-6 py-10 text-center text-sm text-relaive-gray">

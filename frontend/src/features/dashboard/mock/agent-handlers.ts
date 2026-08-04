@@ -31,6 +31,9 @@ const CLIENT_LIST_DATA: ClientItem[] = [
     initials: 'SM',
     isStarred: false,
     address: '45 Park Ave, Richmond VIC',
+    email: 'sarah.mitchell@email.com',
+    phone: '0412 345 678',
+    notes: 'Keen vendor, moving to Brisbane. Prefers email contact.',
     reportCount: 1,
     status: 'appraisal_sent',
     followUpAt: startOfDayOffset(0),
@@ -41,6 +44,9 @@ const CLIENT_LIST_DATA: ClientItem[] = [
     initials: 'DP',
     isStarred: false,
     address: '12 Church St, Fitzroy VIC',
+    email: 'david.park@email.com',
+    phone: '0413 222 901',
+    notes: 'Looking for a quick settlement. Prefers weekend inspections.',
     reportCount: 2,
     status: 'active',
     followUpAt: startOfDayOffset(1),
@@ -51,6 +57,9 @@ const CLIENT_LIST_DATA: ClientItem[] = [
     initials: 'EC',
     isStarred: false,
     address: null,
+    email: 'emma.chen@email.com',
+    phone: '0421 887 334',
+    notes: 'Early prospect. Interested in Fitzroy and Carlton.',
     reportCount: 0,
     status: 'prospecting',
     followUpAt: startOfDayOffset(2),
@@ -61,6 +70,9 @@ const CLIENT_LIST_DATA: ClientItem[] = [
     initials: 'JW',
     isStarred: true,
     address: '88 Brunswick St, Fitzroy VIC',
+    email: 'james.kathy.wu@email.com',
+    phone: '0408 556 120',
+    notes: 'Starred listing. Open home booked for Saturday morning.',
     reportCount: 3,
     status: 'listing',
     followUpAt: startOfDayOffset(4),
@@ -71,6 +83,9 @@ const CLIENT_LIST_DATA: ClientItem[] = [
     initials: 'OB',
     isStarred: false,
     address: '22 High St, Prahran VIC',
+    email: 'olivia.brown@email.com',
+    phone: '0432 110 445',
+    notes: 'Sale settled. Send post-sale thank you and review request.',
     reportCount: 1,
     status: 'sold',
     followUpAt: startOfDayOffset(6),
@@ -81,6 +96,9 @@ const CLIENT_LIST_DATA: ClientItem[] = [
     initials: 'TN',
     isStarred: false,
     address: '7 Bridge Rd, Richmond VIC',
+    email: 'tom.nguyen@email.com',
+    phone: '0419 778 203',
+    notes: 'Active buyer referral from Sarah Mitchell. Budget around $1.1m.',
     reportCount: 1,
     status: 'active',
     followUpAt: startOfDayOffset(3),
@@ -91,6 +109,9 @@ const CLIENT_LIST_DATA: ClientItem[] = [
     initials: 'PS',
     isStarred: false,
     address: null,
+    email: 'priya.sharma@email.com',
+    phone: '0455 901 662',
+    notes: 'New enquiry via website. Follow up after valuation pack.',
     reportCount: 0,
     status: 'prospecting',
     followUpAt: startOfDayOffset(5),
@@ -211,6 +232,25 @@ export const agentHandlers = [
       ).length,
     }
     return HttpResponse.json(summary)
+  }),
+
+  http.patch('/api/agent/clients/:id', async ({ params, request }) => {
+    await simulateLatency()
+
+    const id = String(params.id)
+    const client = CLIENT_LIST_DATA.find((item) => item.id === id)
+
+    if (!client) {
+      return HttpResponse.json({ message: `Client not found: ${id}` }, { status: 404 })
+    }
+
+    const body = (await request.json()) as { notes?: unknown }
+    if (typeof body.notes !== 'string') {
+      return HttpResponse.json({ message: 'notes must be a string' }, { status: 400 })
+    }
+
+    client.notes = body.notes
+    return HttpResponse.json(client)
   }),
 
   http.get('/api/agent/reports', async () => {

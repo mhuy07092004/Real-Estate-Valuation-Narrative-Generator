@@ -1,16 +1,14 @@
 import type { RefObject } from 'react'
+import { Link } from 'react-router-dom'
 import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-role'
 import type { User } from '../../../types/auth'
 import {
   BellIcon,
-  BookmarkIcon,
   ChevronDownIcon,
   ChevronRightIcon,
-  GridIcon,
   HomeIcon,
   LogOutIcon,
   NavPlaceholderIcon,
-  SparkleIcon,
   UserIcon,
 } from './dashboard-navbar-icons'
 import { RoleOptionsList } from './role-options-list'
@@ -34,10 +32,12 @@ type DashboardTopbarProps = {
   displayEmail: string
   userInitials: string
   onNavigateToSettings: () => void
-  onNavigateToCopilot: () => void
   onNavigateToNotifications: () => void
   unreadNotificationCount: number
   onSignOut: () => void
+  activeNavLabel: string
+  onNavigateHome: () => void
+  onNavigatePlatform: () => void
 }
 
 export function DashboardTopbar({
@@ -56,23 +56,40 @@ export function DashboardTopbar({
   displayEmail,
   userInitials,
   onNavigateToSettings,
-  onNavigateToCopilot,
   onNavigateToNotifications,
   unreadNotificationCount,
   onSignOut,
+  activeNavLabel,
+  onNavigateHome,
+  onNavigatePlatform,
 }: DashboardTopbarProps) {
+  const isPlatformHome = activeNavLabel === 'Dashboard'
+  const breadcrumbLinkClass =
+    'inline-flex items-center gap-1.5 rounded-md transition-colors hover:text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary/40'
+
   return (
     <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-black/5 bg-white px-5">
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-relaive-gray">
-        <span className="inline-flex items-center gap-1.5">
-          <HomeIcon className="h-3.5 w-3.5" />
+      <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-sm text-relaive-gray">
+        <button type="button" onClick={onNavigateHome} className={breadcrumbLinkClass}>
+          <HomeIcon className="h-3.5 w-3.5 shrink-0" />
           Homepage
-        </span>
+        </button>
         <ChevronRightIcon />
-        <span className="inline-flex items-center gap-1.5 font-medium text-relaive-navy">
-          <GridIcon className="h-3.5 w-3.5" />
-          Platform
-        </span>
+        {isPlatformHome ? (
+          <span className="truncate font-medium text-relaive-navy" aria-current="page">
+            Dashboard
+          </span>
+        ) : (
+          <>
+            <button type="button" onClick={onNavigatePlatform} className={breadcrumbLinkClass}>
+              Dashboard
+            </button>
+            <ChevronRightIcon />
+            <span className="truncate font-medium text-relaive-navy" aria-current="page">
+              {activeNavLabel}
+            </span>
+          </>
+        )}
       </nav>
 
       <div className="flex items-center gap-2.5">
@@ -88,27 +105,6 @@ export function DashboardTopbar({
               {unreadNotificationCount}
             </span>
           ) : null}
-        </button>
-
-        <button
-          type="button"
-          aria-label="Watchlist"
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-relaive-gray transition-colors hover:bg-relaive-navy/5 hover:text-relaive-navy"
-        >
-          <BookmarkIcon />
-        </button>
-
-        <button
-          type="button"
-          aria-label="Copilot"
-          onClick={onNavigateToCopilot}
-          className="relative inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-r from-relaive-secondary to-relaive-primary text-white [animation:copilot-glow_2.5s_ease-in-out_infinite] transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]"
-        >
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent [animation:copilot-shimmer_3s_ease-in-out_infinite]"
-          />
-          <SparkleIcon className="relative" />
         </button>
 
         <div ref={userMenuRef} className="relative">
@@ -177,21 +173,35 @@ export function DashboardTopbar({
               </div>
 
               <ul className="border-b border-black/5 py-1.5">
-                {ACCOUNT_MENU_ITEMS.map((label) => (
-                  <li key={label}>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        if (label === 'Account Settings') onNavigateToSettings()
-                      }}
-                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-relaive-navy transition-colors hover:bg-relaive-navy/5"
-                    >
-                      <NavPlaceholderIcon className="shrink-0 text-relaive-gray" />
-                      <span>{label}</span>
-                    </button>
-                  </li>
-                ))}
+                {ACCOUNT_MENU_ITEMS.map((label) => {
+                  const itemClassName =
+                    'flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-relaive-navy transition-colors hover:bg-relaive-navy/5'
+
+                  if (label === 'Account Settings') {
+                    return (
+                      <li key={label}>
+                        <Link
+                          to={`/dashboard/${resolvedRole}/settings`}
+                          role="menuitem"
+                          onClick={onNavigateToSettings}
+                          className={itemClassName}
+                        >
+                          <NavPlaceholderIcon className="shrink-0 text-relaive-gray" />
+                          <span>{label}</span>
+                        </Link>
+                      </li>
+                    )
+                  }
+
+                  return (
+                    <li key={label}>
+                      <button type="button" role="menuitem" className={itemClassName}>
+                        <NavPlaceholderIcon className="shrink-0 text-relaive-gray" />
+                        <span>{label}</span>
+                      </button>
+                    </li>
+                  )
+                })}
               </ul>
 
               <div className="py-1.5">

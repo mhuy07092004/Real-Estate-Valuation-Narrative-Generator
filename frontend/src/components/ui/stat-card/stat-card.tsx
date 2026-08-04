@@ -62,14 +62,14 @@ export function StatCard({
       )}
       <p className="text-sm text-relaive-gray">{label}</p>
       <p
-        className={`mt-1 font-bold tracking-tight text-relaive-navy ${
-          valueClassName || 'text-2xl sm:text-3xl'
+        className={`mt-1 font-bold tracking-tight ${
+          valueClassName ? valueClassName : 'text-2xl sm:text-3xl text-relaive-navy'
         }`}
       >
         {value}
       </p>
       {trend != null && trend !== '' && (
-        <p className={`mt-3 text-sm font-medium ${styles.trend}`}>{trend}</p>
+        <p className="mt-3 text-sm font-medium text-relaive-primary">{trend}</p>
       )}
     </article>
   )

@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/hooks/use-auth'
 import { clearActiveDashboardRole, isDashboardRole, type DashboardRole } from '../utils/dashboard-role'
-import { SettingsNav } from './settings-nav'
+import { SettingsNav, SETTINGS_NAV_ITEMS, type SettingsSectionId } from './settings-nav'
 import { SettingsProfileForm } from './settings-profile-form'
+import { SettingsSectionPlaceholder } from './settings-section-placeholder'
 
 const ROLE_LABELS: Record<DashboardRole, string> = {
   agent: 'Senior Real-Estate Agent',
@@ -15,10 +17,13 @@ export function SettingsPage() {
   const navigate = useNavigate()
   const { role: roleParam } = useParams<{ role: string }>()
   const { user, logout } = useAuth()
+  const [activeSection, setActiveSection] = useState<SettingsSectionId>('profile')
 
   const resolvedRole: DashboardRole =
     roleParam && isDashboardRole(roleParam) ? roleParam : 'agent'
   const roleLabel = ROLE_LABELS[resolvedRole]
+  const activeLabel =
+    SETTINGS_NAV_ITEMS.find((item) => item.id === activeSection)?.label ?? 'Settings'
 
   function handleSignOut() {
     clearActiveDashboardRole()
@@ -38,8 +43,16 @@ export function SettingsPage() {
       </header>
 
       <div className="flex flex-col gap-5 p-4 sm:flex-row sm:gap-6 sm:p-6 lg:p-8">
-        <SettingsNav onSignOut={handleSignOut} />
-        <SettingsProfileForm user={user} roleLabel={roleLabel} />
+        <SettingsNav
+          activeSection={activeSection}
+          onSelect={setActiveSection}
+          onSignOut={handleSignOut}
+        />
+        {activeSection === 'profile' ? (
+          <SettingsProfileForm user={user} roleLabel={roleLabel} />
+        ) : (
+          <SettingsSectionPlaceholder title={activeLabel} />
+        )}
       </div>
     </div>
   )

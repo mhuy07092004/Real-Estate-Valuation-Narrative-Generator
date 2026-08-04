@@ -14,32 +14,29 @@ function daysAgo(days: number): string {
 }
 
 const AFFORDABILITY_CALCULATION_DATA: AffordabilityCalculationMock = {
-  annualSummary: [
-    { label: 'Annual Rental Income', amount: 42000, tone: 'green' },
-    { label: 'Annual Mortgage Repayments', amount: -28000, tone: 'navy' },
-    { label: 'Annual Operating Expenses', amount: -8500, tone: 'navy' },
-    { label: 'Management Fees', amount: -3200, tone: 'navy' },
-    { label: 'Net Annual Cash-Flow', amount: 2300, tone: 'net' },
+  summary: [
+    { label: 'Repayment-to-income', value: '26%', valueTone: 'orange' },
+    { label: 'Ideal Range', value: 'below 30%' },
+    { label: 'AFFORDABILITY', value: 'Moderate', valueTone: 'orange' },
   ],
   metrics: [
     {
-      label: 'Loan Amount',
-      value: '$550,000',
-      trend: 'monthly payment: $3,200',
+      label: 'Estimate Borrowing Capacity',
+      value: '$798,000',
       tone: 'blue',
+      valueClassName: 'text-[22px] sm:text-[28px] text-emerald-600',
     },
     {
-      label: 'Break-even Rent',
-      value: '$820',
-      trend: 'current: $750/wk',
+      label: 'Max Loan Amount',
+      value: '$550,000',
+      tone: 'blue',
+      valueClassName: 'text-[22px] sm:text-[28px] text-amber-500',
+    },
+    {
+      label: 'Monthly Repayment',
+      value: '$3,200',
       tone: 'teal',
     },
-  ],
-  investmentReturns: [
-    { label: 'Gross Yield', display: '5.2%', tone: 'green' },
-    { label: 'Net Yield', display: '3.1%', tone: 'navy' },
-    { label: 'Monthly Cash-Flow', display: '$192/mth', tone: 'green' },
-    { label: 'Cash-on-Cash Returns', display: '1.8%', tone: 'navy' },
   ],
 }
 

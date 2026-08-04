@@ -20,7 +20,9 @@ export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T>
 ```
 
 MSW handlers live in `features/dashboard/mock/` (plus `features/auth/mock/` for auth).
-Enable with `VITE_ENABLE_MOCKS=true` in `frontend/.env.development`.
+Enable with `VITE_ENABLE_MOCKS=true` in `frontend/.env.development` (local dev) or
+`frontend/.env.production` (Vercel / `vite build`). To use the real backend after it is ready,
+set `VITE_ENABLE_MOCKS=false` in `.env.production` and redeploy — no application code changes.
 
 ---
 
@@ -105,17 +107,6 @@ type PropertyInputMethodOption = {
 `GET /api/appraisal/property-types`
 e.g. `['House', 'Unit', 'Townhouse']`
 
-### `getAiAnalysisMetrics(): Promise<AiAnalysisMetric[]>`
-`GET /api/appraisal/ai-analysis-metrics`
-```ts
-type AiAnalysisMetric = {
-  id: string
-  label: string
-  value: number            // 0–100
-  tone: 'blue' | 'teal' | 'orange' | 'sky'
-}
-```
-
 ### `getAiAnalysisSummaryNotification(): Promise<AiAnalysisSummaryNotification>`
 `GET /api/appraisal/ai-analysis-summary`
 ```ts
@@ -189,6 +180,9 @@ type ClientItem = {
   initials: string
   isStarred: boolean
   address: string | null
+  email: string
+  phone: string
+  notes: string
   reportCount: number
   status: 'prospecting' | 'active' | 'appraisal_sent' | 'listing' | 'sold'
   followUpAt: string        // ISO date string
@@ -199,6 +193,22 @@ type ClientItem = {
 `GET /api/agent/clients/summary`
 ```ts
 type ClientListSummary = { totalClients: number; followUpsDueSoon: number }
+```
+
+### `updateClientNotes(id, notes): Promise<ClientItem>`
+`PATCH /api/agent/clients/:id`
+
+Request body:
+```ts
+{ notes: string }
+```
+
+Success `200`: full `ClientItem` (same shape as list entries).
+
+Errors (plain JSON):
+```ts
+{ message: string }  // 400 if notes missing or not a string
+{ message: string }  // 404 if client id not found
 ```
 
 ### `getAgentReportListMockData(): Promise<CaseItem[]>`
@@ -265,9 +275,6 @@ type RoiCalculationMock = {
 }
 ```
 
-### `getInvestorDashboardMockData(): Promise<DashboardMockPayload>`
-`GET /api/dashboard/investor`
-
 ### `getInvestorReportListMockData(): Promise<InvestorReportItem[]>`
 `GET /api/investor/reports`
 ```ts
@@ -321,7 +328,6 @@ type EvidenceItem = {
 type EvidenceCentreMockPayload = {
   totalItems: number
   missingCount: number
-  stats: { label: string; value: string; tone: 'blue' | 'teal' | 'orange' | 'sky' }[]
 }
 ```
 
@@ -331,7 +337,6 @@ type EvidenceCentreMockPayload = {
 type ValuationCasesMockPayload = {
   totalCases: number
   returnedForRevision: number
-  stats: { label: string; value: string; tone: 'blue' | 'teal' | 'orange' | 'sky' }[]
 }
 ```
 
@@ -349,7 +354,7 @@ type ValuationCasesMockPayload = {
 ## `dashboard.ts` (shared)
 
 ### `getDashboardMockData(role: DashboardRole): Promise<DashboardMockPayload>`
-`GET /api/dashboard/:role` where `role` is `'agent' | 'valuer' | 'buyer' | 'investor'`
+`GET /api/dashboard/:role` where `role` is `'agent' | 'valuer' | 'buyer' | 'investor'`. MSW payloads live in `features/dashboard/mock/dashboard-mock-data.ts`.
 ```ts
 type DashboardMockPayload = {
   welcomeSubtitle: string

@@ -7,56 +7,39 @@ import { useAsyncData } from '../../../hooks/use-async-data'
 import { getAffordabilityDisclaimerNotification } from '../../../services/common'
 import {
   getAffordabilityCalculationMockData,
-  type AffordabilityReturnTone,
-  type AffordabilitySummaryTone,
+  type AffordabilitySummaryValueTone,
 } from '../../../services/buyer'
 
 const INPUT_CLASS =
   '!border-relaive-primary/25 !bg-relaive-primary/[0.06] !text-relaive-navy [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
 
 const DollarIcon = <span className="text-sm font-medium">$</span>
-const PercentIcon = <span className="text-sm font-medium">%</span>
-const YearsIcon = <span className="text-xs font-medium">Yrs</span>
 
-const numberFormatter = new Intl.NumberFormat('en-AU', {
-  maximumFractionDigits: 0,
-})
-
-function formatSignedCurrency(amount: number): string {
-  const formatted = `$${numberFormatter.format(Math.abs(amount))}`
-  return amount < 0 ? `-${formatted}` : formatted
-}
-
-function summaryAmountClass(tone: AffordabilitySummaryTone, amount: number): string {
-  if (tone === 'green') return 'text-emerald-600'
-  if (tone === 'red') return 'text-red-600'
-  if (tone === 'net') return amount >= 0 ? 'text-emerald-600' : 'text-red-600'
-  return 'text-relaive-navy'
-}
-
-function returnAmountClass(tone: AffordabilityReturnTone): string {
+function summaryValueClass(tone?: AffordabilitySummaryValueTone): string {
+  if (tone === 'orange') return 'text-orange-500'
   if (tone === 'green') return 'text-emerald-600'
   if (tone === 'red') return 'text-red-600'
   return 'text-relaive-navy'
 }
+
+const METRIC_VALUE_CLASS = 'text-[22px] sm:text-[28px] text-relaive-navy'
 
 type SummaryRowProps = {
   label: string
   value: string
   valueClassName: string
-  emphasize?: boolean
   isLast?: boolean
 }
 
-function SummaryRow({ label, value, valueClassName, emphasize = false, isLast = false }: SummaryRowProps) {
+function SummaryRow({ label, value, valueClassName, isLast = false }: SummaryRowProps) {
   return (
     <div
       className={`flex items-center justify-between gap-3 py-3 ${
         isLast ? '' : 'border-b border-black/5'
-      } ${emphasize ? 'border-t border-black/10 pt-4 font-semibold' : ''}`}
+      }`}
     >
-      <span className={`text-sm ${emphasize ? 'text-relaive-navy' : 'text-relaive-gray'}`}>{label}</span>
-      <span className={`shrink-0 text-sm tabular-nums ${valueClassName}`}>{value}</span>
+      <span className="text-sm text-relaive-gray">{label}</span>
+      <span className={`shrink-0 text-sm tabular-nums font-medium ${valueClassName}`}>{value}</span>
     </div>
   )
 }
@@ -68,6 +51,8 @@ export function AffordabilityCalculation() {
   if (!data || !disclaimer) {
     return <div className="p-6 text-sm text-relaive-gray sm:p-8">Loading affordability calculator…</div>
   }
+
+  const [borrowingCapacity, ...loanMetrics] = data.metrics
 
   return (
     <div className="flex flex-col">
@@ -89,11 +74,11 @@ export function AffordabilityCalculation() {
         <div className="grid grid-cols-1 gap-5 sm:gap-6 lg:grid-cols-[6fr_4fr]">
         <div className="flex flex-col gap-4 sm:gap-5">
           <Card>
-            <h2 className="text-base font-semibold text-relaive-navy">Purchase Detail</h2>
+            <h2 className="text-base font-semibold text-relaive-navy">Your Income</h2>
             <div className="mt-5 flex flex-col gap-4">
               <Input
-                id="affordability-purchase-price"
-                label="Purchase Price"
+                id="affordability-your-annual-income"
+                label="Your Annual Income"
                 type="number"
                 min={0}
                 step="any"
@@ -101,41 +86,23 @@ export function AffordabilityCalculation() {
                 className={INPUT_CLASS}
               />
               <Input
-                id="affordability-deposit"
-                label="Deposit"
+                id="affordability-partner-annual-income"
+                label="Partner's Annual Income"
                 type="number"
                 min={0}
                 step="any"
                 startIcon={DollarIcon}
-                className={INPUT_CLASS}
-              />
-              <Input
-                id="affordability-interest-rate"
-                label="Interest Rate"
-                type="number"
-                min={0}
-                step="any"
-                endIcon={PercentIcon}
-                className={INPUT_CLASS}
-              />
-              <Input
-                id="affordability-loan-term"
-                label="Loan Term"
-                type="number"
-                min={0}
-                step="any"
-                endIcon={YearsIcon}
                 className={INPUT_CLASS}
               />
             </div>
           </Card>
 
           <Card>
-            <h2 className="text-base font-semibold text-relaive-navy">Rental Income</h2>
+            <h2 className="text-base font-semibold text-relaive-navy">Deposit &amp; Dept</h2>
             <div className="mt-5 flex flex-col gap-4">
               <Input
-                id="affordability-weekly-rent"
-                label="Weekly Rent"
+                id="affordability-available-deposit"
+                label="Available Deposit"
                 type="number"
                 min={0}
                 step="any"
@@ -143,28 +110,28 @@ export function AffordabilityCalculation() {
                 className={INPUT_CLASS}
               />
               <Input
-                id="affordability-vacancy-allowance"
-                label="Vacancy Allowance"
+                id="affordability-existing-monthly-debt"
+                label="Existing Monthly Debt"
                 type="number"
                 min={0}
                 step="any"
-                endIcon={PercentIcon}
+                startIcon={DollarIcon}
                 className={INPUT_CLASS}
               />
               <Input
-                id="affordability-management-fee"
-                label="Management Fee"
+                id="affordability-monthly-living-expenses"
+                label="Monthly Living Expenses"
                 type="number"
                 min={0}
                 step="any"
-                endIcon={PercentIcon}
+                startIcon={DollarIcon}
                 className={INPUT_CLASS}
               />
             </div>
           </Card>
 
           <Card>
-            <h2 className="text-base font-semibold text-relaive-navy">Annual Expenses</h2>
+            <h2 className="text-base font-semibold text-relaive-navy">Loan Details</h2>
             <div className="mt-5 flex flex-col gap-4">
               <Input
                 id="affordability-council-rates"
@@ -184,24 +151,6 @@ export function AffordabilityCalculation() {
                 startIcon={DollarIcon}
                 className={INPUT_CLASS}
               />
-              <Input
-                id="affordability-maintenance"
-                label="Maintenance"
-                type="number"
-                min={0}
-                step="any"
-                startIcon={DollarIcon}
-                className={INPUT_CLASS}
-              />
-              <Input
-                id="affordability-land-tax"
-                label="Land Tax"
-                type="number"
-                min={0}
-                step="any"
-                startIcon={DollarIcon}
-                className={INPUT_CLASS}
-              />
             </div>
           </Card>
 
@@ -210,50 +159,39 @@ export function AffordabilityCalculation() {
           </Button>
         </div>
 
-        <aside className="flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
-          <Card>
-            <h2 className="text-base font-semibold text-relaive-navy">Annual Summary</h2>
-            <div className="mt-2">
-              {data.annualSummary.map((row, index) => {
-                const isLast = index === data.annualSummary.length - 1
-                const isNet = row.tone === 'net'
-                return (
-                  <SummaryRow
-                    key={row.label}
-                    label={row.label}
-                    value={formatSignedCurrency(row.amount)}
-                    valueClassName={`${summaryAmountClass(row.tone, row.amount)}${isNet ? ' font-semibold' : ''}`}
-                    emphasize={isNet}
-                    isLast={isLast}
-                  />
-                )
-              })}
-            </div>
-          </Card>
-
+        <aside className="flex w-full min-w-0 flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
+          <StatCard
+            className="w-full"
+            label={borrowingCapacity.label}
+            value={borrowingCapacity.value}
+            trend={borrowingCapacity.trend}
+            tone={borrowingCapacity.tone}
+            valueClassName={borrowingCapacity.valueClassName ?? METRIC_VALUE_CLASS}
+          />
           <div className="grid grid-cols-2 gap-3">
-            {data.metrics.map((metric) => (
+            {loanMetrics.map((metric) => (
               <StatCard
                 key={metric.label}
+                className="min-w-0"
                 label={metric.label}
                 value={metric.value}
                 trend={metric.trend}
                 tone={metric.tone}
-                valueClassName="text-[22px] sm:text-[28px]"
+                valueClassName={metric.valueClassName ?? METRIC_VALUE_CLASS}
               />
             ))}
           </div>
 
-          <Card>
-            <h2 className="text-base font-semibold text-relaive-navy">Investment Returns</h2>
+          <Card className="w-full">
+            <h2 className="text-base font-semibold text-relaive-navy">Summary</h2>
             <div className="mt-2">
-              {data.investmentReturns.map((row, index) => (
+              {data.summary.map((row, index) => (
                 <SummaryRow
                   key={row.label}
                   label={row.label}
-                  value={row.display}
-                  valueClassName={returnAmountClass(row.tone)}
-                  isLast={index === data.investmentReturns.length - 1}
+                  value={row.value}
+                  valueClassName={summaryValueClass(row.valueTone)}
+                  isLast={index === data.summary.length - 1}
                 />
               ))}
             </div>

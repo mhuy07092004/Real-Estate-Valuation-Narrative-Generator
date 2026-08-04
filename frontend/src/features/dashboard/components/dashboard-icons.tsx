@@ -14,6 +14,7 @@ function DocumentIcon() {
         strokeLinejoin="round"
       />
       <path d="M14 3.5V8h4.5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M9 12h6M9 15.5h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
 }
@@ -69,6 +70,46 @@ function ClockIcon() {
   )
 }
 
+function CheckCircleIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M8.5 12l2.5 2.5 5-5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function AlertTriangleIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 4.5L20.5 19.5H3.5L12 4.5z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="M12 10v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="12" cy="16.5" r="0.75" fill="currentColor" />
+    </svg>
+  )
+}
+
+function AlertCircleIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M12 8.5v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="12" cy="16.5" r="0.75" fill="currentColor" />
+    </svg>
+  )
+}
+
 function SparkleIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -108,6 +149,9 @@ const STAT_ICONS: Record<DashboardStatIconKey, () => ReactNode> = {
   users: UsersIcon,
   trend: TrendIcon,
   clock: ClockIcon,
+  checkCircle: CheckCircleIcon,
+  alertTriangle: AlertTriangleIcon,
+  alertCircle: AlertCircleIcon,
 }
 
 const ACTION_ICONS: Record<DashboardActionIconKey, () => ReactNode> = {

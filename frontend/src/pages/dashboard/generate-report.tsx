@@ -3,7 +3,6 @@ import { Stepper } from '../../components/ui/Progress-Bar/Stepper'
 import { useAsyncData } from '../../hooks/use-async-data'
 import { getAppraisalSteps } from '../../services/common'
 import { PropertyInputPanel } from '../../features/dashboard/components/generate-report/property-input-panel'
-import { AiAnalysisPanel } from '../../features/dashboard/components/generate-report/ai-analysis-panel'
 import { ComparablesPanel } from '../../features/dashboard/components/generate-report/comparables-panel'
 import { MarketIntelligencePanel } from '../../features/dashboard/components/generate-report/market-intelligence-panel'
 import { ReportConfigurationPanel } from '../../features/dashboard/components/generate-report/report-configuration-panel'
@@ -31,28 +30,21 @@ export function GenerateReport() {
         ) : null}
 
         {currentStep === 1 ? (
-          <AiAnalysisPanel
+          <ComparablesPanel
             onBack={() => setCurrentStep(0)}
             onContinue={() => setCurrentStep(2)}
           />
         ) : null}
 
         {currentStep === 2 ? (
-          <ComparablesPanel
+          <MarketIntelligencePanel
             onBack={() => setCurrentStep(1)}
             onContinue={() => setCurrentStep(3)}
           />
         ) : null}
 
         {currentStep === 3 ? (
-          <MarketIntelligencePanel
-            onBack={() => setCurrentStep(2)}
-            onContinue={() => setCurrentStep(4)}
-          />
-        ) : null}
-
-        {currentStep === 4 ? (
-          <ReportConfigurationPanel onBack={() => setCurrentStep(3)} />
+          <ReportConfigurationPanel onBack={() => setCurrentStep(2)} />
         ) : null}
       </div>
     </div>

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type {
+  AgentRecommendationIconKey,
   PropertyInputMethodIconKey,
   ReportTemplateIconKey,
 } from '../../../../services/common'
@@ -48,25 +49,6 @@ function UploadIcon() {
   )
 }
 
-export function AiSparkleIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 3.5 13.4 8.6 18.5 10 13.4 11.4 12 16.5 10.6 11.4 5.5 10 10.6 8.6 12 3.5Z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M18 15l.7 2.3L21 18l-2.3.7L18 21l-.7-2.3L15 18l2.3-.7L18 15Z"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
 export function BuildingIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -97,6 +79,68 @@ export function ChartTrendIcon({ size = 20 }: { size?: number }) {
       />
     </svg>
   )
+}
+
+export function CheckCircleIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.25" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M8.5 12.2 10.8 14.5 15.5 9.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+export function WarningCircleIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.25" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M12 8v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="12" cy="16" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+export function HouseOutlineIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+export function SparkleIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 3.5 13.6 9.2 19.5 11 13.6 12.8 12 18.5 10.4 12.8 4.5 11 10.4 9.2 12 3.5Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+export function getAgentRecommendationIcon(key: AgentRecommendationIconKey): ReactNode {
+  switch (key) {
+    case 'campaign':
+      return <ChartTrendIcon size={18} />
+    case 'presentation':
+      return <HouseOutlineIcon size={18} />
+    case 'marketing':
+      return <SparkleIcon size={18} />
+  }
 }
 
 export function ReportDocumentIcon({ size = 22 }: { size?: number }) {

@@ -83,43 +83,56 @@ function TrashIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+export type SettingsSectionId =
+  | 'profile'
+  | 'subscription'
+  | 'billing'
+  | 'api-keys'
+  | 'integrations'
+  | 'notifications'
+  | 'security'
+  | 'appearance'
+
 type SettingsNavItem = {
+  id: SettingsSectionId
   label: string
   icon: (props: SVGProps<SVGSVGElement>) => ReactElement
 }
 
-const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
-  { label: 'Profile', icon: UserIcon },
-  { label: 'Subscription', icon: SubscriptionIcon },
-  { label: 'Billing & Invoices', icon: BillingIcon },
-  { label: 'API Keys', icon: ApiKeyIcon },
-  { label: 'Integrations', icon: IntegrationsIcon },
-  { label: 'Notifications', icon: BellIcon },
-  { label: 'Security', icon: SecurityIcon },
-  { label: 'Appearance', icon: AppearanceIcon },
+export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
+  { id: 'profile', label: 'Profile', icon: UserIcon },
+  { id: 'subscription', label: 'Subscription', icon: SubscriptionIcon },
+  { id: 'billing', label: 'Billing & Invoices', icon: BillingIcon },
+  { id: 'api-keys', label: 'API Keys', icon: ApiKeyIcon },
+  { id: 'integrations', label: 'Integrations', icon: IntegrationsIcon },
+  { id: 'notifications', label: 'Notifications', icon: BellIcon },
+  { id: 'security', label: 'Security', icon: SecurityIcon },
+  { id: 'appearance', label: 'Appearance', icon: AppearanceIcon },
 ]
 
 type SettingsNavProps = {
+  activeSection: SettingsSectionId
+  onSelect: (section: SettingsSectionId) => void
   onSignOut: () => void
 }
 
-export function SettingsNav({ onSignOut }: SettingsNavProps) {
+export function SettingsNav({ activeSection, onSelect, onSignOut }: SettingsNavProps) {
   return (
     <nav className="w-full shrink-0 sm:w-64">
       <ul className="flex flex-col gap-1">
-        {SETTINGS_NAV_ITEMS.map(({ label, icon: Icon }) => {
-          const active = label === 'Profile'
+        {SETTINGS_NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+          const active = activeSection === id
           return (
-            <li key={label}>
+            <li key={id}>
               <button
                 type="button"
-                disabled={!active}
+                onClick={() => onSelect(id)}
                 aria-current={active ? 'page' : undefined}
                 className={[
                   'flex w-full items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-left text-sm font-medium transition-colors',
                   active
                     ? 'bg-relaive-primary/10 text-relaive-primary'
-                    : 'text-relaive-gray disabled:cursor-default disabled:opacity-70',
+                    : 'text-relaive-gray hover:bg-black/[0.03] hover:text-relaive-navy',
                 ].join(' ')}
               >
                 <Icon className="shrink-0" />

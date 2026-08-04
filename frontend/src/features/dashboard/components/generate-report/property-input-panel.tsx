@@ -49,6 +49,7 @@ export function PropertyInputPanel({ onContinue }: PropertyInputPanelProps) {
         title: method.title,
         description: method.description,
         icon: getPropertyInputMethodIcon(method.iconKey),
+        comingSoon: method.id === 'search-property' || method.id === 'upload-file',
       })),
     [inputMethods],
   )

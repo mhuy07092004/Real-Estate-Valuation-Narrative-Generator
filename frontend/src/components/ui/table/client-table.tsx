@@ -10,8 +10,11 @@ type ClientTableProps = {
   className?: string
   tabs?: DataTableTab<ClientItem>[]
   defaultTabId?: string
+  compactTabs?: boolean
   searchPlaceholder?: string
   emptyMessage?: string
+  onRowClick?: (item: ClientItem) => void
+  selectedRowId?: string
 }
 
 export function StarIcon() {
@@ -63,8 +66,11 @@ export function ClientTable({
   className = '',
   tabs,
   defaultTabId = 'all',
+  compactTabs = false,
   searchPlaceholder = 'Search clients, properties...',
   emptyMessage = 'No clients match your search.',
+  onRowClick,
+  selectedRowId,
 }: ClientTableProps) {
   return (
     <DataTable
@@ -72,6 +78,7 @@ export function ClientTable({
       columns={columns}
       tabs={tabs}
       defaultTabId={defaultTabId}
+      compactTabs={compactTabs}
       getRowId={(item) => item.id}
       searchPlaceholder={searchPlaceholder}
       searchFilter={(item, query) =>
@@ -82,6 +89,8 @@ export function ClientTable({
       }
       emptyMessage={emptyMessage}
       className={className}
+      onRowClick={onRowClick}
+      selectedRowId={selectedRowId}
     />
   )
 }

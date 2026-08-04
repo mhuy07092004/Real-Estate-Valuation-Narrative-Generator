@@ -5,33 +5,25 @@ import { fetchJson } from './api-client'
 import type { CaseItem } from './dashboard'
 import type { InboxNotification } from './common'
 
-export type AffordabilitySummaryTone = 'green' | 'red' | 'navy' | 'net'
+export type AffordabilitySummaryValueTone = 'orange' | 'green' | 'red' | 'navy'
 
 export type AffordabilitySummaryRow = {
   label: string
-  amount: number
-  tone: AffordabilitySummaryTone
+  value: string
+  valueTone?: AffordabilitySummaryValueTone
 }
 
 export type AffordabilityStatMetric = {
   label: string
   value: string
-  trend: string
+  trend?: string
   tone: 'blue' | 'teal' | 'orange' | 'sky'
-}
-
-export type AffordabilityReturnTone = 'green' | 'red' | 'navy'
-
-export type AffordabilityReturnRow = {
-  label: string
-  display: string
-  tone: AffordabilityReturnTone
+  valueClassName?: string
 }
 
 export type AffordabilityCalculationMock = {
-  annualSummary: AffordabilitySummaryRow[]
+  summary: AffordabilitySummaryRow[]
   metrics: AffordabilityStatMetric[]
-  investmentReturns: AffordabilityReturnRow[]
 }
 
 export function getAffordabilityCalculationMockData(): Promise<AffordabilityCalculationMock> {

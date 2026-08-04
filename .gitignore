@@ -28,6 +28,8 @@ __pycache__/
 .env
 .env.*
 !.env.example
+!.env.production
+!frontend/.env.production
 
 # Editor directories and files
 .vscode/*

@@ -17,6 +17,9 @@ export type ClientItem = {
   initials: string
   isStarred: boolean
   address: string | null
+  email: string
+  phone: string
+  notes: string
   reportCount: number
   status: ClientStatus
   followUpAt: string
@@ -33,6 +36,14 @@ export function getClientListMockData(): Promise<ClientItem[]> {
 
 export function getClientListSummary(): Promise<ClientListSummary> {
   return fetchJson('/api/agent/clients/summary')
+}
+
+export function updateClientNotes(id: string, notes: string): Promise<ClientItem> {
+  return fetchJson(`/api/agent/clients/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ notes }),
+  })
 }
 
 export function getAgentReportListMockData(): Promise<CaseItem[]> {

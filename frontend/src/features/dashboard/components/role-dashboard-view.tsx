@@ -1,6 +1,4 @@
-import { AiInsightsPanel } from './ai-insights-panel'
-import { getActionIcon, getStatIcon } from './dashboard-icons'
-import { QuickActionsPanel } from './quick-actions-panel'
+import { getStatIcon } from './dashboard-icons'
 import { RecentReportsPanel } from './recent-reports-panel'
 import { StatCard } from '../../../components/ui/stat-card/stat-card'
 import { useAsyncData } from '../../../hooks/use-async-data'
@@ -33,20 +31,7 @@ export function RoleDashboardView({ role }: RoleDashboardViewProps) {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)] lg:gap-6">
-        <RecentReportsPanel reports={data.reports} />
-        <AiInsightsPanel insights={data.insights} />
-      </div>
-
-      <QuickActionsPanel
-        actions={data.quickActions.map(({ id, title, subtitle, tone, iconKey }) => ({
-          id,
-          title,
-          subtitle,
-          tone,
-          icon: getActionIcon(iconKey),
-        }))}
-      />
+      <RecentReportsPanel reports={data.reports} />
     </div>
   )
 }

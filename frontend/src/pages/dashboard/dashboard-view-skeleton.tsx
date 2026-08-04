@@ -8,12 +8,7 @@ export function DashboardViewSkeleton() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)] lg:gap-6">
-        <div className="h-[260px] animate-pulse rounded-2xl border border-black/5 bg-white/60" />
-        <div className="h-[260px] animate-pulse rounded-2xl border border-black/5 bg-white/60" />
-      </div>
-
-      <div className="h-[148px] animate-pulse rounded-2xl border border-black/5 bg-white/60" />
+      <div className="h-[260px] animate-pulse rounded-2xl border border-black/5 bg-white/60" />
     </div>
   )
 }

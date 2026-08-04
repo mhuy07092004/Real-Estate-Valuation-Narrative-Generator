@@ -4,13 +4,13 @@ import { Button } from '../button/button'
 
 const NAV_ORDER = [
   { type: 'scroll', label: 'Platform', sectionId: 'platform' },
-  { type: 'scroll', label: 'Features', sectionId: 'features' },
+  { type: 'route', label: 'Features', href: '/features' },
   { type: 'route', label: 'About', href: '/about' },
   { type: 'scroll', label: 'Resources', sectionId: 'resources' },
   { type: 'route', label: 'Plans', href: '/plans' },
 ] as const
 
-function ChevronDown() {
+function NavChevron({ pointUp = false }: { pointUp?: boolean }) {
   return (
     <svg
       width="12"
@@ -18,7 +18,7 @@ function ChevronDown() {
       viewBox="0 0 12 12"
       fill="none"
       aria-hidden="true"
-      className="ml-1 shrink-0"
+      className={`ml-1 shrink-0 transition-transform ${pointUp ? 'rotate-180' : ''}`}
     >
       <path
         d="M2 4L6 8L10 4"
@@ -95,7 +95,7 @@ export function Navbar() {
                     className="flex items-center text-sm font-medium text-relaive-navy/80 hover:text-relaive-primary transition-colors cursor-pointer bg-transparent border-none p-0"
                   >
                     {item.label}
-                    <ChevronDown />
+                    <NavChevron />
                   </button>
                 </li>
               )
@@ -111,7 +111,7 @@ export function Navbar() {
                   }`}
                 >
                   {item.label}
-                  <ChevronDown />
+                  <NavChevron pointUp={isActive} />
                 </a>
               </li>
             )
