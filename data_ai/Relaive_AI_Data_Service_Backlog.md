@@ -486,38 +486,46 @@ its acceptance criteria.
 
 ---
 
-### [SCP-426] Ingest and standardize market context documents
+### [SCP-426] Ingest and chunk RBA/macro documents for RAG
 **Type:** Story · **Points:** 2 · **Priority:** High
-**Branch:** `SCP-426/market-context-ingestion`
+**Branch:** `SCP-426/rag-document-ingestion`
 **Dependencies:** SCP-415
 
-**Context:** In addition to structured macro indicators (SCP-415), the narrative workflow
-can benefit from a small set of market-context documents such as RBA statements or housing
-market commentary. These documents are not used for model training; instead, they provide
-supporting evidence that can be surfaced alongside comparable sales and suburb summaries
-when generating a narrative.
+**Context:** Separate from structured macro indicators (SCP-415), this ticket handles
+**unstructured text documents** — RBA (Reserve Bank of Australia) monetary policy
+statements and housing market reports, published as PDFs. These aren't used to train the
+model's weights; instead, they're chunked, embedded, and stored so that at inference time
+the model can retrieve and quote from them when writing market commentary (this is the
+"RAG" — Retrieval-Augmented Generation — part of the system, built out fully in SCP-421).
+This ticket only covers getting the documents in and chunked, not the embedding/indexing
+itself.
 
 **What to build:**
-1. A job that fetches a small set of public market-context documents (for example, RBA
-   statements or housing market commentary) from documented public sources
-2. Extracts text from each document and stores it in a normalized form
-3. Tags each document with metadata such as `source_document`, `publish_date`, and a rough
-   `topic` label if easily derivable (for example, "interest rates" or "housing supply")
-4. Writes the normalized documents to a Bronze-layer table/path distinct from
-   `bronze_listings` and `bronze_macro_indicators`, e.g. `bronze_market_context`
-5. If a document cannot be parsed, log it to an errors table with the reason and continue
-   processing the rest of the batch — do not crash the job
+1. A job that fetches RBA statements and housing market report PDFs from their public
+   source (document the exact source URLs/feed used)
+2. Extracts text from each PDF
+3. Splits each document's text into chunks using LangChain's text splitting utilities —
+   document the chunk size and overlap chosen and why
+4. Tags each chunk with metadata: `source_document` (filename or title), `publish_date`,
+   and a rough `topic` label if easily derivable (e.g. "interest rates", "housing supply") —
+   topic tagging can be simple keyword-based, it doesn't need to be a model call
+5. Writes chunks with metadata to a Bronze-layer table/path distinct from
+   `bronze_listings` and `bronze_macro_indicators`, e.g. `bronze_rag_documents`
+6. If a PDF cannot be parsed (corrupted file, scanned image with no extractable text, unexpected
+   format), log it to an errors table with the reason and continue processing the rest of the
+   batch — do not crash the job
 
 **Acceptance criteria (all must pass):**
-- [ ] Market-context documents are fetched, parsed, and stored in a normalized form
-- [ ] Output (documents + metadata) lands in a Bronze-layer table/path distinct from the
+- [ ] Job fetches RBA/housing report PDFs, extracts text, and splits into chunks using
+  LangChain
+- [ ] Output (chunks + metadata) lands in a Bronze-layer table/path distinct from the
   listing and macro-indicator tables
-- [ ] Malformed or unparseable documents are logged to an errors table, not silently dropped
-  and not crashing the job — test with a deliberately corrupted/unparseable document
+- [ ] Malformed or unparseable PDFs are logged to an errors table, not silently dropped and
+  not crashing the job — test with a deliberately corrupted/unparseable PDF
 
 ---
 
-## EPIC E — Model & Context Grounding
+## EPIC E — Model & RAG
 
 ### [SCP-419] Run baseline model evaluation (single chosen model)
 **Type:** Spike · **Points:** 2 · **Priority:** High
@@ -597,38 +605,45 @@ those, leaving the original model weights frozen.
 
 ---
 
-### [SCP-421] Build context retrieval and grounding layer
+### [SCP-421] Build RAG index and validate basic retrieval
 **Type:** Story · **Points:** 3 · **Priority:** Highest
-**Branch:** `SCP-421/context-retrieval-grounding`
+**Branch:** `SCP-421/rag-index-retrieval`
 **Dependencies:** SCP-417, SCP-426
 
-**Context:** The narrative workflow needs a lightweight retrieval-and-grounding layer so the
-model can generate narratives using relevant supporting evidence rather than relying only on
-its own general knowledge. For this MVP, that evidence comes from existing structured data
-sources such as comparable sales and suburb summaries, with optional support from stored
-market-context documents.
+**Context:** RAG lets the model pull in real, current facts at the moment it generates
+text, rather than relying only on what it learned during fine-tuning (which can go stale).
+This system needs **two separate retrievable collections**, because they answer different
+kinds of questions: (1) property/comparable-sales data, for "what similar properties sold
+nearby and for how much," and (2) RBA/market-commentary text chunks, for "what's the
+current interest rate outlook." Build both as distinct indexes or clearly namespaced
+collections within one vector store — do not merge them into a single undifferentiated
+index, since mixing property records with prose paragraphs will hurt retrieval quality for
+both.
 
 **What to build:**
-1. Define a small retrieval interface that accepts a property context and returns the most
-   relevant supporting evidence for narrative generation
-2. Build a retrieval path for comparable sales from `gold_property_model_ready` or the
-   comparable-sales API output
-3. Build a retrieval path for suburb-level context from `gold_suburb_aggregates` or the
-   suburb-overview API output
-4. Build an optional retrieval path for market-context documents from `bronze_market_context`
-   when available
+1. Choose a sentence embedding model (document which) and a vector store (document which
+   — e.g. a GCP-hosted vector database)
+2. Build **Index A**: embeds each property record from `gold_property_model_ready`
+   (SCP-417) — embedding should be built from a text representation of the property's key
+   attributes (suburb, price, bed/bath, sale date)
+3. Build **Index B**: embeds each text chunk from `bronze_rag_documents` (SCP-426)
+4. Write a retrieval function for each index that takes a query and returns the top-K
+   matches
 5. Create a labeled test set of **at least 15** query examples with known correct/relevant
-   results covering property-comparable lookups and suburb/market-context lookups
-6. Measure retrieval quality using a simple hit-rate or top-k relevance check and record the
-   results in `/docs/context-retrieval-report.md`
-7. Test the edge case where a query has no nearby/relevant matches at all (for example, a
-   property in a suburb with zero comparable sales) — confirm the retrieval function returns
-   an **empty result set**, not an error or exception
+   results (a mix of property-comparable queries for Index A and market-commentary queries
+   for Index B)
+6. Measure Recall@5 against this test set for each index separately
+7. Record results in `/docs/rag-eval-report.md`
+8. Test the edge case where a query has no nearby/relevant matches at all (e.g. a property
+   in a suburb with zero comparable sales, or a query about a topic not covered in any RBA
+   document) — confirm the retrieval function returns an **empty result set**, not an error
+   or exception
 
 **Acceptance criteria (all must pass):**
-- [ ] Comparable-sales and suburb-context retrieval are implemented for narrative generation
-- [ ] Retrieval quality is measured against ≥15 labelled test queries and recorded in
-  `/docs/context-retrieval-report.md`
+- [ ] Both indexes (property comparables and RAG documents) are built from a documented
+  embedding model and vector store
+- [ ] Recall@5 measured against ≥15 labelled test queries is ≥0.6 for each index, recorded
+  in `/docs/rag-eval-report.md`
 - [ ] A query with no nearby/relevant comparables returns an empty result set, not an error
   — verified by a specific test case
 
@@ -642,32 +657,31 @@ market-context documents.
 **Context:** This is a quality gate that runs on every narrative before it's allowed to
 reach a user. "Factual consistency" here means: every specific claim in the generated
 narrative (a price, a suburb statistic, a market comment) must be traceable back to
-something actually retrieved from the comparable-sales or suburb-summary context used to
+something actually retrieved from the RAG index or the comparable sales data used to
 generate it. If the model states a fact that wasn't in its retrieved context, that's a
 hallucination and must be flagged.
 
 **What to build:**
 1. A check that, given a generated narrative plus the retrieved context (comparables +
-   suburb context + optional market context) used to produce it, extracts factual claims
-   from the narrative (for example, via simple pattern matching for numbers/prices/
-   percentages, or a lightweight secondary model call — document the method chosen)
+   RAG chunks) used to produce it, extracts factual claims from the narrative (e.g. via
+   simple pattern matching for numbers/prices/percentages, or a lightweight secondary model
+   call — document the method chosen)
 2. For each extracted claim, verifies whether it appears in or is directly supported by the
    retrieved context
 3. Runs this check against **at least 20** held-out generated narratives
-4. Outputs a pass/fail result against a documented threshold (for example, "fail if more
-   than 15% of narratives have at least one unsupported claim") — document the exact
-   threshold chosen
-5. Include one deliberately-corrupted test narrative (for example, one with a fabricated
-   price or statistic not present in its context) in the test set, and confirm the check
-   correctly flags it as failing
+4. Outputs a pass/fail result against a documented threshold (e.g. "fail if more than 15%
+   of narratives have at least one unsupported claim") — document the exact threshold chosen
+5. Include one deliberately-corrupted test narrative (i.e. one with a fabricated price or
+   statistic not present in its context) in the test set, and confirm the check correctly
+   flags it as failing
 6. **This check must run before any model version is promoted from Staging 1 to Staging
    2** (this blocks a separate deployment ticket, SCP-411, for any model-affecting change —
    if SCP-411 doesn't exist yet in your tracker, note this dependency explicitly wherever
    deployment promotion is defined)
 
 **Acceptance criteria (all must pass):**
-- [ ] Check runs the fine-tuned model against ≥20 held-out inputs and flags narratives
-  containing claims unsupported by retrieved context
+- [ ] Check runs the fine-tuned model + RAG against ≥20 held-out inputs and flags
+  narratives containing claims unsupported by retrieved context
 - [ ] Outputs a clear pass/fail against a documented threshold
 - [ ] A deliberately-corrupted test narrative is correctly flagged as failing
 - [ ] This check is wired as a required gate before Staging 1 → Staging 2 promotion for any

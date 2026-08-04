@@ -12,20 +12,13 @@ import {
   clearSession,
   getStoredSession,
   login as loginRequest,
-  register as registerRequest,
 } from '../../../services/auth'
 
-// App-wide auth state wrapper around persisted session helpers.
 interface AuthContextValue {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
   login: (credentials: LoginCredentials) => Promise<AuthSession>
-  register: (credentials: {
-    fullName: string
-    email: string
-    password: string
-  }) => Promise<AuthSession>
   logout: () => void
 }
 
@@ -36,7 +29,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Hydrate auth state from localStorage once on app boot.
     const session = getStoredSession()
     setUser(session?.user ?? null)
     setIsLoading(false)
@@ -47,15 +39,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(session.user)
     return session
   }, [])
-
-  const register = useCallback(
-    async (credentials: { fullName: string; email: string; password: string }) => {
-      const session = await registerRequest(credentials)
-      setUser(session.user)
-      return session
-    },
-    [],
-  )
 
   const logout = useCallback(() => {
     clearSession()
@@ -68,10 +51,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: user !== null,
       isLoading,
       login,
-      register,
       logout,
     }),
-    [user, isLoading, login, register, logout]
+    [user, isLoading, login, logout]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
