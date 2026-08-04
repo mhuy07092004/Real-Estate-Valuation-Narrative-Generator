@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt'
 import { env } from '../config/env.js'
 import { DuplicateEmailError, toFrontendUser, type AuthResponseData } from '../types/auth.types.js'
 import { registrationSchema, type RegistrationInput } from '../validators/registration.validator.js'
-import { createUser, findRoleIdByName, findUserByEmail } from './user.service.js'
+import { createUser, ensureRoleIdByName, findUserByEmail } from './user.service.js'
 import { signAccessToken, signRefreshToken } from './jwt.service.js'
 
 const SALT_ROUNDS = 12
@@ -25,11 +25,8 @@ export async function registerUser(input: RegistrationInput): Promise<AuthRespon
     throw new DuplicateEmailError(email)
   }
 
-  const roleId = await findRoleIdByName(DEFAULT_ROLE_NAME)
-  if (roleId === null) {
-    // Seed data missing — this is a setup problem, not a user error.
-    throw new Error(`Default role "${DEFAULT_ROLE_NAME}" not found — run "npm run prisma:seed"`)
-  }
+  // Keep registration reliable even if role seed has not been run yet.
+  const roleId = await ensureRoleIdByName(DEFAULT_ROLE_NAME)
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
   const stored = await createUser({ fullName, email, passwordHash, roleId })

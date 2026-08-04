@@ -44,3 +44,5 @@ __pycache__/
 
 #private file
 claude.md
+
+*.csv
