@@ -1,0 +1,26 @@
+[
+  {
+    "name": "same_suburb_match",
+    "address": "12 Collins Street",
+    "suburb": "Melbourne",
+    "property_type": "house",
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "parking": 1,
+    "land_size_sqm": 180,
+    "expected_comparable_count": 1,
+    "expected_suburb_context": true
+  },
+  {
+    "name": "no_comparables",
+    "address": "999 Unknown Street",
+    "suburb": "NoSuburb",
+    "property_type": "house",
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "parking": 1,
+    "land_size_sqm": 180,
+    "expected_comparable_count": 0,
+    "expected_suburb_context": false
+  }
+]

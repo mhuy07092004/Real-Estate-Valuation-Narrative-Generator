@@ -1,0 +1,192 @@
+@startuml
+hide methods
+hide stereotypes
+skinparam linetype ortho
+
+' =========================
+' Core Auth
+' =========================
+entity roles {
+  * role_id : int <<PK>>
+  --
+  role_name : varchar(50) <<UNIQUE>>
+  created_at : datetime
+}
+
+entity users {
+  * user_id : uuid <<PK>>
+  --
+  role_id : int <<FK roles.role_id>>
+  full_name : varchar(120)
+  email : varchar(255) <<UNIQUE_GLOBAL>>
+  password_hash : varchar(255)
+  auth_provider : varchar(30)  ' local
+  is_active : boolean
+  created_at : datetime
+  last_login_at : datetime?
+}
+
+' =========================
+' Clients (global unique email)
+' =========================
+entity clients {
+  * client_id : uuid <<PK>>
+  --
+  owner_user_id : uuid <<FK users.user_id>>
+  full_name : varchar(120)      ' required
+  email : varchar(255) <<UNIQUE_GLOBAL>>  ' required, no format validation in phase 1
+  phone : varchar(50)           ' required
+  status : varchar(30)          ' prospecting | appraisal_sent
+  notes : text?                 ' optional
+
+  ' Exactly one linked property (stored directly on client)
+  linked_address_line : varchar(255)   ' required
+  linked_suburb : varchar(120)         ' required
+  linked_state : varchar(50)           ' required
+  linked_postcode : varchar(20)        ' required
+  linked_property_type : varchar(50)   ' required
+  linked_bedrooms : int                ' required
+  linked_bathrooms : int               ' required
+  linked_parking : int                 ' required
+  linked_land_size_sqm : decimal(10,2) ' required
+
+  created_at : datetime
+  updated_at : datetime
+}
+
+' =========================
+' Comparable + Market datasets
+' =========================
+entity comparable_sales {
+  * comparable_id : uuid <<PK>>
+  --
+  address_line : varchar(255)
+  suburb : varchar(120)
+  state : varchar(50)
+  postcode : varchar(20)
+  property_type : varchar(50)
+  bedrooms : int
+  bathrooms : int
+  parking : int
+  land_size_sqm : decimal(10,2)
+  sold_price : decimal(14,2)
+  sold_date : date
+  data_source : varchar(100)?
+  created_at : datetime
+}
+
+entity market_intelligence {
+  * market_id : uuid <<PK>>
+  --
+  suburb : varchar(120)
+  state : varchar(50)
+  mean_house_price : decimal(14,2)
+  month_growth_pct : decimal(6,2)
+  rental_yield_pct : decimal(6,2)
+  buyer_interest_level : varchar(30)
+  supply_level : varchar(30)
+  price_growth_level : varchar(30)
+  as_of_month : date
+  created_at : datetime
+}
+
+' =========================
+' Templates
+' =========================
+entity report_templates {
+  * template_id : uuid <<PK>>
+  --
+  template_key : varchar(80) <<UNIQUE>>
+  title : varchar(120)
+  body_template : text          ' placeholder-based narrative template
+  is_active : boolean
+  created_at : datetime
+  updated_at : datetime
+}
+
+' =========================
+' Generated Reports (no draft states)
+' =========================
+entity reports {
+  * report_id : uuid <<PK>>
+  --
+  owner_user_id : uuid <<FK users.user_id>>
+  client_id : uuid? <<FK clients.client_id>>  ' nullable: PDF-only flow allowed
+  template_id : uuid <<FK report_templates.template_id>>
+
+  ' Property snapshot used at generation time
+  property_address_line : varchar(255)
+  property_suburb : varchar(120)
+  property_state : varchar(50)
+  property_postcode : varchar(20)
+  property_type : varchar(50)
+  bedrooms : int
+  bathrooms : int
+  parking : int
+  land_size_sqm : decimal(10,2)
+  estimated_value : decimal(14,2)
+
+  ' Exactly one selected comparable snapshot from step-2
+  selected_comparable_id : uuid? <<FK comparable_sales.comparable_id>>
+  selected_comparable_address : varchar(255)
+  selected_comparable_sold_price : decimal(14,2)
+  selected_comparable_sold_date : date
+
+  ' Market snapshot from step-3
+  market_suburb : varchar(120)
+  market_mean_house_price : decimal(14,2)
+  market_month_growth_pct : decimal(6,2)
+  market_rental_yield_pct : decimal(6,2)
+  market_buyer_interest_level : varchar(30)
+  market_supply_level : varchar(30)
+  market_price_growth_level : varchar(30)
+
+  narrative_text : text          ' final generated narrative (persisted)
+  pdf_storage_path : varchar(500)?
+  pdf_generated_at : datetime?
+
+  created_at : datetime
+  updated_at : datetime
+}
+
+' =========================
+' Saved properties tab
+' =========================
+entity saved_property_searches {
+  * saved_property_id : uuid <<PK>>
+  --
+  owner_user_id : uuid <<FK users.user_id>>
+  label : varchar(120)?
+
+  ' Saved search input
+  address_line : varchar(255)
+  suburb : varchar(120)
+  state : varchar(50)
+  postcode : varchar(20)
+  property_type : varchar(50)
+  bedrooms : int
+  bathrooms : int
+  parking : int
+  land_size_sqm : decimal(10,2)
+
+  ' Saved filter state
+  sold_date_from : date?
+  sold_date_to : date?
+  filter_property_type : varchar(50)?
+
+  created_at : datetime
+  updated_at : datetime
+}
+
+' =========================
+' Relationships
+' =========================
+roles ||--o{ users : assigns
+users ||--o{ clients : owns
+users ||--o{ reports : generates
+users ||--o{ saved_property_searches : saves
+clients ||--o{ reports : optional_for
+report_templates ||--o{ reports : used_by
+comparable_sales ||--o{ reports : selected_for
+
+@enduml

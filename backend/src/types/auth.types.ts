@@ -9,12 +9,10 @@ export type StoredUser = {
   createdAt: Date
 }
 
-// NOTE: the frontend's `User.roles` is a string ARRAY (multi-role), but our
-// schema (matching the team's ERD) gives each user a single `role_id`. This
-// maps that one role into a one-element array so the frontend's
-// `roles.includes(role)` checks still work today. If the product actually
-// needs multi-role users, that's a schema conversation with whoever owns
-// the users/roles tables — this mapper is a stopgap, not a real fix.
+// NOTE: the frontend's dashboard experience expects role arrays. The DB stores
+// a single role_id, so this mapper expands core roles for prototype access
+// (e.g. `user` can enter all dashboard role views) while keeping a stable
+// response contract. Replace with product-approved role policy later.
 export type FrontendUser = {
   id: string
   email: string
@@ -25,11 +23,18 @@ export type FrontendUser = {
 }
 
 export function toFrontendUser(user: StoredUser): FrontendUser {
+  const expandedRoles =
+    user.roleName === 'admin'
+      ? ['admin', 'agent', 'valuer', 'investor', 'buyer']
+      : user.roleName === 'user'
+        ? ['agent', 'valuer', 'investor', 'buyer']
+        : [user.roleName]
+
   return {
     id: user.userId,
     email: user.email,
     fullName: user.fullName,
-    roles: [user.roleName],
+    roles: expandedRoles,
     avatar: null,
     createdAt: user.createdAt.toISOString(),
   }
@@ -50,5 +55,12 @@ export class DuplicateEmailError extends Error {
   constructor(email: string) {
     super(`An account with email "${email}" already exists`)
     this.name = 'DuplicateEmailError'
+  }
+}
+
+export class InvalidCredentialsError extends Error {
+  constructor() {
+    super('Invalid email or password.')
+    this.name = 'InvalidCredentialsError'
   }
 }
