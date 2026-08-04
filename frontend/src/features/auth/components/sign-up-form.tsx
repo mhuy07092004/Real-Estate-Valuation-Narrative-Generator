@@ -1,9 +1,7 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Button } from '../../../components/ui/button/button'
 import { Input } from '../../../components/ui/input/input'
-import { useAuth } from '../hooks/use-auth'
-import { AuthError } from '../../../types/auth'
+import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-role'
 
 function MailIcon() {
   return (
@@ -112,6 +110,13 @@ const SOCIAL_PROVIDERS = [
   { id: 'microsoft', label: 'Microsoft', icon: MicrosoftIcon },
 ] as const
 
+const ROLE_OPTIONS: { value: DashboardRole; label: string }[] = [
+  { value: 'buyer', label: 'Buyer' },
+  { value: 'investor', label: 'Investor' },
+  { value: 'valuer', label: 'Property Valuer' },
+  { value: 'agent', label: 'Agent' },
+]
+
 function SocialLoginDivider() {
   return (
     <div className="flex items-center gap-3">
@@ -136,36 +141,11 @@ function SocialLoginButtons() {
 }
 
 export function SignUpForm() {
-  const navigate = useNavigate()
-  const { register } = useAuth()
+  const [role, setRole] = useState<DashboardRole | ''>('')
   const [showPassword, setShowPassword] = useState(false)
-  const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Creates account, stores session via auth hook, then enters dashboard.
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setError(null)
-    setFieldErrors({})
-    setIsSubmitting(true)
-
-    try {
-      await register({ fullName, email, password })
-      navigate('/dashboard', { replace: true })
-    } catch (err) {
-      if (err instanceof AuthError) {
-        setError(err.message)
-        if (err.errors) setFieldErrors(err.errors)
-      } else {
-        setError('Sign up failed. Please try again.')
-      }
-    } finally {
-      setIsSubmitting(false)
-    }
   }
 
   return (
@@ -175,82 +155,80 @@ export function SignUpForm() {
         <p className="mt-2 text-sm text-relaive-gray">
           Start your property intelligence workflow
         </p>
-        {error ? (
-          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600" role="alert">
-            {error}
-          </p>
-        ) : null}
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <div className="flex flex-col gap-1.5">
-          <Input
-            id="full-name"
-            type="text"
-            label="Full name"
-            placeholder="Enter your full name"
-            startIcon={<UserIcon />}
-            autoComplete="name"
-            value={fullName}
-            onChange={(event) => setFullName(event.target.value)}
-            required
-          />
-          {fieldErrors.fullName ? (
-            <p className="text-xs text-red-600">{fieldErrors.fullName}</p>
-          ) : null}
-        </div>
+        <Input
+          id="full-name"
+          type="text"
+          label="Full name"
+          placeholder="Enter your full name"
+          startIcon={<UserIcon />}
+          autoComplete="name"
+        />
+
+        <Input
+          id="email"
+          type="email"
+          label="Email"
+          placeholder="Enter your email"
+          startIcon={<MailIcon />}
+          autoComplete="email"
+        />
 
         <div className="flex flex-col gap-1.5">
-          <Input
-            id="email"
-            type="email"
-            label="Email"
-            placeholder="Enter your email"
-            startIcon={<MailIcon />}
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            required
-          />
-          {fieldErrors.email ? (
-            <p className="text-xs text-red-600">{fieldErrors.email}</p>
-          ) : null}
+          <label htmlFor="role" className="text-sm font-medium text-relaive-navy">
+            Role
+          </label>
+          <div className="relative flex items-center">
+            <span className="pointer-events-none absolute left-3 flex items-center text-relaive-gray">
+              <UserIcon />
+            </span>
+            <select
+              id="role"
+              name="role"
+              required
+              value={role}
+              onChange={(event) => setRole(event.target.value as DashboardRole)}
+              className="w-full rounded-lg border border-black/10 bg-white py-2.5 pl-10 pr-4 text-sm text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
+            >
+              <option value="" disabled>
+                Select your role
+              </option>
+              {ROLE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <Input
-            id="password"
-            type={showPassword ? 'text' : 'password'}
-            label="Password"
-            placeholder="Enter your password"
-            startIcon={<ShieldIcon />}
-            autoComplete="new-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            required
-            endIcon={
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="pointer-events-auto focus-visible:outline-none"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                <EyeIcon visible={showPassword} />
-              </button>
-            }
-          />
-          {fieldErrors.password ? (
-            <p className="text-xs text-red-600">{fieldErrors.password}</p>
-          ) : null}
-        </div>
+        <Input
+          id="password"
+          type={showPassword ? 'text' : 'password'}
+          label="Password"
+          placeholder="Enter your password"
+          startIcon={<ShieldIcon />}
+          autoComplete="new-password"
+          endIcon={
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="pointer-events-auto focus-visible:outline-none"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              <EyeIcon visible={showPassword} />
+            </button>
+          }
+        />
 
         <Button
           type="submit"
           size="lg"
-          disabled={isSubmitting}
-          className="w-full bg-gradient-to-r from-relaive-primary to-relaive-secondary hover:opacity-90 disabled:opacity-60"
+          className="w-full bg-gradient-to-r from-relaive-primary to-relaive-secondary hover:opacity-90"
         >
-          {isSubmitting ? 'Creating account...' : 'Sign up'}
+          Sign up
         </Button>
       </form>
 

@@ -15,10 +15,8 @@ import psycopg
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from ingestion.config import IngestionConfig, load_config
-    from ingestion.context_retrieval import ContextRetriever
 else:
     from .config import IngestionConfig, load_config
-    from .context_retrieval import ContextRetriever
 
 
 class BaselineEvaluator:
@@ -26,7 +24,6 @@ class BaselineEvaluator:
         self.config = config or load_config()
         self.prompt_path = Path(__file__).resolve().parent.parent / "eval" / "prompts" / "property_narrative_prompt.txt"
         self.report_path = Path(__file__).resolve().parent.parent / "eval" / "baseline-report.md"
-        self.context_retriever = ContextRetriever(self.config)
         self._ensure_model_available()
 
     def run(self) -> dict[str, Any]:
@@ -43,9 +40,7 @@ class BaselineEvaluator:
         generated_results: list[dict[str, Any]] = []
 
         for row in sample_rows:
-            context = self.context_retriever.retrieve_context_for_property(row)
-            prompt_context = self.context_retriever.build_prompt_context(context)
-            prompt = self._render_prompt(prompt_template, row, prompt_context)
+            prompt = self._render_prompt(prompt_template, row)
             started_at = time.perf_counter()
             generated_text = self._generate_narrative(prompt, row)
             elapsed_ms = (time.perf_counter() - started_at) * 1000
@@ -110,7 +105,6 @@ class BaselineEvaluator:
                     "parking": int(record[8]),
                     "land_size_sqm": float(record[9]),
                     "price": float(record[10]),
-                    "estimated_value": float(record[10]) if record[10] is not None else None,
                     "sale_date": str(record[11]),
                     "cash_rate_at_sale": float(record[12]) if record[12] is not None else None,
                     "reference_narrative": record[13],
@@ -122,7 +116,7 @@ class BaselineEvaluator:
     def _load_prompt_template(self) -> str:
         return self.prompt_path.read_text(encoding="utf-8")
 
-    def _render_prompt(self, template: str, row: dict[str, Any], prompt_context: str) -> str:
+    def _render_prompt(self, template: str, row: dict[str, Any]) -> str:
         return template.format(
             buyer_purpose=row["buyer_purpose"],
             address=row["address"],
@@ -135,10 +129,8 @@ class BaselineEvaluator:
             parking=row["parking"],
             land_size_sqm=row["land_size_sqm"],
             price=row["price"],
-            estimated_value=row["estimated_value"],
             sale_date=row["sale_date"],
             cash_rate_at_sale=row["cash_rate_at_sale"],
-            prompt_context=prompt_context,
         )
 
     def _ensure_model_available(self) -> None:

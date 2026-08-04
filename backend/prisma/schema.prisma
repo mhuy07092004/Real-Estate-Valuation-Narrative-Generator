@@ -23,147 +23,24 @@ model Role {
   @@map("roles")
 }
 
+enum AuthProvider {
+  local
+  google
+  microsoft
+}
+
 model User {
-  userId       String   @id @default(uuid()) @map("user_id")
-  fullName     String   @map("full_name")
-  email        String   @unique
-  passwordHash String?  @map("password_hash") // null for OAuth-only accounts
-  authProvider String   @default("local") @map("auth_provider")
-  roleId       Int      @map("role_id")
-  isActive     Boolean  @default(true) @map("is_active")
-  createdAt    DateTime @default(now()) @map("created_at")
-  lastLoginAt  DateTime? @map("last_login_at")
+  userId       String       @id @default(uuid()) @map("user_id")
+  fullName     String       @map("full_name")
+  email        String       @unique
+  passwordHash String?      @map("password_hash") // null for OAuth-only accounts
+  authProvider AuthProvider @default(local) @map("auth_provider")
+  roleId       Int          @map("role_id")
+  isActive     Boolean      @default(true) @map("is_active")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  lastLoginAt  DateTime?    @map("last_login_at")
 
   role Role @relation(fields: [roleId], references: [roleId])
 
-  clients               Client[]
-  reports               Report[]
-  savedPropertySearches SavedPropertySearch[]
-
   @@map("users")
-}
-
-model Client {
-  clientId     String   @id @default(uuid()) @map("client_id")
-  ownerUserId  String   @map("owner_user_id")
-  fullName     String   @map("full_name")
-  email        String   @unique
-  phone        String
-  status       String   @default("prospecting")
-  notes        String?
-  addressLine  String   @map("address_line")
-  suburb       String
-  state        String
-  postcode     String
-  propertyType String   @map("property_type")
-  bedrooms     Int
-  bathrooms    Int
-  parking      Int
-  landSizeSqm  Float    @map("land_size_sqm")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
-  owner   User     @relation(fields: [ownerUserId], references: [userId], onDelete: Cascade)
-  reports Report[]
-
-  @@map("clients")
-}
-
-model ComparableSale {
-  comparableId String   @id @default(uuid()) @map("comparable_id")
-  addressLine  String   @map("address_line")
-  suburb       String
-  state        String
-  postcode     String
-  propertyType String   @map("property_type")
-  bedrooms     Int
-  bathrooms    Int
-  parking      Int
-  landSizeSqm  Float    @map("land_size_sqm")
-  soldPrice    Float    @map("sold_price")
-  soldDate     DateTime @map("sold_date")
-  dataSource   String?  @map("data_source")
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  reports Report[]
-
-  @@map("comparable_sales")
-}
-
-model MarketIntelligence {
-  marketId            String   @id @default(uuid()) @map("market_id")
-  suburb              String
-  state               String
-  meanHousePrice      Float    @map("mean_house_price")
-  monthGrowthPct      Float    @map("month_growth_pct")
-  rentalYieldPct      Float    @map("rental_yield_pct")
-  buyerInterestLevel  String   @map("buyer_interest_level")
-  supplyLevel         String   @map("supply_level")
-  priceGrowthLevel    String   @map("price_growth_level")
-  asOfMonth           DateTime @map("as_of_month")
-  createdAt           DateTime @default(now()) @map("created_at")
-
-  @@map("market_intelligence")
-}
-
-model Report {
-  reportId                   String    @id @default(uuid()) @map("report_id")
-  ownerUserId                String    @map("owner_user_id")
-  clientId                   String?   @map("client_id")
-  propertyAddressLine        String    @map("property_address_line")
-  propertySuburb             String    @map("property_suburb")
-  propertyState              String    @map("property_state")
-  propertyPostcode           String    @map("property_postcode")
-  propertyType               String    @map("property_type")
-  bedrooms                   Int
-  bathrooms                  Int
-  parking                    Int
-  landSizeSqm                Float     @map("land_size_sqm")
-  estimatedValue             Float     @map("estimated_value")
-  selectedComparableId       String?   @map("selected_comparable_id")
-  selectedComparableAddress  String?   @map("selected_comparable_address")
-  selectedComparableSoldPrice Float?   @map("selected_comparable_sold_price")
-  selectedComparableSoldDate DateTime? @map("selected_comparable_sold_date")
-  marketSuburb               String?   @map("market_suburb")
-  marketMeanHousePrice       Float?    @map("market_mean_house_price")
-  marketMonthGrowthPct       Float?    @map("market_month_growth_pct")
-  marketRentalYieldPct       Float?    @map("market_rental_yield_pct")
-  marketBuyerInterestLevel   String?   @map("market_buyer_interest_level")
-  marketSupplyLevel          String?   @map("market_supply_level")
-  marketPriceGrowthLevel     String?   @map("market_price_growth_level")
-  narrativeText              String    @map("narrative_text")
-  pdfStoragePath             String?   @map("pdf_storage_path")
-  pdfGeneratedAt             DateTime? @map("pdf_generated_at")
-  createdAt                  DateTime  @default(now()) @map("created_at")
-  updatedAt                  DateTime  @updatedAt @map("updated_at")
-
-  owner              User            @relation(fields: [ownerUserId], references: [userId], onDelete: Cascade)
-  client             Client?         @relation(fields: [clientId], references: [clientId], onDelete: SetNull)
-  selectedComparable ComparableSale? @relation(fields: [selectedComparableId], references: [comparableId], onDelete: SetNull)
-
-  @@map("reports")
-}
-
-model SavedPropertySearch {
-  savedPropertyId    String    @id @default(uuid()) @map("saved_property_id")
-  ownerUserId        String    @map("owner_user_id")
-  label              String?
-  addressLine        String    @map("address_line")
-  suburb             String
-  state              String
-  postcode           String
-  propertyType       String    @map("property_type")
-  bedrooms           Int
-  bathrooms          Int
-  parking            Int
-  landSizeSqm        Float     @map("land_size_sqm")
-  soldDateFrom       DateTime? @map("sold_date_from")
-  soldDateTo         DateTime? @map("sold_date_to")
-  filterPropertyType String?   @map("filter_property_type")
-  createdAt          DateTime  @default(now()) @map("created_at")
-  updatedAt          DateTime  @updatedAt @map("updated_at")
-
-  owner User @relation(fields: [ownerUserId], references: [userId], onDelete: Cascade)
-
-  @@map("saved_property_searches")
 }

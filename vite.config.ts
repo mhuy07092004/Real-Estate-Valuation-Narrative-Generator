@@ -6,13 +6,4 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   root: 'frontend',
   plugins: [react(), tailwindcss()],
-  server: {
-    // Routes frontend /api calls to backend during local development.
-    proxy: {
-      '/api': {
-        target: 'http://localhost:4000',
-        changeOrigin: true,
-      },
-    },
-  },
 })

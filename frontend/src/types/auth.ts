@@ -1,4 +1,3 @@
-// Shared auth DTOs and error types used by auth services + UI forms.
 export type UserRole =
   | 'admin'
   | 'user'
@@ -17,12 +16,6 @@ export interface User {
 }
 
 export interface LoginCredentials {
-  email: string
-  password: string
-}
-
-export interface RegisterCredentials {
-  fullName: string
   email: string
   password: string
 }
@@ -62,8 +55,6 @@ export interface LoginResponseData {
   refreshToken: string
   expiresIn: number
 }
-
-export type RegisterResponseData = LoginResponseData
 
 export class AuthError extends Error {
   readonly errors?: Record<string, string>
