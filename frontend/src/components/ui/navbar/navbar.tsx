@@ -6,7 +6,6 @@ const NAV_ORDER = [
   { type: 'scroll', label: 'Platform', sectionId: 'platform' },
   { type: 'route', label: 'Features', href: '/features' },
   { type: 'route', label: 'About', href: '/about' },
-  { type: 'scroll', label: 'Resources', sectionId: 'resources' },
   { type: 'route', label: 'Plans', href: '/plans' },
 ] as const
 
