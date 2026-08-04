@@ -2,6 +2,183 @@
 
 import { fetchJson } from './api-client'
 
+export type AppraisalInputContext = {
+  address: string
+  propertyType?: string
+  bedrooms?: number
+  bathrooms?: number
+  parking?: number
+  landSizeSqm?: number
+}
+
+const APPRAISAL_CONTEXT_STORAGE_KEY = 'relaive_appraisal_input'
+
+let appraisalContext: AppraisalInputContext | null = null
+
+function readStoredAppraisalContext(): AppraisalInputContext | null {
+  if (typeof window === 'undefined') return null
+
+  const raw = window.localStorage.getItem(APPRAISAL_CONTEXT_STORAGE_KEY)
+  if (!raw) return null
+
+  try {
+    return JSON.parse(raw) as AppraisalInputContext
+  } catch {
+    return null
+  }
+}
+
+function getAppraisalContext(): AppraisalInputContext | null {
+  if (appraisalContext) return appraisalContext
+  appraisalContext = readStoredAppraisalContext()
+  return appraisalContext
+}
+
+function withAppraisalContext(path: string): string {
+  const context = getAppraisalContext()
+  if (!context) return path
+
+  const query = new URLSearchParams()
+  query.set('address', context.address)
+  if (context.propertyType) query.set('propertyType', context.propertyType)
+  if (typeof context.bedrooms === 'number') query.set('bedrooms', String(context.bedrooms))
+  if (typeof context.bathrooms === 'number') query.set('bathrooms', String(context.bathrooms))
+  if (typeof context.parking === 'number') query.set('parking', String(context.parking))
+  if (typeof context.landSizeSqm === 'number') query.set('landSizeSqm', String(context.landSizeSqm))
+
+  const separator = path.includes('?') ? '&' : '?'
+  return `${path}${separator}${query.toString()}`
+}
+
+export function setAppraisalInputContext(context: AppraisalInputContext): void {
+  appraisalContext = context
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(APPRAISAL_CONTEXT_STORAGE_KEY, JSON.stringify(context))
+}
+
+export function getAppraisalInputContext(): AppraisalInputContext | null {
+  return getAppraisalContext()
+}
+
+function parseAddressContext(address: string): {
+  streetLine: string
+  suburb: string
+  state: string
+  postcode: string
+} {
+  const fallback = {
+    streetLine: address,
+    suburb: 'Bonnyrigg',
+    state: 'NSW',
+    postcode: '2177',
+  }
+
+  const match = address
+    .trim()
+    .match(/^(\d+\s+[^,]+),\s*([^,]+)\s+([A-Za-z]{2,3})\s+(\d{4})$/)
+
+  if (!match) return fallback
+
+  return {
+    streetLine: match[1].trim(),
+    suburb: match[2].trim(),
+    state: match[3].trim().toUpperCase(),
+    postcode: match[4].trim(),
+  }
+}
+
+type ApiSuccess<T> = {
+  success: true
+  data: T
+}
+
+type ApiFailure = {
+  success: false
+  message: string
+  errors?: Record<string, string>
+}
+
+type ApiResponse<T> = ApiSuccess<T> | ApiFailure
+
+export type PersistedReport = {
+  reportId: string
+  clientId: string | null
+  propertyAddressLine: string
+  propertySuburb: string
+  propertyState: string
+  propertyPostcode: string
+  propertyType: string
+  bedrooms: number
+  bathrooms: number
+  parking: number
+  landSizeSqm: number
+  estimatedValue: number
+  narrativeText: string
+  pdfStoragePath: string | null
+}
+
+export async function getPersistedReport(reportId: string): Promise<PersistedReport> {
+  const response = await fetchJson<ApiResponse<PersistedReport>>(`/api/reports/${reportId}`)
+  if (!response.success) {
+    throw new Error(response.message)
+  }
+  return response.data
+}
+
+export type PersistGeneratedReportInput = {
+  reportTemplateId: string
+  narrativeText: string
+  estimatedValue: number
+  clientName?: string
+  clientEmail?: string
+  markAsExported?: boolean
+}
+
+export async function persistGeneratedReport(input: PersistGeneratedReportInput): Promise<void> {
+  const context = getAppraisalContext()
+  if (!context?.address) {
+    throw new Error('Property details are missing. Complete step 1 before saving report.')
+  }
+
+  const address = parseAddressContext(context.address)
+  const body = {
+    clientName: input.clientName?.trim() || undefined,
+    clientEmail: input.clientEmail?.trim() || undefined,
+    propertyAddressLine: address.streetLine,
+    propertySuburb: address.suburb,
+    propertyState: address.state,
+    propertyPostcode: address.postcode,
+    propertyType: context.propertyType || 'House',
+    bedrooms: context.bedrooms ?? 3,
+    bathrooms: context.bathrooms ?? 2,
+    parking: context.parking ?? 2,
+    landSizeSqm: context.landSizeSqm ?? 430,
+    estimatedValue: input.estimatedValue,
+    selectedComparableAddress: undefined,
+    selectedComparableSoldPrice: undefined,
+    selectedComparableSoldDate: undefined,
+    marketSuburb: address.suburb,
+    marketMeanHousePrice: undefined,
+    marketMonthGrowthPct: undefined,
+    marketRentalYieldPct: undefined,
+    marketBuyerInterestLevel: undefined,
+    marketSupplyLevel: undefined,
+    marketPriceGrowthLevel: undefined,
+    narrativeText: `[${input.reportTemplateId}] ${input.narrativeText}`,
+    pdfStoragePath: input.markAsExported ? `exports/${Date.now()}.pdf` : undefined,
+  }
+
+  const response = await fetchJson<ApiResponse<{ reportId: string }>>('/api/reports', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.success) {
+    throw new Error(response.message)
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Notifications / disclaimers
 // ---------------------------------------------------------------------------
@@ -103,19 +280,6 @@ export function getPropertyTypeOptions(): Promise<readonly string[]> {
 }
 
 // ---------------------------------------------------------------------------
-// AI Analysis Summary (used by Market Intelligence)
-// ---------------------------------------------------------------------------
-
-export type AiAnalysisSummaryNotification = {
-  title: string
-  message: string
-}
-
-export function getAiAnalysisSummaryNotification(): Promise<AiAnalysisSummaryNotification> {
-  return fetchJson('/api/appraisal/ai-analysis-summary')
-}
-
-// ---------------------------------------------------------------------------
 // Comparable Sales (Generate Appraisal — step 2)
 // ---------------------------------------------------------------------------
 
@@ -133,7 +297,7 @@ export type ComparableSale = {
 }
 
 export function getComparableSales(): Promise<ComparableSale[]> {
-  return fetchJson('/api/appraisal/comparable-sales')
+  return fetchJson(withAppraisalContext('/api/appraisal/comparable-sales'))
 }
 
 // ---------------------------------------------------------------------------
@@ -158,11 +322,11 @@ export type DemandSignal = {
 }
 
 export function getSuburbOverview(): Promise<SuburbOverviewMetric[]> {
-  return fetchJson('/api/appraisal/suburb-overview')
+  return fetchJson(withAppraisalContext('/api/appraisal/suburb-overview'))
 }
 
 export function getDemandSignals(): Promise<DemandSignal[]> {
-  return fetchJson('/api/appraisal/demand-signals')
+  return fetchJson(withAppraisalContext('/api/appraisal/demand-signals'))
 }
 
 // ---------------------------------------------------------------------------
@@ -179,7 +343,7 @@ export type ReportTemplateOption = {
 }
 
 export function getReportTemplates(): Promise<ReportTemplateOption[]> {
-  return fetchJson('/api/appraisal/report-templates')
+  return fetchJson(withAppraisalContext('/api/appraisal/report-templates'))
 }
 
 export type NarrativePreviewSection = {
@@ -194,7 +358,7 @@ export type NarrativePreview = {
 }
 
 export function getNarrativePreview(): Promise<NarrativePreview> {
-  return fetchJson('/api/appraisal/narrative-preview')
+  return fetchJson(withAppraisalContext('/api/appraisal/narrative-preview'))
 }
 
 export type AppraisalSummaryStat = {
@@ -216,7 +380,7 @@ export type AppraisalSummary = {
 }
 
 export function getAppraisalSummary(): Promise<AppraisalSummary> {
-  return fetchJson('/api/appraisal/appraisal-summary')
+  return fetchJson(withAppraisalContext('/api/appraisal/appraisal-summary'))
 }
 
 export type ExecutiveSummarySegment = {
@@ -232,7 +396,7 @@ export type ExecutiveSummary = {
 }
 
 export function getExecutiveSummary(): Promise<ExecutiveSummary> {
-  return fetchJson('/api/appraisal/executive-summary')
+  return fetchJson(withAppraisalContext('/api/appraisal/executive-summary'))
 }
 
 export type PropertyFactorItem = {
@@ -250,7 +414,7 @@ export type PropertySpecificFactors = {
 }
 
 export function getPropertySpecificFactors(): Promise<PropertySpecificFactors> {
-  return fetchJson('/api/appraisal/property-specific-factors')
+  return fetchJson(withAppraisalContext('/api/appraisal/property-specific-factors'))
 }
 
 export type AgentRecommendationIconKey = 'campaign' | 'presentation' | 'marketing'
@@ -269,7 +433,7 @@ export type AgentRecommendations = {
 }
 
 export function getAgentRecommendations(): Promise<AgentRecommendations> {
-  return fetchJson('/api/appraisal/agent-recommendations')
+  return fetchJson(withAppraisalContext('/api/appraisal/agent-recommendations'))
 }
 
 export type AppraisalDisclaimer = {
@@ -279,5 +443,5 @@ export type AppraisalDisclaimer = {
 }
 
 export function getAppraisalDisclaimer(): Promise<AppraisalDisclaimer> {
-  return fetchJson('/api/appraisal/appraisal-disclaimer')
+  return fetchJson(withAppraisalContext('/api/appraisal/appraisal-disclaimer'))
 }

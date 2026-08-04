@@ -4,9 +4,16 @@ import { OptionCardGroup, type OptionCardItem } from '../../../../components/ui/
 import { AddressSearch } from '../../../../components/ui/search-bar/address-search'
 import { Button } from '../../../../components/ui/button/button'
 import { useAsyncData } from '../../../../hooks/use-async-data'
-import { getPropertyInputMethods } from '../../../../services/common'
+import {
+  getPropertyInputMethods,
+  type AppraisalInputContext,
+} from '../../../../services/common'
 import { getPropertyInputMethodIcon } from './generate-report-icons'
-import { EnterAddressForm } from './enter-address-form'
+import {
+  EnterAddressForm,
+  INITIAL_ENTER_ADDRESS_FORM_STATE,
+  type EnterAddressFormState,
+} from './enter-address-form'
 import { StepActions } from './step-actions'
 
 function SearchPropertyPanel() {
@@ -36,11 +43,34 @@ function UploadFilePanel() {
 }
 
 type PropertyInputPanelProps = {
-  onContinue: () => void
+  onContinue: (context?: AppraisalInputContext) => void
+}
+
+function toInteger(value: string): number | undefined {
+  if (!value.trim()) return undefined
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed)) : undefined
+}
+
+function toAppraisalContext(form: EnterAddressFormState): AppraisalInputContext | null {
+  const address = form.address.trim()
+  if (!address) return null
+
+  return {
+    address,
+    propertyType: form.propertyType.trim() || undefined,
+    bedrooms: toInteger(form.bedrooms),
+    bathrooms: toInteger(form.bathrooms),
+    parking: toInteger(form.parking),
+    landSizeSqm: toInteger(form.landSize),
+  }
 }
 
 export function PropertyInputPanel({ onContinue }: PropertyInputPanelProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [enterAddressForm, setEnterAddressForm] = useState<EnterAddressFormState>(
+    INITIAL_ENTER_ADDRESS_FORM_STATE,
+  )
   const { data: inputMethods } = useAsyncData(getPropertyInputMethods, [])
   const optionItems = useMemo<OptionCardItem[]>(
     () =>
@@ -58,24 +88,37 @@ export function PropertyInputPanel({ onContinue }: PropertyInputPanelProps) {
     setSelectedId((current) => (current === id ? null : id))
   }
 
+  const enteredAddressContext = toAppraisalContext(enterAddressForm)
+  const continueDisabled =
+    !selectedId || (selectedId === 'enter-address' && !enteredAddressContext)
+
+  const handleContinue = () => {
+    onContinue(enteredAddressContext ?? undefined)
+  }
+
   return (
     <Card>
       <CardTitle>Choose Property Input Method</CardTitle>
 
       <div className="mt-6">
-        <OptionCardGroup items={optionItems} selectedId={selectedId} onSelect={handleSelect} />
+        <OptionCardGroup items={optionItems} selectedId={selectedId} onSelect={handleSelect} columns={3} />
       </div>
 
       {selectedId ? (
         <div className="mt-6 rounded-2xl border border-slate-100/60 bg-white p-5 shadow-[0_4px_12px_rgba(0,0,0,0.02)] sm:p-6">
-          {selectedId === 'enter-address' ? <EnterAddressForm /> : null}
+          {selectedId === 'enter-address' ? (
+            <EnterAddressForm
+              value={enterAddressForm}
+              onChange={setEnterAddressForm}
+            />
+          ) : null}
           {selectedId === 'search-property' ? <SearchPropertyPanel /> : null}
           {selectedId === 'upload-file' ? <UploadFilePanel /> : null}
         </div>
       ) : null}
 
       {/* Step 1 — no Back button */}
-      <StepActions onContinue={onContinue} continueDisabled={!selectedId} />
+      <StepActions onContinue={handleContinue} continueDisabled={continueDisabled} />
     </Card>
   )
 }

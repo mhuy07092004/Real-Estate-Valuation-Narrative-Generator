@@ -1,9 +1,9 @@
-import { useState, type ChangeEvent } from 'react'
+import type { ChangeEvent } from 'react'
 import { Input } from '../../../../components/ui/input/input'
 import { useAsyncData } from '../../../../hooks/use-async-data'
 import { getPropertyTypeOptions } from '../../../../services/common'
 
-type EnterAddressFormState = {
+export type EnterAddressFormState = {
   address: string
   propertyType: string
   bedrooms: string
@@ -12,7 +12,7 @@ type EnterAddressFormState = {
   landSize: string
 }
 
-const INITIAL_STATE: EnterAddressFormState = {
+export const INITIAL_ENTER_ADDRESS_FORM_STATE: EnterAddressFormState = {
   address: '',
   propertyType: '',
   bedrooms: '',
@@ -21,13 +21,17 @@ const INITIAL_STATE: EnterAddressFormState = {
   landSize: '',
 }
 
-export function EnterAddressForm() {
-  const [form, setForm] = useState<EnterAddressFormState>(INITIAL_STATE)
+type EnterAddressFormProps = {
+  value: EnterAddressFormState
+  onChange: (next: EnterAddressFormState) => void
+}
+
+export function EnterAddressForm({ value, onChange }: EnterAddressFormProps) {
   const { data: propertyTypeOptions } = useAsyncData(getPropertyTypeOptions, [])
 
   const handleChange =
     (field: keyof EnterAddressFormState) => (event: ChangeEvent<HTMLInputElement>) => {
-      setForm((current) => ({ ...current, [field]: event.target.value }))
+      onChange({ ...value, [field]: event.target.value })
     }
 
   return (
@@ -37,7 +41,7 @@ export function EnterAddressForm() {
           id="property-address"
           label="Property Address"
           placeholder="e.g. 123 Smith St, Richmond VIC 3121"
-          value={form.address}
+          value={value.address}
           onChange={handleChange('address')}
         />
         <div>
@@ -46,7 +50,7 @@ export function EnterAddressForm() {
             label="Property Type"
             placeholder="e.g. House"
             list="property-type-options"
-            value={form.propertyType}
+            value={value.propertyType}
             onChange={handleChange('propertyType')}
           />
           <datalist id="property-type-options">
@@ -65,7 +69,7 @@ export function EnterAddressForm() {
           inputMode="numeric"
           min={0}
           placeholder="0"
-          value={form.bedrooms}
+          value={value.bedrooms}
           onChange={handleChange('bedrooms')}
         />
         <Input
@@ -75,7 +79,7 @@ export function EnterAddressForm() {
           inputMode="numeric"
           min={0}
           placeholder="0"
-          value={form.bathrooms}
+          value={value.bathrooms}
           onChange={handleChange('bathrooms')}
         />
         <Input
@@ -85,7 +89,7 @@ export function EnterAddressForm() {
           inputMode="numeric"
           min={0}
           placeholder="0"
-          value={form.parking}
+          value={value.parking}
           onChange={handleChange('parking')}
         />
         <Input
@@ -95,7 +99,7 @@ export function EnterAddressForm() {
           inputMode="numeric"
           min={0}
           placeholder="0"
-          value={form.landSize}
+          value={value.landSize}
           onChange={handleChange('landSize')}
         />
       </div>

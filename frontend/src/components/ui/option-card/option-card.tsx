@@ -31,12 +31,12 @@ export function OptionCard({
       onClick={() => {
         if (!comingSoon) onSelect(id)
       }}
-      className={`relative flex flex-col items-center rounded-2xl border px-6 py-8 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary focus-visible:ring-offset-2 ${
+      className={`relative flex min-h-[180px] flex-col items-center justify-start rounded-2xl border px-5 py-6 text-center transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary focus-visible:ring-offset-2 ${
         comingSoon
           ? 'cursor-not-allowed border-black/5 bg-slate-100/80 opacity-60'
           : selected
-            ? 'border-relaive-secondary bg-[#EAF7F6] shadow-sm'
-            : 'border-black/5 bg-white hover:border-relaive-primary/20 hover:bg-slate-50'
+            ? 'border-relaive-secondary bg-[#EAF7F6] shadow-[0_8px_24px_rgba(11,94,89,0.08)]'
+            : 'border-black/5 bg-white hover:border-relaive-primary/20 hover:bg-slate-50 hover:shadow-sm'
       }`}
     >
       {comingSoon ? (
@@ -52,11 +52,11 @@ export function OptionCard({
         {icon}
       </span>
       <span
-        className={`mt-4 text-sm font-semibold sm:text-base ${comingSoon ? 'text-slate-400' : 'text-relaive-navy'}`}
+        className={`mt-4 text-base font-semibold ${comingSoon ? 'text-slate-400' : 'text-relaive-navy'}`}
       >
         {title}
       </span>
-      <span className={`mt-1.5 text-sm ${comingSoon ? 'text-slate-400' : 'text-relaive-gray'}`}>{description}</span>
+      <span className={`mt-2 text-sm leading-relaxed ${comingSoon ? 'text-slate-400' : 'text-relaive-gray'}`}>{description}</span>
     </button>
   )
 }

@@ -18,7 +18,7 @@ const DEFAULT_ROLE_NAME = 'user'
  * email is already registered.
  */
 export async function registerUser(input: RegistrationInput): Promise<AuthResponseData> {
-  const { fullName, email, password } = registrationSchema.parse(input)
+  const { fullName, email, password, role = DEFAULT_ROLE_NAME } = registrationSchema.parse(input)
 
   const existing = await findUserByEmail(email)
   if (existing) {
@@ -26,7 +26,7 @@ export async function registerUser(input: RegistrationInput): Promise<AuthRespon
   }
 
   // Keep registration reliable even if role seed has not been run yet.
-  const roleId = await ensureRoleIdByName(DEFAULT_ROLE_NAME)
+  const roleId = await ensureRoleIdByName(role)
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
   const stored = await createUser({ fullName, email, passwordHash, roleId })

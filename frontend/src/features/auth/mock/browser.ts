@@ -27,9 +27,9 @@ export const worker = setupWorker(...authHandlers, ...dashboardHandlers)
  * VITE_ENABLE_MOCKS=false
  */
 export async function startMockServer(): Promise<void> {
-  const enableMocks = import.meta.env.VITE_ENABLE_MOCKS
+  const enableMocks = import.meta.env.VITE_ENABLE_MOCKS === 'true'
 
-  if (enableMocks !== 'true') {
+  if (!enableMocks) {
     console.log(
       '%c[MSW] Mocking disabled — requests will go to real backend.',
       'color: #888; font-style: italic;'

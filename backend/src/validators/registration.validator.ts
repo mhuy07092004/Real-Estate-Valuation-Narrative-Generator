@@ -11,6 +11,7 @@ export const registrationSchema = z.object({
     .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Za-z]/, 'Password must contain at least one letter')
     .regex(/[0-9]/, 'Password must contain at least one number'),
+  role: z.enum(['user', 'agent', 'valuer', 'investor', 'buyer']).optional().default('user'),
 })
 
 export type RegistrationInput = z.infer<typeof registrationSchema>

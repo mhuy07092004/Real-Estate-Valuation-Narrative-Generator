@@ -4,8 +4,15 @@ import { BUTTON_FONT_CLASS } from '../button/button'
 
 type SendReportTab = 'search' | 'email'
 
+export type SendReportPayload = {
+  clientName: string
+  clientEmail: string
+}
+
 type SendReportCardProps = {
   onClose: () => void
+  onSend?: (payload: SendReportPayload) => Promise<void>
+  onSuccess?: () => void
 }
 
 function MailIcon() {
@@ -77,25 +84,45 @@ function SuccessTickIcon() {
   )
 }
 
-export function SendReportCard({ onClose }: SendReportCardProps) {
+export function SendReportCard({ onClose, onSend, onSuccess }: SendReportCardProps) {
   const emailId = useId()
+  const nameId = useId()
   const searchId = useId()
   const noteId = useId()
   const [tab, setTab] = useState<SendReportTab>('email')
   const [includeNote, setIncludeNote] = useState(true)
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [search, setSearch] = useState('')
   const [sentTo, setSentTo] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [note, setNote] = useState(
     'Hi {name},\n\nPlease find attached the property appraisal report for your review. Happy to discuss any questions.\n\nBest regards',
   )
 
   const trimmedEmail = email.trim()
-  const canSend = trimmedEmail.length > 0 && trimmedEmail.includes('@')
 
-  const handleSend = () => {
-    if (!canSend) return
-    setSentTo(trimmedEmail)
+  const handleSend = async () => {
+    setIsSubmitting(true)
+    setErrorMessage(null)
+
+    const fallbackName = search.trim()
+    const payload: SendReportPayload = {
+      clientName: name.trim() || fallbackName,
+      clientEmail: trimmedEmail,
+    }
+
+    try {
+      await onSend?.(payload)
+      const recipient = payload.clientEmail || payload.clientName || 'without recipient details'
+      setSentTo(recipient)
+      onSuccess?.()
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to save and send report.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -178,6 +205,22 @@ export function SendReportCard({ onClose }: SendReportCardProps) {
             {tab === 'email' ? (
               <div className="flex flex-col gap-2">
                 <label
+                  htmlFor={nameId}
+                  className="text-[11px] font-semibold tracking-[0.08em] text-relaive-gray uppercase"
+                >
+                  Enter Client Name
+                </label>
+                <Input
+                  id={nameId}
+                  type="text"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  placeholder="Client full name"
+                  startIcon={<UserIcon />}
+                  className="rounded-xl border-0 bg-[#F3F4F6] focus-visible:ring-relaive-secondary"
+                />
+
+                <label
                   htmlFor={emailId}
                   className="text-[11px] font-semibold tracking-[0.08em] text-relaive-gray uppercase"
                 >
@@ -214,6 +257,10 @@ export function SendReportCard({ onClose }: SendReportCardProps) {
             )}
           </div>
 
+          {errorMessage ? (
+            <p className="mt-3 text-sm text-red-600">{errorMessage}</p>
+          ) : null}
+
           <div className="mt-5">
             <label className="flex cursor-pointer items-center gap-2.5">
               <input
@@ -244,11 +291,11 @@ export function SendReportCard({ onClose }: SendReportCardProps) {
           <button
             type="button"
             onClick={handleSend}
-            disabled={!canSend}
-            className={`mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-relaive-primary to-relaive-secondary px-4 py-3 text-sm font-medium text-white shadow-md shadow-relaive-secondary/25 transition-opacity hover:opacity-95 disabled:pointer-events-none disabled:opacity-50 ${BUTTON_FONT_CLASS}`}
+            disabled={isSubmitting}
+            className={`mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-relaive-primary to-relaive-secondary px-4 py-3 text-sm font-medium text-white shadow-md shadow-relaive-secondary/25 transition-opacity hover:opacity-95 ${BUTTON_FONT_CLASS}`}
           >
             <SendIcon />
-            Send Report
+            {isSubmitting ? 'Saving...' : 'Send Report'}
           </button>
         </>
       )}

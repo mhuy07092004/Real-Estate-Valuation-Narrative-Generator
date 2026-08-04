@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../../../components/ui/button/button'
 import { Input } from '../../../components/ui/input/input'
+import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-role'
 import { useAuth } from '../hooks/use-auth'
 import { AuthError } from '../../../types/auth'
 
@@ -112,6 +113,13 @@ const SOCIAL_PROVIDERS = [
   { id: 'microsoft', label: 'Microsoft', icon: MicrosoftIcon },
 ] as const
 
+const ROLE_OPTIONS: { value: DashboardRole; label: string }[] = [
+  { value: 'buyer', label: 'Buyer' },
+  { value: 'investor', label: 'Investor' },
+  { value: 'valuer', label: 'Property Valuer' },
+  { value: 'agent', label: 'Agent' },
+]
+
 function SocialLoginDivider() {
   return (
     <div className="flex items-center gap-3">
@@ -138,6 +146,7 @@ function SocialLoginButtons() {
 export function SignUpForm() {
   const navigate = useNavigate()
   const { register } = useAuth()
+  const [role, setRole] = useState<DashboardRole | ''>('')
   const [showPassword, setShowPassword] = useState(false)
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -146,7 +155,6 @@ export function SignUpForm() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Creates account, stores session via auth hook, then enters dashboard.
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
@@ -154,7 +162,12 @@ export function SignUpForm() {
     setIsSubmitting(true)
 
     try {
-      await register({ fullName, email, password })
+      await register({
+        fullName,
+        email,
+        password,
+        role: role || undefined,
+      })
       navigate('/dashboard', { replace: true })
     } catch (err) {
       if (err instanceof AuthError) {
@@ -195,9 +208,7 @@ export function SignUpForm() {
             onChange={(event) => setFullName(event.target.value)}
             required
           />
-          {fieldErrors.fullName ? (
-            <p className="text-xs text-red-600">{fieldErrors.fullName}</p>
-          ) : null}
+          {fieldErrors.fullName ? <p className="text-xs text-red-600">{fieldErrors.fullName}</p> : null}
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -212,9 +223,35 @@ export function SignUpForm() {
             onChange={(event) => setEmail(event.target.value)}
             required
           />
-          {fieldErrors.email ? (
-            <p className="text-xs text-red-600">{fieldErrors.email}</p>
-          ) : null}
+          {fieldErrors.email ? <p className="text-xs text-red-600">{fieldErrors.email}</p> : null}
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="role" className="text-sm font-medium text-relaive-navy">
+            Role
+          </label>
+          <div className="relative flex items-center">
+            <span className="pointer-events-none absolute left-3 flex items-center text-relaive-gray">
+              <UserIcon />
+            </span>
+            <select
+              id="role"
+              name="role"
+              required
+              value={role}
+              onChange={(event) => setRole(event.target.value as DashboardRole)}
+              className="w-full rounded-lg border border-black/10 bg-white py-2.5 pl-10 pr-4 text-sm text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
+            >
+              <option value="" disabled>
+                Select your role
+              </option>
+              {ROLE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -239,9 +276,7 @@ export function SignUpForm() {
               </button>
             }
           />
-          {fieldErrors.password ? (
-            <p className="text-xs text-red-600">{fieldErrors.password}</p>
-          ) : null}
+          {fieldErrors.password ? <p className="text-xs text-red-600">{fieldErrors.password}</p> : null}
         </div>
 
         <Button
@@ -250,7 +285,7 @@ export function SignUpForm() {
           disabled={isSubmitting}
           className="w-full bg-gradient-to-r from-relaive-primary to-relaive-secondary hover:opacity-90 disabled:opacity-60"
         >
-          {isSubmitting ? 'Creating account...' : 'Sign up'}
+          {isSubmitting ? 'Signing up...' : 'Sign up'}
         </Button>
       </form>
 

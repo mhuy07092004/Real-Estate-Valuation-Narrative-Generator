@@ -16,6 +16,10 @@ function toReportResponse(row: {
   reportId: string
   ownerUserId: string
   clientId: string | null
+  client?: {
+    fullName: string
+    email: string
+  } | null
   propertyAddressLine: string
   propertySuburb: string
   propertyState: string
@@ -45,6 +49,8 @@ function toReportResponse(row: {
 }) {
   return {
     ...row,
+    clientName: row.client?.fullName ?? null,
+    clientEmail: row.client?.email ?? null,
     landSizeSqm: row.landSizeSqm,
     estimatedValue: row.estimatedValue,
     selectedComparableSoldPrice: row.selectedComparableSoldPrice,
@@ -59,6 +65,14 @@ export async function listReports(_req: Request, res: Response) {
   const userId = String(res.locals.userId)
   const rows = await prisma.report.findMany({
     where: { ownerUserId: userId },
+    include: {
+      client: {
+        select: {
+          fullName: true,
+          email: true,
+        },
+      },
+    },
     orderBy: { createdAt: 'desc' },
   })
 
@@ -69,6 +83,14 @@ export async function getReport(req: Request, res: Response) {
   const userId = String(res.locals.userId)
   const row = await prisma.report.findFirst({
     where: { reportId: req.params.reportId, ownerUserId: userId },
+    include: {
+      client: {
+        select: {
+          fullName: true,
+          email: true,
+        },
+      },
+    },
   })
 
   if (!row) {
@@ -84,10 +106,58 @@ export async function createReport(req: Request, res: Response) {
     const input = createReportSchema.parse(req.body)
     const userId = String(res.locals.userId)
 
+    let resolvedClientId = input.clientId
+    const hasContactInput = Boolean(input.clientName?.trim() || input.clientEmail?.trim())
+
+    if (hasContactInput) {
+      const contactName = input.clientName?.trim()
+      const contactEmail = input.clientEmail?.trim().toLowerCase()
+
+      if (!contactName || !contactEmail) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed.',
+          errors: {
+            clientName: contactName ? '' : 'Client name is required when sending to a client.',
+            clientEmail: contactEmail ? '' : 'Client email is required when sending to a client.',
+          },
+        })
+        return
+      }
+
+      const existingClient = await prisma.client.findUnique({ where: { email: contactEmail } })
+
+      if (existingClient) {
+        resolvedClientId = existingClient.clientId
+      } else {
+        const createdClient = await prisma.client.create({
+          data: {
+            ownerUserId: userId,
+            fullName: contactName,
+            email: contactEmail,
+            phone: 'N/A',
+            status: 'prospecting',
+            notes: 'Auto-created from generated report send flow.',
+            addressLine: input.propertyAddressLine,
+            suburb: input.propertySuburb,
+            state: input.propertyState,
+            postcode: input.propertyPostcode,
+            propertyType: input.propertyType,
+            bedrooms: input.bedrooms,
+            bathrooms: input.bathrooms,
+            parking: input.parking,
+            landSizeSqm: input.landSizeSqm,
+          },
+        })
+
+        resolvedClientId = createdClient.clientId
+      }
+    }
+
     const row = await prisma.report.create({
       data: {
         ownerUserId: userId,
-        clientId: input.clientId,
+        clientId: resolvedClientId,
         propertyAddressLine: input.propertyAddressLine,
         propertySuburb: input.propertySuburb,
         propertyState: input.propertyState,
@@ -111,6 +181,14 @@ export async function createReport(req: Request, res: Response) {
         marketPriceGrowthLevel: input.marketPriceGrowthLevel,
         narrativeText: input.narrativeText,
         pdfStoragePath: input.pdfStoragePath,
+      },
+      include: {
+        client: {
+          select: {
+            fullName: true,
+            email: true,
+          },
+        },
       },
     })
 

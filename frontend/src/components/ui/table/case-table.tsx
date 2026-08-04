@@ -38,6 +38,7 @@ type CaseTableProps = {
   defaultTabId?: string
   searchPlaceholder?: string
   emptyMessage?: string
+  onRowClick?: (item: CaseItem) => void
 }
 
 export function CaseTable({
@@ -47,6 +48,7 @@ export function CaseTable({
   defaultTabId = 'all',
   searchPlaceholder = 'Search cases, properties, clients...',
   emptyMessage = 'No cases match your search.',
+  onRowClick,
 }: CaseTableProps) {
   const columns = useMemo<ColumnDef<CaseItem, unknown>[]>(
     () => [
@@ -133,6 +135,7 @@ export function CaseTable({
         item.address.toLowerCase().includes(query) ||
         item.clientName.toLowerCase().includes(query)
       }
+      onRowClick={onRowClick}
       emptyMessage={emptyMessage}
       className={className}
     />

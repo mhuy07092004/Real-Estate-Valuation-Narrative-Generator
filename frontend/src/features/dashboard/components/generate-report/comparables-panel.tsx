@@ -104,16 +104,6 @@ function ComparableSaleRow({ sale }: ComparableSaleRowProps) {
       </div>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-            {sale.matchPercent}% match
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-sm text-relaive-gray">
-            <PinIcon />
-            {sale.distanceKm} km away
-          </span>
-        </div>
-
         <span className="text-sm font-medium text-relaive-primary">View Details</span>
       </div>
     </div>
@@ -136,7 +126,7 @@ export function ComparablesPanel({ onBack, onContinue }: ComparablesPanelProps) 
         </span>
         <div>
           <CardTitle>Comparable Sales</CardTitle>
-          <p className="mt-0.5 text-sm text-relaive-gray">AI-selected similar properties</p>
+          <p className="mt-0.5 text-sm text-relaive-gray">Selected similar properties</p>
         </div>
       </div>
 

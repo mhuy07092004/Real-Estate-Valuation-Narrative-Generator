@@ -1,15 +1,77 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Stepper } from '../../components/ui/Progress-Bar/Stepper'
 import { useAsyncData } from '../../hooks/use-async-data'
-import { getAppraisalSteps } from '../../services/common'
+import {
+  getAppraisalSteps,
+  getPersistedReport,
+  setAppraisalInputContext,
+  type AppraisalInputContext,
+} from '../../services/common'
 import { PropertyInputPanel } from '../../features/dashboard/components/generate-report/property-input-panel'
 import { ComparablesPanel } from '../../features/dashboard/components/generate-report/comparables-panel'
 import { MarketIntelligencePanel } from '../../features/dashboard/components/generate-report/market-intelligence-panel'
 import { ReportConfigurationPanel } from '../../features/dashboard/components/generate-report/report-configuration-panel'
 
 export function GenerateReport() {
-  const [currentStep, setCurrentStep] = useState(0)
+  const [searchParams] = useSearchParams()
+  const initialStep = useMemo(() => {
+    const raw = Number(searchParams.get('step') ?? '1')
+    if (!Number.isFinite(raw)) return 0
+    return Math.min(Math.max(raw - 1, 0), 3)
+  }, [searchParams])
+  const openReadyView = searchParams.get('ready') === '1'
+  const selectedReportId = searchParams.get('reportId')
+  const { data: selectedReport } = useAsyncData(
+    () =>
+      selectedReportId
+        ? getPersistedReport(selectedReportId)
+        : Promise.resolve(null),
+    [selectedReportId],
+  )
+  const [hasHydratedFromSavedReport, setHasHydratedFromSavedReport] = useState(
+    selectedReportId == null,
+  )
+
+  const [currentStep, setCurrentStep] = useState(initialStep)
   const { data: steps } = useAsyncData(getAppraisalSteps, [])
+
+  useEffect(() => {
+    if (!selectedReportId) {
+      setHasHydratedFromSavedReport(true)
+      return
+    }
+
+    if (!selectedReport) {
+      setHasHydratedFromSavedReport(false)
+      return
+    }
+
+    const context: AppraisalInputContext = {
+      address: `${selectedReport.propertyAddressLine}, ${selectedReport.propertySuburb} ${selectedReport.propertyState} ${selectedReport.propertyPostcode}`,
+      propertyType: selectedReport.propertyType,
+      bedrooms: selectedReport.bedrooms,
+      bathrooms: selectedReport.bathrooms,
+      parking: selectedReport.parking,
+      landSizeSqm: selectedReport.landSizeSqm,
+    }
+
+    setAppraisalInputContext(context)
+    setHasHydratedFromSavedReport(true)
+  }, [selectedReportId, selectedReport])
+
+  const initialTemplateId = useMemo(() => {
+    if (!selectedReport?.narrativeText) return undefined
+    const match = selectedReport.narrativeText.match(/^\[([^\]]+)\]\s*/)
+    return match?.[1]
+  }, [selectedReport])
+
+  const handleStepOneContinue = (context?: AppraisalInputContext) => {
+    if (context) {
+      setAppraisalInputContext(context)
+    }
+    setCurrentStep(1)
+  }
 
   return (
     <div className="flex flex-col">
@@ -26,7 +88,7 @@ export function GenerateReport() {
         <Stepper steps={steps ?? []} activeStep={currentStep} />
 
         {currentStep === 0 ? (
-          <PropertyInputPanel onContinue={() => setCurrentStep(1)} />
+          <PropertyInputPanel onContinue={handleStepOneContinue} />
         ) : null}
 
         {currentStep === 1 ? (
@@ -44,7 +106,17 @@ export function GenerateReport() {
         ) : null}
 
         {currentStep === 3 ? (
-          <ReportConfigurationPanel onBack={() => setCurrentStep(2)} />
+          hasHydratedFromSavedReport ? (
+            <ReportConfigurationPanel
+              onBack={() => setCurrentStep(2)}
+              initialSubmitted={openReadyView}
+              initialSelectedTemplateId={initialTemplateId}
+            />
+          ) : (
+            <div className="rounded-2xl border border-black/5 bg-white px-5 py-8 text-sm text-relaive-gray">
+              Loading saved report...
+            </div>
+          )
         ) : null}
       </div>
     </div>

@@ -17,6 +17,183 @@ function daysAgo(days: number): string {
   return hoursAgo(days * 24)
 }
 
+type AppraisalInputContext = {
+  address: string
+  streetNumber: number
+  streetName: string
+  suburb: string
+  state: string
+  postcode: string
+  propertyType: string
+  bedrooms: number
+  bathrooms: number
+  parking: number
+  landSizeSqm: number
+}
+
+type ComparableSalePayload = {
+  id: string
+  address: string
+  price: number
+  soldAgo: string
+  beds: number
+  baths: number
+  parking: number
+  areaSqm: number
+  matchPercent: number
+  distanceKm: number
+}
+
+function toTitleCase(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+function parsePositiveInt(value: unknown): number | null {
+  const source = typeof value === 'string' ? value : Array.isArray(value) ? value[0] : ''
+  const parsed = Number(source)
+  if (!Number.isFinite(parsed) || parsed < 0) return null
+  return Math.round(parsed)
+}
+
+function parseAddress(address: string): {
+  streetNumber: number
+  streetName: string
+  suburb: string
+  state: string
+  postcode: string
+} {
+  const fallback = {
+    streetNumber: 111,
+    streetName: 'Kincumber Road',
+    suburb: 'Bonnyrigg',
+    state: 'NSW',
+    postcode: '2177',
+  }
+
+  const match = address
+    .trim()
+    .match(/^(\d+)\s+([^,]+),\s*([^,]+)\s+([A-Za-z]{2,3})\s+(\d{4})$/)
+
+  if (!match) return fallback
+
+  return {
+    streetNumber: Number(match[1]),
+    streetName: toTitleCase(match[2]),
+    suburb: toTitleCase(match[3]),
+    state: match[4].toUpperCase(),
+    postcode: match[5],
+  }
+}
+
+function createAppraisalContext(query: Record<string, unknown>): AppraisalInputContext {
+  const addressRaw =
+    typeof query.address === 'string' && query.address.trim()
+      ? query.address.trim()
+      : '111 Kincumber Road, Bonnyrigg NSW 2177'
+
+  const parsed = parseAddress(addressRaw)
+
+  return {
+    address: addressRaw,
+    streetNumber: parsed.streetNumber,
+    streetName: parsed.streetName,
+    suburb: parsed.suburb,
+    state: parsed.state,
+    postcode: parsed.postcode,
+    propertyType:
+      typeof query.propertyType === 'string' && query.propertyType.trim()
+        ? toTitleCase(query.propertyType)
+        : 'House',
+    bedrooms: parsePositiveInt(query.bedrooms) ?? 3,
+    bathrooms: parsePositiveInt(query.bathrooms) ?? 2,
+    parking: parsePositiveInt(query.parking) ?? 2,
+    landSizeSqm: parsePositiveInt(query.landSizeSqm) ?? 430,
+  }
+}
+
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('en-AU', {
+    style: 'currency',
+    currency: 'AUD',
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
+function weeksAgoLabel(): string {
+  const value = Math.floor(Math.random() * 8) + 2
+  return value === 1 ? '1 week ago' : `${value} weeks ago`
+}
+
+function computeEstimatedValue(context: AppraisalInputContext): number {
+  const propertyTypeMultiplier =
+    context.propertyType === 'Unit'
+      ? 0.78
+      : context.propertyType === 'Townhouse'
+        ? 0.9
+        : 1
+
+  const areaValue = context.landSizeSqm * 1850
+  const roomValue = context.bedrooms * 60000 + context.bathrooms * 35000 + context.parking * 18000
+  const base = (areaValue + roomValue + 210000) * propertyTypeMultiplier
+  return Math.round(base / 1000) * 1000
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value))
+}
+
+function createComparableSales(context: AppraisalInputContext): ComparableSalePayload[] {
+  const baseValue = computeEstimatedValue(context)
+  const offsets = [
+    { number: -6, beds: -1, baths: 0, parking: 0, area: -35, distance: 0.3, premium: -0.06 },
+    { number: 9, beds: 0, baths: 1, parking: 0, area: 20, distance: 0.5, premium: 0.03 },
+    { number: 17, beds: 1, baths: 0, parking: 1, area: 45, distance: 0.8, premium: 0.08 },
+  ]
+
+  return offsets.map((offset, index) => {
+    const beds = clamp(context.bedrooms + offset.beds, 1, 8)
+    const baths = clamp(context.bathrooms + offset.baths, 1, 6)
+    const parking = clamp(context.parking + offset.parking, 0, 4)
+    const areaSqm = clamp(context.landSizeSqm + offset.area, 120, 1500)
+    const price = Math.round((baseValue * (1 + offset.premium)) / 1000) * 1000
+
+    return {
+      id: `comp-${index + 1}`,
+      address: `${Math.max(1, context.streetNumber + offset.number)} ${context.streetName}, ${context.suburb} ${context.state}`,
+      price,
+      soldAgo: weeksAgoLabel(),
+      beds,
+      baths,
+      parking,
+      areaSqm,
+      matchPercent: clamp(94 - index * 5, 70, 99),
+      distanceKm: offset.distance,
+    }
+  })
+}
+
+function buildAppraisalSnapshot(context: AppraisalInputContext) {
+  const midpoint = computeEstimatedValue(context)
+  const low = Math.round((midpoint * 0.95) / 5000) * 5000
+  const high = Math.round((midpoint * 1.05) / 5000) * 5000
+  const comparables = createComparableSales(context)
+
+  return {
+    midpoint,
+    low,
+    high,
+    comparables,
+    rangeLabel: `${formatCurrency(low)} - ${formatCurrency(high)}`,
+    midpointLabel: `Midpoint estimate: ${formatCurrency(midpoint)}`,
+  }
+}
+
 // Dashboard/home payloads keyed by role.
 const DASHBOARD_DATA: Record<DashboardRole, unknown> = {
   agent: {
@@ -518,7 +695,6 @@ mockRouter.get('/copilot/messages', (_req, res) => {
 mockRouter.get('/appraisal/steps', (_req, res) => {
   res.json([
     { id: 'property-input', label: 'Property Input' },
-    { id: 'ai-analysis', label: 'AI Analysis' },
     { id: 'comparables', label: 'Comparables' },
     { id: 'market-intelligence', label: 'Market Intelligence' },
     { id: 'report', label: 'Report' },
@@ -554,33 +730,10 @@ mockRouter.get('/appraisal/ai-analysis-summary', (_req, res) => {
   })
 })
 
-mockRouter.get('/appraisal/comparable-sales', (_req, res) => {
-  res.json([
-    {
-      id: 'comp-smith-st',
-      address: '125 Smith Street, Melbourne VIC',
-      price: 840000,
-      soldAgo: '2 weeks ago',
-      beds: 3,
-      baths: 2,
-      parking: 2,
-      areaSqm: 450,
-      matchPercent: 95,
-      distanceKm: 0.2,
-    },
-    {
-      id: 'comp-collins-ave',
-      address: '89 Collins Avenue, Melbourne VIC',
-      price: 825000,
-      soldAgo: '1 month ago',
-      beds: 3,
-      baths: 2,
-      parking: 1,
-      areaSqm: 420,
-      matchPercent: 88,
-      distanceKm: 0.5,
-    },
-  ])
+mockRouter.get('/appraisal/comparable-sales', (req, res) => {
+  const context = createAppraisalContext(req.query as Record<string, unknown>)
+  const snapshot = buildAppraisalSnapshot(context)
+  res.json(snapshot.comparables)
 })
 
 mockRouter.get('/appraisal/suburb-overview', (_req, res) => {
@@ -607,4 +760,156 @@ mockRouter.get('/appraisal/report-templates', (_req, res) => {
     { id: 'buyer-advisory', title: 'Buyer Advisory', description: 'Purchase decision support', iconKey: 'buyer' },
     { id: 'investment-report', title: 'Investment Report', description: 'ROI and yield analysis', iconKey: 'investment' },
   ])
+})
+
+mockRouter.get('/appraisal/narrative-preview', (req, res) => {
+  const context = createAppraisalContext(req.query as Record<string, unknown>)
+  const snapshot = buildAppraisalSnapshot(context)
+
+  res.json({
+    title: 'Sample Narrative Preview',
+    sections: [
+      {
+        heading: 'Executive Summary:',
+        body: `${context.propertyType} at ${context.address} shows an indicative value range of ${snapshot.rangeLabel}. The estimate is supported by nearby comparable sales in ${context.suburb} ${context.state}.`,
+      },
+      {
+        heading: 'Property Analysis:',
+        body: `Configured as ${context.bedrooms} bed, ${context.bathrooms} bath, ${context.parking} parking on approximately ${context.landSizeSqm} sqm, this property profile aligns with active local demand patterns and recent turnover data.`,
+      },
+    ],
+    disclaimer:
+      'Full report includes market context, comparable evidence and a synthesised pricing rationale based on the provided property details.',
+  })
+})
+
+mockRouter.get('/appraisal/appraisal-summary', (req, res) => {
+  const context = createAppraisalContext(req.query as Record<string, unknown>)
+  const snapshot = buildAppraisalSnapshot(context)
+
+  res.json({
+    eyebrow: 'RELAIVE · AGENT APPRAISAL REPORT',
+    date: '02/08/2026',
+    street: `${context.streetNumber} ${context.streetName}`,
+    suburbLine: `${context.suburb} ${context.state} ${context.postcode}`,
+    featuresLine: `${context.propertyType} · ${context.bedrooms} bed · ${context.bathrooms} bath · ${context.landSizeSqm}m²`,
+    appraisalLabel: 'Sample Market Appraisal',
+    priceRange: snapshot.rangeLabel,
+    midpointEstimate: snapshot.midpointLabel,
+    stats: [
+      { id: 'comparables', value: String(snapshot.comparables.length), label: 'Comparables' },
+      { id: 'clearance-rate', value: '78%', label: 'Clearance Rate' },
+      { id: 'days-on-mkt', value: '22 avg', label: 'Days on Mkt' },
+      { id: 'annual-growth', value: '+8.2%', label: 'Annual Growth' },
+    ],
+  })
+})
+
+mockRouter.get('/appraisal/executive-summary', (req, res) => {
+  const context = createAppraisalContext(req.query as Record<string, unknown>)
+  const snapshot = buildAppraisalSnapshot(context)
+
+  res.json({
+    title: '1. EXECUTIVE SUMMARY',
+    paragraphs: [
+      [
+        {
+          text: `This ${context.propertyType.toLowerCase()} at ${context.address} has been synthesised as a ${context.bedrooms}-bed, ${context.bathrooms}-bath home with ${context.parking} parking spaces on ${context.landSizeSqm}m² of land. It sits in ${context.suburb}, one of the tracked local markets in ${context.state}.`,
+        },
+      ],
+      [
+        {
+          text: 'Based on nearby synthesised comparable sales and room/land-size weighting, the sample valuation model has derived an appraisal range of ',
+        },
+        {
+          text: snapshot.rangeLabel,
+          highlight: true,
+        },
+        {
+          text: `, with ${snapshot.midpointLabel.toLowerCase()}. Properties with a similar profile in ${context.suburb} continue to show steady buyer demand and moderate selling windows.`,
+        },
+      ],
+      [
+        {
+          text: `Land area and room count are the largest value contributors in this simple model. For this property, the ${context.landSizeSqm}m² footprint and ${context.bedrooms}-bed layout support positioning toward the middle-to-upper section of the estimate range.`,
+        },
+      ],
+    ],
+    observationTitle: 'Sample Key Observation',
+    observationMessage: `The closest comparable is ${snapshot.comparables[0].address} (${formatCurrency(snapshot.comparables[0].price)}), which anchors the lower end due to smaller footprint and fewer features.`,
+  })
+})
+
+mockRouter.get('/appraisal/property-specific-factors', (req, res) => {
+  const context = createAppraisalContext(req.query as Record<string, unknown>)
+
+  res.json({
+    title: '2. PROPERTY-SPECIFIC FACTORS',
+    valueAddingTitle: 'VALUE-ADDING FACTORS',
+    valueAdding: [
+      {
+        id: 'land-holding',
+        title: 'Land holding contribution',
+        description: `${context.landSizeSqm}m² land size contributes strongly to valuation depth in ${context.suburb}.`,
+      },
+      {
+        id: 'bedroom-depth',
+        title: 'Bedroom configuration',
+        description: `${context.bedrooms} bedrooms align with mainstream demand for ${context.propertyType.toLowerCase()} stock.`,
+      },
+      {
+        id: 'bathroom-balance',
+        title: 'Bathroom and parking utility',
+        description: `${context.bathrooms} bathrooms and ${context.parking} parking spaces improve buyer practicality and liquidity.`,
+      },
+    ],
+    riskTitle: 'RISK & LIMITING FACTORS',
+    risk: [
+      {
+        id: 'data-freshness',
+        title: 'Synthetic model output',
+        description: 'Figures are generated from simple rules and should be treated as indicative, not formal valuation advice.',
+      },
+      {
+        id: 'local-variation',
+        title: 'Local micro-market variance',
+        description: `${context.suburb} transactions may vary based on street-level factors not captured in this simplified model.`,
+      },
+    ],
+  })
+})
+
+mockRouter.get('/appraisal/agent-recommendations', (_req, res) => {
+  res.json({
+    title: '3. AGENT RECOMMENDATIONS',
+    items: [
+      {
+        id: 'campaign',
+        title: 'Campaign Strategy',
+        description: 'A four-week auction campaign commencing in the first week of September 2026 is recommended to coincide with the spring uplift in buyer activity. Set a buyer price guide of $1,400,000-$1,500,000 to attract the widest possible buyer pool and maximise competitive tension at auction.',
+        iconKey: 'campaign',
+      },
+      {
+        id: 'presentation',
+        title: 'Presentation Priorities',
+        description: 'Invest in professional styling - estimate $3,500-$5,000. Focus on north-facing garden staging and kitchen presentation. Repaint front facade if not recently done. Highlight the land size and school catchment prominently in all marketing copy.',
+        iconKey: 'presentation',
+      },
+      {
+        id: 'marketing',
+        title: 'Marketing Channels',
+        description: 'Allocate 60% of marketing budget to digital (REA Premium+, Domain Premiere+), 30% to social media (Instagram/Facebook geo-targeted to Stonnington and Port Phillip postcodes), and 10% to print (local papers). Estimated marketing budget: $8,000-$12,000.',
+        iconKey: 'marketing',
+        highlighted: true,
+      },
+    ],
+  })
+})
+
+mockRouter.get('/appraisal/appraisal-disclaimer', (_req, res) => {
+  res.json({
+    title: 'Disclaimer:',
+    message: 'This sample report was prepared for demonstration purposes and is intended as a guidance tool only. It does not constitute a formal property valuation under the Valuers Act 2003 (Vic) and should not be relied upon as such in legal, financial, or lending contexts. All figures are estimates based on publicly available transaction data and sample modelling. Relaive recommends this report be reviewed by a licensed real estate agent or certified practising valuer before being presented to vendors or third parties. Market conditions may change rapidly; this appraisal has a recommended validity period of 90 days from the date of generation.',
+    footer: 'Generated by Relaive · relaive.com.au · Report ID: RPT-9TH5PRUA',
+  })
 })

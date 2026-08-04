@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Card, CardTitle } from '../../../../components/ui/card/card'
 import { OptionCardGroup, type OptionCardItem } from '../../../../components/ui/option-card/option-card'
 import { Button } from '../../../../components/ui/button/button'
@@ -12,6 +13,7 @@ import {
   getAppraisalSummary,
   getExecutiveSummary,
   getNarrativePreview,
+  persistGeneratedReport,
   getPropertySpecificFactors,
   getReportTemplates,
 } from '../../../../services/common'
@@ -26,9 +28,17 @@ import { StepActions } from './step-actions'
 
 type ReportConfigurationPanelProps = {
   onBack: () => void
+  initialSubmitted?: boolean
+  initialSelectedTemplateId?: string
 }
 
-export function ReportConfigurationPanel({ onBack }: ReportConfigurationPanelProps) {
+export function ReportConfigurationPanel({
+  onBack,
+  initialSubmitted = false,
+  initialSelectedTemplateId,
+}: ReportConfigurationPanelProps) {
+  const navigate = useNavigate()
+  const { role } = useParams<{ role?: string }>()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [sendToClientOpen, setSendToClientOpen] = useState(false)
@@ -52,9 +62,69 @@ export function ReportConfigurationPanel({ onBack }: ReportConfigurationPanelPro
   )
   const selectedTemplate = (templates ?? []).find((template) => template.id === selectedId)
 
+  useEffect(() => {
+    if (!initialSubmitted) return
+    if (!templates?.length) return
+
+    const matchedTemplate = initialSelectedTemplateId
+      ? templates.find((template) => template.id === initialSelectedTemplateId)
+      : null
+
+    if (!selectedId) {
+      setSelectedId(matchedTemplate?.id ?? templates[0].id)
+    }
+    setSubmitted(true)
+  }, [initialSubmitted, initialSelectedTemplateId, templates, selectedId])
+
+  const parseEstimatedValue = (value: string | undefined): number => {
+    const source = value ?? ''
+    const digits = source.replace(/[^\d]/g, '')
+    const parsed = Number(digits)
+    if (!Number.isFinite(parsed) || parsed <= 0) return 850000
+    return parsed
+  }
+
+  const buildNarrative = (): string => {
+    if (!narrativePreview) {
+      return 'Generated appraisal narrative unavailable.'
+    }
+
+    return narrativePreview.sections
+      .map((section) => `${section.heading} ${section.body}`)
+      .join('\n\n')
+  }
+
+  const saveReport = async (options: {
+    clientName?: string
+    clientEmail?: string
+    markAsExported?: boolean
+  }) => {
+    if (!selectedTemplate) {
+      throw new Error('Select a report template before saving.')
+    }
+
+    await persistGeneratedReport({
+      reportTemplateId: selectedTemplate.id,
+      narrativeText: buildNarrative(),
+      estimatedValue: parseEstimatedValue(appraisalSummary?.midpointEstimate),
+      clientName: options.clientName,
+      clientEmail: options.clientEmail,
+      markAsExported: options.markAsExported,
+    })
+  }
+
   const handleSelect = (id: string) => {
     if (submitted) return
     setSelectedId((current) => (current === id ? null : id))
+  }
+
+  const handleSendSuccess = () => {
+    setSendToClientOpen(false)
+    navigate(role ? `/dashboard/${role}` : '/dashboard')
+  }
+
+  const handleExportPdf = async () => {
+    await saveReport({ markAsExported: true })
   }
 
   return (
@@ -243,7 +313,7 @@ export function ReportConfigurationPanel({ onBack }: ReportConfigurationPanelPro
           ) : null}
 
           <div className="flex flex-wrap items-center gap-3">
-            <Button type="button" variant="outline" size="md">
+            <Button type="button" variant="outline" size="md" onClick={handleExportPdf}>
               Export PDF
             </Button>
             <Button type="button" variant="outline" size="md">
@@ -260,7 +330,16 @@ export function ReportConfigurationPanel({ onBack }: ReportConfigurationPanelPro
           </div>
 
           {sendToClientOpen ? (
-            <SendReportCard onClose={() => setSendToClientOpen(false)} />
+            <SendReportCard
+              onClose={() => setSendToClientOpen(false)}
+              onSend={(payload) =>
+                saveReport({
+                  clientName: payload.clientName,
+                  clientEmail: payload.clientEmail,
+                })
+              }
+              onSuccess={handleSendSuccess}
+            />
           ) : null}
         </div>
       ) : (

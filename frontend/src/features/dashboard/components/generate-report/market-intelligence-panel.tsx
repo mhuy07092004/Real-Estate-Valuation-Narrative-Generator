@@ -1,8 +1,6 @@
 import { Card, CardTitle } from '../../../../components/ui/card/card'
-import { Notification } from '../../../../components/notification/notification'
 import { useAsyncData } from '../../../../hooks/use-async-data'
 import {
-  getAiAnalysisSummaryNotification,
   getDemandSignals,
   getSuburbOverview,
   type DemandSignal,
@@ -58,7 +56,6 @@ type MarketIntelligencePanelProps = {
 }
 
 export function MarketIntelligencePanel({ onBack, onContinue }: MarketIntelligencePanelProps) {
-  const { data: summary } = useAsyncData(getAiAnalysisSummaryNotification, [])
   const { data: suburbOverview } = useAsyncData(getSuburbOverview, [])
   const { data: demandSignals } = useAsyncData(getDemandSignals, [])
 
@@ -93,16 +90,6 @@ export function MarketIntelligencePanel({ onBack, onContinue }: MarketIntelligen
           </div>
         </div>
       </div>
-
-      {summary ? (
-        <Notification
-          className="mt-6"
-          icon={<ChartTrendIcon size={18} />}
-        >
-          <p className="font-semibold">AI Market Analysis</p>
-          <p className="mt-1">{summary.message}</p>
-        </Notification>
-      ) : null}
 
       <StepActions onBack={onBack} onContinue={onContinue} />
     </Card>

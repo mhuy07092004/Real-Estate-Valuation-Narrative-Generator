@@ -1,4 +1,5 @@
 import type { DataTableTab } from '../../../components/ui/table/data-table'
+import { useNavigate } from 'react-router-dom'
 import { CaseTable } from '../../../components/ui/table/case-table'
 import { useAsyncData } from '../../../hooks/use-async-data'
 import type { CaseItem } from '../../../services/dashboard'
@@ -24,6 +25,7 @@ const REPORT_TABS: DataTableTab<CaseItem>[] = [
 ]
 
 export function AgentReport() {
+  const navigate = useNavigate()
   const { data: cases } = useAsyncData(getAgentReportListMockData, [])
 
   if (!cases) {
@@ -48,6 +50,9 @@ export function AgentReport() {
           defaultTabId="recent"
           searchPlaceholder="Search reports, properties, clients..."
           emptyMessage="No reports match your search."
+          onRowClick={(item) =>
+            navigate(`/dashboard/agent/generate-report?step=4&ready=1&reportId=${encodeURIComponent(item.id)}`)
+          }
         />
       </div>
     </div>
