@@ -11,6 +11,11 @@ import { marketDataRouter } from './market-data.routes.js'
 // Central /api router: mixes DB-backed auth/content routes and mock feature routes.
 export const apiRouter = Router()
 
+// Unauthenticated liveness check — used as Render's health check path.
+apiRouter.get('/health', (_req, res) => {
+  res.json({ status: 'ok' })
+})
+
 apiRouter.use('/content', contentRouter)
 apiRouter.use('/navigation', navigationRouter)
 apiRouter.use('/auth', registrationRouter)

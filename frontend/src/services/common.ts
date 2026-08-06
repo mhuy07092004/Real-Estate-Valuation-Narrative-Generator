@@ -357,8 +357,12 @@ export type NarrativePreview = {
   disclaimer: string
 }
 
-export function getNarrativePreview(): Promise<NarrativePreview> {
-  return fetchJson(withAppraisalContext('/api/appraisal/narrative-preview'))
+export function getNarrativePreview(reportType?: string): Promise<NarrativePreview> {
+  const path = withAppraisalContext('/api/appraisal/narrative-preview')
+  if (!reportType) return fetchJson(path)
+
+  const separator = path.includes('?') ? '&' : '?'
+  return fetchJson(`${path}${separator}reportType=${encodeURIComponent(reportType)}`)
 }
 
 export type AppraisalSummaryStat = {

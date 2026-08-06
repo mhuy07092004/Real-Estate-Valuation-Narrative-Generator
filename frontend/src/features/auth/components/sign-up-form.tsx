@@ -188,11 +188,6 @@ export function SignUpForm() {
         <p className="mt-2 text-sm text-relaive-gray">
           Start your property intelligence workflow
         </p>
-        {error ? (
-          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600" role="alert">
-            {error}
-          </p>
-        ) : null}
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -279,11 +274,13 @@ export function SignUpForm() {
           {fieldErrors.password ? <p className="text-xs text-red-600">{fieldErrors.password}</p> : null}
         </div>
 
+        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
         <Button
           type="submit"
           size="lg"
           disabled={isSubmitting}
-          className="w-full bg-gradient-to-r from-relaive-primary to-relaive-secondary hover:opacity-90 disabled:opacity-60"
+          className="w-full bg-gradient-to-r from-relaive-primary to-relaive-secondary hover:opacity-90"
         >
           {isSubmitting ? 'Signing up...' : 'Sign up'}
         </Button>

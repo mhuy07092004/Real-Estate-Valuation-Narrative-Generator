@@ -47,7 +47,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(session.user)
     return session
   }, [])
-
   const logout = useCallback(() => {
     clearSession()
     setUser(null)

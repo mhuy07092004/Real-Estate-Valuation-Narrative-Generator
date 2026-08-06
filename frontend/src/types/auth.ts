@@ -26,7 +26,6 @@ export interface RegisterCredentials {
   password: string
   role?: UserRole
 }
-
 export interface AuthSession {
   user: User
   accessToken: string

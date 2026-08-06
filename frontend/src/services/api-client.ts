@@ -1,6 +1,12 @@
 // Shared HTTP helper. Every service function resolves through this so swapping
 // in a real backend only requires pointing at the same `/api/...` paths.
 
+// In local dev this is left empty and Vite's dev proxy (see vite.config.ts)
+// forwards relative `/api/...` calls to localhost:4000. In production, set
+// VITE_API_BASE_URL (e.g. in the Vercel dashboard) to the deployed backend's
+// origin, since there's no dev-proxy equivalent once both are deployed separately.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
+
 export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers)
 
@@ -18,9 +24,10 @@ export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T>
     }
   }
 
-  const response = await fetch(path, { ...init, headers })
+  const url = `${API_BASE_URL}${path}`
+  const response = await fetch(url, { ...init, headers })
   if (!response.ok) {
-    throw new Error(`Request to ${path} failed with status ${response.status}`)
+    throw new Error(`Request to ${url} failed with status ${response.status}`)
   }
   return (await response.json()) as T
 }

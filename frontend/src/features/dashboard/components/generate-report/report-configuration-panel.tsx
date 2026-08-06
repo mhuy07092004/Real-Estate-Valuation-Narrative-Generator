@@ -43,7 +43,10 @@ export function ReportConfigurationPanel({
   const [submitted, setSubmitted] = useState(false)
   const [sendToClientOpen, setSendToClientOpen] = useState(false)
   const { data: templates } = useAsyncData(getReportTemplates, [])
-  const { data: narrativePreview } = useAsyncData(getNarrativePreview, [])
+  const { data: narrativePreview, isLoading: isNarrativeLoading } = useAsyncData(
+    () => getNarrativePreview(selectedId ?? undefined),
+    [selectedId],
+  )
   const { data: appraisalSummary } = useAsyncData(getAppraisalSummary, [])
   const { data: executiveSummary } = useAsyncData(getExecutiveSummary, [])
   const { data: propertyFactors } = useAsyncData(getPropertySpecificFactors, [])
@@ -149,14 +152,24 @@ export function ReportConfigurationPanel({
       </div>
 
       {narrativePreview ? (
-        <div className="mt-6 rounded-xl border border-[#E5E7EB] bg-white p-5 sm:p-6">
-          <h3 className="text-base font-semibold text-relaive-navy sm:text-lg">
-            {narrativePreview.title}
-          </h3>
+        <div
+          className={`mt-6 rounded-xl border border-[#E5E7EB] bg-white p-5 transition-opacity sm:p-6 ${
+            isNarrativeLoading ? 'opacity-60' : 'opacity-100'
+          }`}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-base font-semibold text-relaive-navy sm:text-lg">
+              {narrativePreview.title}
+            </h3>
+            {isNarrativeLoading ? (
+              <span className="shrink-0 text-xs font-medium text-relaive-gray">Regenerating…</span>
+            ) : null}
+          </div>
           <div className="mt-4 space-y-4 text-sm leading-relaxed text-relaive-navy sm:text-[15px]">
-            {narrativePreview.sections.map((section) => (
-              <p key={section.heading}>
-                <span className="font-semibold">{section.heading}</span> {section.body}
+            {narrativePreview.sections.map((section, index) => (
+              <p key={`${section.heading}-${index}`}>
+                {section.heading ? <span className="font-semibold">{section.heading}</span> : null}{' '}
+                {section.body}
               </p>
             ))}
           </div>

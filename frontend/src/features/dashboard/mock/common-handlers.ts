@@ -219,7 +219,7 @@ const EXECUTIVE_SUMMARY_DATA: ExecutiveSummary = {
   paragraphs: [
     [
       {
-        text: "This well-presented three-bedroom residence is positioned in South Yarra — one of Melbourne's most consistently performing inner-city suburbs. The property presents in excellent condition and benefits from a generous 430m² land holding, providing significant future development potential subject to council approval. The home features an updated kitchen, two bathrooms, a separate laundry, and a north-facing rear garden — attributes strongly favoured by the local buyer demographic of professional families and upsizers.",
+        text: "This well-presented three-bedroom residence is positioned in South Yarra - one of Melbourne's most consistently performing inner-city suburbs. The property presents in excellent condition and benefits from a generous 430m² land holding, providing significant future development potential subject to council approval. The home features an updated kitchen, two bathrooms, a separate laundry, and a north-facing rear garden - attributes strongly favoured by the local buyer demographic of professional families and upsizers.",
       },
     ],
     [
@@ -252,7 +252,7 @@ const PROPERTY_SPECIFIC_FACTORS_DATA: PropertySpecificFactors = {
     {
       id: 'land-holding',
       title: 'Superior land holding',
-      description: '430m² vs suburb median 398m² — adds est. +$58,000 premium',
+      description: '430m² vs suburb median 398m² - adds est. +$58,000 premium',
     },
     {
       id: 'north-garden',
@@ -266,12 +266,12 @@ const PROPERTY_SPECIFIC_FACTORS_DATA: PropertySpecificFactors = {
     },
     {
       id: 'period-character',
-      title: 'Period character — Edwardian',
+      title: 'Period character - Edwardian',
       description: 'High ceiling appeal; sought-after in South Yarra',
     },
     {
       id: 'school-catchment',
-      title: 'School catchment — South Yarra Primary',
+      title: 'School catchment - South Yarra Primary',
       description: 'Desirable catchment; premium of est. +$15,000–$25,000',
     },
   ],
@@ -281,7 +281,7 @@ const PROPERTY_SPECIFIC_FACTORS_DATA: PropertySpecificFactors = {
       id: 'laneway',
       title: 'Rear laneway access only',
       description:
-        'Single car access via laneway — limits a second off-street space; minor sensitivity in family buyer demographic',
+        'Single car access via laneway - limits a second off-street space; minor sensitivity in family buyer demographic',
     },
     {
       id: 'chapel-st',
@@ -299,7 +299,7 @@ const PROPERTY_SPECIFIC_FACTORS_DATA: PropertySpecificFactors = {
       id: 'bathroom',
       title: 'Single-bathroom floor plan (ensuite only)',
       description:
-        'Main bathroom doubles as ensuite — a minor compromise vs comparables with dedicated family bathroom',
+        'Main bathroom doubles as ensuite - a minor compromise vs comparables with dedicated family bathroom',
     },
   ],
 }
@@ -318,7 +318,7 @@ const AGENT_RECOMMENDATIONS_DATA: AgentRecommendations = {
       id: 'presentation',
       title: 'Presentation Priorities',
       description:
-        'Invest in professional styling — estimate $3,500–$5,000. Focus on north-facing garden staging and kitchen presentation. Repaint front facade if not recently done. Highlight the land size and school catchment prominently in all marketing copy.',
+        'Invest in professional styling - estimate $3,500–$5,000. Focus on north-facing garden staging and kitchen presentation. Repaint front facade if not recently done. Highlight the land size and school catchment prominently in all marketing copy.',
       iconKey: 'presentation',
     },
     {
