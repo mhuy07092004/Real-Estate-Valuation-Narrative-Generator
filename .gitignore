@@ -41,6 +41,3 @@ __pycache__/
 *.njsproj
 *.sln
 *.sw?
-
-#private file
-claude.md
