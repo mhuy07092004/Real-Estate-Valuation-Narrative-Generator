@@ -21,7 +21,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 EXPOSE 4000
-# Runs the (ephemeral) SQLite file through the current schema on every boot,
-# then starts the server. See backend .env.example for the accepted trade-off
-# of data resetting on each redeploy/restart.
-CMD ["/bin/sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
+# Runs the (ephemeral) SQLite file through the current schema, then seeds
+# reference data (roles + demo user) that registration/login depend on,
+# then starts the server. Both run on every boot since the SQLite file is
+# reset each time — see backend .env.example for that accepted trade-off.
+CMD ["/bin/sh", "-c", "npx prisma migrate deploy && npx tsx prisma/seed.ts && node dist/server.js"]
