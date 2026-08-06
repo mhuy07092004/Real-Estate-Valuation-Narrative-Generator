@@ -5,7 +5,7 @@
 // forwards relative `/api/...` calls to localhost:4000. In production, set
 // VITE_API_BASE_URL (e.g. in the Vercel dashboard) to the deployed backend's
 // origin, since there's no dev-proxy equivalent once both are deployed separately.
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 
 export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers)

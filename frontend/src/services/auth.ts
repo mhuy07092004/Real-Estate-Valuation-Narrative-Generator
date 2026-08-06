@@ -7,8 +7,13 @@ import {
   type LoginResponseData,
   type RegisterCredentials,
 } from '../types/auth'
+import { API_BASE_URL } from './api-client'
 
-const API_BASE = '/api/auth'
+// Not routed through fetchJson (api-client.ts) because these calls must never
+// attach a stale Authorization header before a session exists — but they still
+// need the same API_BASE_URL prefix so they hit the deployed backend, not
+// whatever origin the frontend itself is served from.
+const API_BASE = `${API_BASE_URL}/api/auth`
 const SESSION_KEY = 'relaive_auth'
 
 function decodeToken(token: string): AuthTokenPayload | null {
