@@ -1,7 +1,6 @@
 # CSIT321 — Relaive Web Project
 
 A full-stack web application for AI-powered property appraisal (Relaive).
-
 ## 🚀 Technologies & Frameworks
 
 ### Frontend
