@@ -44,6 +44,7 @@ type ComparableSalePayload = {
   areaSqm: number
   matchPercent: number
   distanceKm: number
+  propertyType: string
 }
 
 function toTitleCase(value: string): string {
@@ -176,6 +177,7 @@ function createComparableSales(context: AppraisalInputContext): ComparableSalePa
       areaSqm,
       matchPercent: clamp(94 - index * 5, 70, 99),
       distanceKm: offset.distance,
+      propertyType: context.propertyType,
     }
   })
 }
@@ -193,6 +195,73 @@ function buildAppraisalSnapshot(context: AppraisalInputContext) {
     comparables,
     rangeLabel: `${formatCurrency(low)} - ${formatCurrency(high)}`,
     midpointLabel: `Midpoint estimate: ${formatCurrency(midpoint)}`,
+  }
+}
+
+const TREND_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+// Small deterministic hash so market metrics vary by suburb/postcode without being random-per-request.
+function seedFrom(text: string): number {
+  return text.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0)
+}
+
+// v2's Market Intelligence view (wizard + standalone page) needs a 12-month price trend and
+// trend-labelled metric cards, which /appraisal/suburb-overview and /appraisal/demand-signals
+// don't provide (they're static placeholders). This is purely additive — a new endpoint, no
+// change to the existing ones — computed the same deterministic way as buildAppraisalSnapshot.
+function buildMarketMetrics(context: AppraisalInputContext) {
+  const current = computeEstimatedValue(context)
+  const seed = seedFrom(`${context.suburb}${context.postcode}`)
+  const monthlyGrowthPct = 0.4 + (seed % 12) / 10 // 0.4% - 1.5%
+
+  const priceTrend = TREND_MONTHS.map((month, index) => {
+    const monthsAgo = TREND_MONTHS.length - 1 - index
+    const value = Math.round((current / Math.pow(1 + monthlyGrowthPct / 100, monthsAgo)) / 1000) * 1000
+    return { month, value }
+  })
+  priceTrend[priceTrend.length - 1].value = current
+
+  const twelveMonthGrowthPct =
+    ((priceTrend[priceTrend.length - 1].value - priceTrend[0].value) / priceTrend[0].value) * 100
+  const daysOnMarket = 15 + (seed % 20)
+  const rentalYieldPct = 2.5 + (seed % 20) / 10
+
+  return {
+    metrics: [
+      {
+        id: 'median-price',
+        label: 'Median Price',
+        value: formatCurrency(current),
+        change: `${twelveMonthGrowthPct >= 0 ? '+' : ''}${twelveMonthGrowthPct.toFixed(1)}%`,
+        up: twelveMonthGrowthPct >= 0,
+        detail: 'vs. 12 months ago',
+      },
+      {
+        id: 'monthly-growth',
+        label: 'Monthly Growth',
+        value: `${monthlyGrowthPct >= 0 ? '+' : ''}${monthlyGrowthPct.toFixed(2)}%`,
+        change: 'month-on-month',
+        up: monthlyGrowthPct >= 0,
+        detail: 'average pace',
+      },
+      {
+        id: 'days-on-market',
+        label: 'Days on Market',
+        value: `${daysOnMarket} days`,
+        change: 'avg. days listed',
+        up: true,
+        detail: `for ${context.suburb}`,
+      },
+      {
+        id: 'rental-yield',
+        label: 'Rental Yield',
+        value: `${rentalYieldPct.toFixed(1)}%`,
+        change: 'gross annual',
+        up: true,
+        detail: `for ${context.suburb}`,
+      },
+    ],
+    priceTrend,
   }
 }
 
@@ -753,6 +822,11 @@ mockRouter.get('/appraisal/demand-signals', (_req, res) => {
     { id: 'supply-level', label: 'Supply Level', level: 'Medium', percent: 50, tone: 'medium' },
     { id: 'price-growth', label: 'Price Growth', level: 'Strong', percent: 85, tone: 'strong' },
   ])
+})
+
+mockRouter.get('/appraisal/market-metrics', (req, res) => {
+  const context = createAppraisalContext(req.query as Record<string, unknown>)
+  res.json(buildMarketMetrics(context))
 })
 
 mockRouter.get('/appraisal/report-templates', (_req, res) => {
