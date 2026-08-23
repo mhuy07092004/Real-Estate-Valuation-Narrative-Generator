@@ -7,7 +7,7 @@ export const createClientSchema = z.object({
   fullName: z.string().trim().min(1),
   email: z.string().trim().min(1),
   phone: z.string().trim().min(1),
-  status: z.enum(['prospecting', 'appraisal_sent']).default('prospecting'),
+  status: z.enum(['prospecting', 'active', 'appraisal_sent', 'listing', 'sold']).default('prospecting'),
   notes: z.string().trim().optional(),
   addressLine: z.string().trim().min(1),
   suburb: z.string().trim().min(1),

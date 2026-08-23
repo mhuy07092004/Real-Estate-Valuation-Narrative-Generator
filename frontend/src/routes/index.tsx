@@ -29,13 +29,20 @@ import { AffordabilityCalculation } from '../pages/dashboard/buyer/affortability
 import { NotificationPage } from '../pages/dashboard/notification'
 import { GenerateReport } from '../pages/dashboard/generate-report'
 import { ProtectedRoute } from '../features/auth/components/protected-route'
+import { VersionSwitch } from '../v2/VersionSwitch'
+import { ClientsV2 } from '../v2/pages/dashboard/real-estate-agent/clients'
+import { AgentReportV2 } from '../v2/pages/dashboard/real-estate-agent/agent-report'
+import { GenerateReportV2 } from '../v2/pages/dashboard/generate-report'
+import { ComparableSalesPageV2 } from '../v2/pages/dashboard/real-estate-agent/comparable-sales'
+import { MarketIntelligencePageV2 } from '../v2/pages/dashboard/real-estate-agent/market-intelligence'
 
 function DashboardReport() {
   const { role } = useParams<{ role: string }>()
   if (role === 'investor') return <InvestorReport />
   if (role === 'valuer') return <ValuerReport />
   if (role === 'buyer') return <BuyerReport />
-  return <AgentReport />
+  // Only the agent role has a v2 report page so far — see figma-ui-migration-plan.md §9.
+  return <VersionSwitch v1={<AgentReport />} v2={<AgentReportV2 />} />
 }
 
 export function AppRoutes() {
@@ -60,7 +67,7 @@ export function AppRoutes() {
         <Route path=":role" element={<DashboardRoleGuard />}>
           <Route index element={<DashboardRoleHome />} />
           <Route path="valuation-cases" element={<ValuationCases />} />
-          <Route path="clients" element={<ClientAgent />} />
+          <Route path="clients" element={<VersionSwitch v1={<ClientAgent />} v2={<ClientsV2 />} />} />
           <Route path="report" element={<DashboardReport />} />
           <Route path="evidence-centre" element={<EvidenceCentre />} />
           <Route path="search-properties" element={<SearchProperty />} />
@@ -70,7 +77,9 @@ export function AppRoutes() {
           <Route path="roi-calculation" element={<RoiCalculation />} />
           <Route path="affortability-calculation" element={<AffordabilityCalculation />} />
           <Route path="notifications" element={<NotificationPage />} />
-          <Route path="generate-report" element={<GenerateReport />} />
+          <Route path="generate-report" element={<VersionSwitch v1={<GenerateReport />} v2={<GenerateReportV2 />} />} />
+          <Route path="comparable-sales" element={<ComparableSalesPageV2 />} />
+          <Route path="market-intelligence" element={<MarketIntelligencePageV2 />} />
           <Route path="mock" element={<MockPageRoute />} />
         </Route>
       </Route>

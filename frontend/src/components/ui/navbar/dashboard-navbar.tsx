@@ -11,6 +11,7 @@ import {
 } from '../../../features/dashboard/utils/dashboard-role'
 import { useAsyncData } from '../../../hooks/use-async-data'
 import { useClickOutside } from '../../../hooks/use-click-outside'
+import { useUiVersion } from '../../../v2/use-ui-version'
 import { getAgentUnreadNotificationCount } from '../../../services/agent'
 import { getBuyerUnreadNotificationCount } from '../../../services/buyer'
 import { getInvestorUnreadNotificationCount } from '../../../services/investor'
@@ -49,6 +50,7 @@ const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
       items: [
         { label: 'Generate Report', icon: NavPlaceholderIcon },
         { label: 'Comparable Sales', icon: NavPlaceholderIcon },
+        { label: 'Market Intelligence', icon: NavPlaceholderIcon },
         { label: 'Client', icon: NavPlaceholderIcon },
         { label: 'Client Report', icon: NavPlaceholderIcon },
       ],
@@ -115,6 +117,8 @@ function extractRoleFromPathname(pathname: string): DashboardRole {
 
 function resolveActiveNavFromPath(pathname: string): string {
   if (pathname.endsWith('/valuation-cases')) return 'Valuation Cases'
+  if (pathname.endsWith('/comparable-sales')) return 'Comparable Sales'
+  if (pathname.endsWith('/market-intelligence')) return 'Market Intelligence'
   if (pathname.endsWith('/clients')) return 'Client'
   if (pathname.endsWith('/report')) return REPORT_PAGE_TITLE[extractRoleFromPathname(pathname)]
   if (pathname.endsWith('/evidence-centre')) return 'Evidence Center'
@@ -140,6 +144,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   const { pathname } = useLocation()
   const { role: roleParam } = useParams<{ role: string }>()
   const { user, logout } = useAuth()
+  const uiVersion = useUiVersion()
   const userMenuRef = useRef<HTMLDivElement>(null)
   const availableRoles = useMemo(
     () => ROLES.filter((r) => user?.roles.includes(r.value)),
@@ -188,6 +193,10 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   useEffect(() => {
     if (pathname.endsWith('/valuation-cases')) {
       setActiveNav('Valuation Cases')
+    } else if (pathname.endsWith('/comparable-sales')) {
+      setActiveNav('Comparable Sales')
+    } else if (pathname.endsWith('/market-intelligence')) {
+      setActiveNav('Market Intelligence')
     } else if (pathname.endsWith('/clients')) {
       setActiveNav('Client')
     } else if (pathname.endsWith('/report')) {
@@ -287,6 +296,12 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate(`/dashboard/${resolvedRole}/roi-calculation`)
     } else if (label === 'Affordability' && resolvedRole === 'buyer') {
       navigate('/dashboard/buyer/affortability-calculation')
+    } else if (label === 'Comparable Sales' && resolvedRole === 'agent' && uiVersion === 'v2') {
+      // Net-new v2 page — no v1 counterpart, so only reachable via nav once v2 is on.
+      // See figma-ui-migration-plan.md §9.
+      navigate('/dashboard/agent/comparable-sales')
+    } else if (label === 'Market Intelligence' && resolvedRole === 'agent' && uiVersion === 'v2') {
+      navigate('/dashboard/agent/market-intelligence')
     } else if (label === 'Generate Report' && resolvedRole === 'agent') {
       navigate('/dashboard/agent/generate-report')
     } else if (label === 'New Valuation' && resolvedRole === 'valuer') {

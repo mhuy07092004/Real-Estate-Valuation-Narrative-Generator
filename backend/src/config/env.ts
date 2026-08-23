@@ -15,7 +15,10 @@ export const env = {
   },
   groq: {
     apiKey: process.env.GROQ_API_KEY || '',
-    model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+    // If narrative generation stops working, check https://console.groq.com/docs/models —
+    // Groq retires models on a schedule (e.g. llama-3.3-70b-versatile, the previous
+    // default here, was decommissioned 2026-08-16). Set GROQ_MODEL to a current one.
+    model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
     baseUrl: process.env.GROQ_BASE_URL || 'https://api.groq.com/openai/v1',
     temperature: Number(process.env.GROQ_TEMPERATURE) || 0.4,
     maxTokens: Number(process.env.GROQ_MAX_TOKENS) || 700,

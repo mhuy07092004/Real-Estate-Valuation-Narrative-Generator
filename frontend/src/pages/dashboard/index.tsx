@@ -13,6 +13,9 @@ import {
 } from '../../features/dashboard/utils/dashboard-role'
 import { LAZY_ROLE_VIEWS, preloadOtherDashboardRoles } from './dashboard-role-lazy.tsx'
 import { formatUserDisplayDate } from '../../features/dashboard/utils/dashboard-date'
+import { VersionSwitch } from '../../v2/VersionSwitch'
+import { VersionToggleControl } from '../../v2/VersionToggleControl'
+import { AgentHomeV2 } from '../../v2/pages/dashboard/real-estate-agent/agent-home'
 
 function isDashboardRoleHome(pathname: string) {
   return /^\/dashboard\/[^/]+\/?$/.test(pathname)
@@ -52,6 +55,7 @@ export function DashboardLayout() {
     <DashboardNavbar>
       <DashboardWelcomeHeader />
       <Outlet />
+      <VersionToggleControl />
     </DashboardNavbar>
   )
 }
@@ -111,11 +115,18 @@ export function DashboardRoleHome() {
   }
 
   const View = LAZY_ROLE_VIEWS[roleParam]
-  return (
+  const v1Element = (
     <Suspense fallback={<DashboardViewSkeleton />}>
       <View />
     </Suspense>
   )
+
+  // Only the agent role has a v2 home page so far — see figma-ui-migration-plan.md §9.
+  if (roleParam === 'agent') {
+    return <VersionSwitch v1={v1Element} v2={<AgentHomeV2 />} />
+  }
+
+  return v1Element
 }
 
 export default function Dashboard() {
