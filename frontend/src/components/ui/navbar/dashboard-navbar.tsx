@@ -17,13 +17,22 @@ import { getInvestorUnreadNotificationCount } from '../../../services/investor'
 import { getValuerUnreadNotificationCount } from '../../../services/valuer'
 import {
   BellIcon,
-  BookmarkIcon,
-  BotIcon,
   BriefcaseIcon,
+  BuildingIcon,
+  CalculatorIcon,
+  ComparableSalesIcon,
+  CompassIcon,
+  DatabaseIcon,
+  HeartIcon,
   HomeIcon,
   InvestorIcon,
-  NavPlaceholderIcon,
+  LayersIcon,
+  MapPinIcon,
+  PlusIcon,
+  ReportDocIcon,
+  TrendingUpIcon,
   UserIcon,
+  UsersIcon,
   ValuationIcon,
 } from './dashboard-navbar-icons'
 import { DashboardSidebar } from './dashboard-sidebar'
@@ -47,10 +56,10 @@ const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
     {
       title: 'Appraisal Workflow',
       items: [
-        { label: 'Generate Report', icon: NavPlaceholderIcon },
-        { label: 'Comparable Sales', icon: NavPlaceholderIcon },
-        { label: 'Client', icon: NavPlaceholderIcon },
-        { label: 'Client Report', icon: NavPlaceholderIcon },
+        { label: 'Generate Appraisal', icon: PlusIcon },
+        { label: 'Comparable Sales', icon: ComparableSalesIcon },
+        { label: 'Client', icon: UserIcon },
+        { label: 'Client Report', icon: ReportDocIcon, badge: 3 },
       ],
     },
   ],
@@ -58,10 +67,10 @@ const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
     {
       title: 'Valuation Workflow',
       items: [
-        { label: 'New Valuation', icon: NavPlaceholderIcon },
-        { label: 'Valuation Cases', icon: NavPlaceholderIcon },
-        { label: 'Evidence Center', icon: NavPlaceholderIcon },
-        { label: 'Reports', icon: NavPlaceholderIcon },
+        { label: 'Valuation Cases', icon: BriefcaseIcon, badge: 5 },
+        { label: 'New Valuation', icon: PlusIcon },
+        { label: 'Evidence Centre', icon: DatabaseIcon },
+        { label: 'Saved Evidence', icon: HeartIcon },
       ],
     },
   ],
@@ -69,39 +78,82 @@ const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
     {
       title: 'Property Discovery',
       items: [
-        { label: 'Generate Report', icon: NavPlaceholderIcon },
-        { label: 'Search Properties', icon: NavPlaceholderIcon },
-        { label: 'Saved', icon: NavPlaceholderIcon },
-        { label: 'Affordability', icon: NavPlaceholderIcon },
-        { label: 'Buyer Report', icon: NavPlaceholderIcon },
-        { label: 'Suburb Explorer', icon: NavPlaceholderIcon },
+        { label: 'Generate Report', icon: PlusIcon },
+        { label: 'Comparable Sales', icon: ComparableSalesIcon },
+        { label: 'Saved Properties', icon: HeartIcon },
+        { label: 'Buyer Report', icon: ReportDocIcon },
       ],
     },
   ],
   investor: [
     {
-      title: 'Market Intelligence',
+      title: 'Investment Workflow',
       items: [
-        { label: 'Generate Report', icon: NavPlaceholderIcon },
-        { label: 'Market Comparison', icon: NavPlaceholderIcon },
-        { label: 'ROI Calculator', icon: NavPlaceholderIcon },
-        { label: 'Investor Report', icon: NavPlaceholderIcon },
+        { label: 'Generate Report', icon: PlusIcon },
+        { label: 'Comparable Sales', icon: ComparableSalesIcon },
+        { label: 'Saved Properties', icon: HeartIcon },
+        { label: 'Investor Report', icon: ReportDocIcon },
       ],
     },
   ],
 }
 
-const TRACKING_NAV: SidebarNavSection = {
-  title: 'Tracking',
-  items: [
-    { label: 'Watchlist', icon: BookmarkIcon },
-    { label: 'Alert', icon: BellIcon },
+const TRACKING_NAV: Record<DashboardRole, SidebarNavSection[]> = {
+  agent: [
+    {
+      title: 'Client & Market',
+      items: [
+        { label: 'Clients', icon: UsersIcon },
+        { label: 'Market Insights', icon: TrendingUpIcon },
+      ],
+    },
+  ],
+  valuer: [
+    {
+      title: 'Market',
+      items: [{ label: 'Market Insights', icon: TrendingUpIcon }],
+    },
+  ],
+  investor: [
+    {
+      title: 'Market',
+      items: [
+        { label: 'Suburb Explorer', icon: MapPinIcon },
+        { label: 'Market Comparison', icon: LayersIcon },
+      ],
+    },
+  ],
+  buyer: [
+    {
+      title: 'Market',
+      items: [{ label: 'Suburb Explorer', icon: CompassIcon }],
+    },
+  ],
+}
+
+const DECISION_TOOLS_NAV: Record<DashboardRole, SidebarNavSection[]> = {
+  agent: [],
+  valuer: [],
+  investor: [
+    {
+      title: 'Analysis',
+      items: [{ label: 'ROI Calculator', icon: CalculatorIcon }],
+    },
+  ],
+  buyer: [
+    {
+      title: 'Decision Tools',
+      items: [
+        { label: 'Affordability', icon: CalculatorIcon },
+        { label: 'Inspections', icon: BuildingIcon },
+      ],
+    },
   ],
 }
 
 const ASSISTANCE_NAV: SidebarNavSection = {
-  title: 'Assistance',
-  items: [{ label: 'AI Copilot', icon: BotIcon }],
+  title: 'Notifications',
+  items: [{ label: 'Notifications', icon: BellIcon }],
 }
 
 type DashboardNavbarProps = {
@@ -115,7 +167,7 @@ function extractRoleFromPathname(pathname: string): DashboardRole {
 
 function resolveActiveNavFromPath(pathname: string): string {
   if (pathname.endsWith('/valuation-cases')) return 'Valuation Cases'
-  if (pathname.endsWith('/clients')) return 'Client'
+  if (pathname.endsWith('/clients')) return 'Clients'
   if (pathname.endsWith('/report')) return REPORT_PAGE_TITLE[extractRoleFromPathname(pathname)]
   if (pathname.endsWith('/evidence-centre')) return 'Evidence Center'
   if (pathname.endsWith('/search-properties')) return 'Search Properties'
@@ -163,7 +215,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
     () => [
       OVERVIEW_NAV,
       ...ROLE_NAV_SECTIONS[resolvedRole],
-      TRACKING_NAV,
+      ...TRACKING_NAV[resolvedRole],
+      ...DECISION_TOOLS_NAV[resolvedRole],
       ASSISTANCE_NAV,
     ],
     [resolvedRole],
@@ -189,7 +242,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
     if (pathname.endsWith('/valuation-cases')) {
       setActiveNav('Valuation Cases')
     } else if (pathname.endsWith('/clients')) {
-      setActiveNav('Client')
+      setActiveNav('Clients')
     } else if (pathname.endsWith('/report')) {
       setActiveNav(REPORT_PAGE_TITLE[resolvedRole])
     } else if (pathname.endsWith('/evidence-centre')) {
@@ -267,7 +320,10 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate(`/dashboard/${resolvedRole}`)
     } else if (label === 'Valuation Cases' && resolvedRole === 'valuer') {
       navigate('/dashboard/valuer/valuation-cases')
-    } else if (label === 'Client' && resolvedRole === 'agent') {
+    } else if (
+      (label === 'Client' || label === 'Clients') &&
+      resolvedRole === 'agent'
+    ) {
       navigate(`/dashboard/${resolvedRole}/clients`)
     } else if (label === REPORT_PAGE_TITLE[resolvedRole]) {
       navigate(`/dashboard/${resolvedRole}/report`)

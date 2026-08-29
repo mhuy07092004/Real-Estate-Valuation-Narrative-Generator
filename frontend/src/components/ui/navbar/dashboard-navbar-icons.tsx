@@ -32,6 +32,44 @@ export function NavPlaceholderIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+export function MapPinIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  )
+}
+
+export function LayersIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
+      <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" />
+      <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" />
+    </svg>
+  )
+}
+
+export function DatabaseIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <ellipse cx="12" cy="5" rx="9" ry="3" />
+      <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5" />
+      <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3" />
+    </svg>
+  )
+}
+
+export function TrendingUpIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <path d="M16 7h6v6" />
+      <path d="m22 7-8.5 8.5-5-5L2 17" />
+    </svg>
+  )
+}
+
 export function BriefcaseIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...iconProps(props)}>
@@ -127,6 +165,83 @@ export function BotIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+export function PlusIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  )
+}
+
+export function ComparableSalesIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <path d="M6 3v12" />
+      <circle cx="18" cy="6" r="3" />
+      <circle cx="6" cy="18" r="3" />
+      <path d="M18 9a9 9 0 0 1-9 9" />
+    </svg>
+  )
+}
+
+export function HeartIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <path d="M12 19.5s-6.5-4.2-8.2-8.1C2.5 8.7 4 5.5 7.2 5.5c1.8 0 3.1 1.1 4.8 3 1.7-1.9 3-3 4.8-3 3.2 0 4.7 3.2 3.4 5.9-1.7 3.9-8.2 8.1-8.2 8.1z" />
+    </svg>
+  )
+}
+
+export function CompassIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M14.8 9.2l-1.4 4.2-4.2 1.4 1.4-4.2z" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+export function BuildingIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <path d="M4 20V8l8-4 8 4v12" />
+      <path d="M9 20v-6h6v6" />
+      <path d="M9 10h.01M15 10h.01M9 13.5h.01M15 13.5h.01" />
+    </svg>
+  )
+}
+
+export function CalculatorIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <rect x="6" y="3" width="12" height="18" rx="2" />
+      <path d="M9 7h6" />
+      <circle cx="9" cy="11" r="1" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="11" r="1" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="11" r="1" fill="currentColor" stroke="none" />
+      <circle cx="9" cy="14" r="1" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="14" r="1" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="14" r="1" fill="currentColor" stroke="none" />
+      <circle cx="9" cy="17" r="1" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="17" r="1" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="17" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+export function ReportDocIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <path d="M8 4h6l4 4v12H8z" />
+      <path d="M14 4v4h4" />
+      <path d="M10.5 12h7" />
+      <path d="M10.5 15h7" />
+      <path d="M10.5 18h4.5" />
+    </svg>
+  )
+}
+
 export function SparkleIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...iconProps({ width: 16, height: 16, ...props })}>
@@ -141,6 +256,17 @@ export function UserIcon(props: SVGProps<SVGSVGElement>) {
     <svg {...iconProps({ width: 16, height: 16, ...props })}>
       <circle cx="12" cy="9" r="3.5" />
       <path d="M5.5 19c0-3 2.9-5 6.5-5s6.5 2 6.5 5" />
+    </svg>
+  )
+}
+
+export function UsersIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...iconProps(props)}>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
   )
 }
