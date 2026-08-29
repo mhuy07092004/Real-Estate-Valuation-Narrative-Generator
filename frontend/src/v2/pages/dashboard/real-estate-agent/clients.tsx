@@ -83,8 +83,10 @@ export function ClientsV2() {
         accessorFn: (row) => getClientStatusLabel(row.status),
         cell: ({ row }) => (
           <div onClick={(event) => event.stopPropagation()}>
+            {/* NOTE [v2-overlay]: disabled until wired for production — re-enable to restore inline stage change. */}
             <ClientStageDropdown
               status={row.original.status}
+              disabled
               onChange={async (status) => {
                 await updateClient(row.original.id, { status })
                 refresh()
@@ -140,7 +142,8 @@ export function ClientsV2() {
             {summary.totalClients} clients, {summary.followUpsDueSoon} follow-ups due soon
           </p>
         </div>
-        <Button type="button" variant="primary" size="md" onClick={() => setShowAddClient(true)}>
+        {/* NOTE [v2-overlay]: disabled until wired for production — re-enable to restore Add Client. */}
+        <Button type="button" variant="primary" size="md" disabled onClick={() => setShowAddClient(true)}>
           Add Client
         </Button>
       </header>

@@ -95,12 +95,13 @@ function SubjectPropertyCard({ address }: { address: string }) {
             </div>
           </div>
 
+          {/* NOTE [v2-overlay]: disabled until wired for production — re-enable to restore Save Property. */}
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={handleSave}
-            disabled={!context || saveState !== 'idle'}
+            disabled
             className={saveState === 'saved' ? 'border-relaive-secondary/30 bg-relaive-secondary/10 text-relaive-secondary' : undefined}
           >
             {saveState === 'saved' ? (

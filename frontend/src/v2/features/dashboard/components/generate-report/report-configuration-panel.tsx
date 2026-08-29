@@ -146,7 +146,8 @@ export function ReportConfigurationPanel({
         <Button type="button" variant="outline" size="md" onClick={onBack}>
           ← Back
         </Button>
-        <Button type="button" variant="outline" size="md" onClick={onGenerateAnother}>
+        {/* NOTE [v2-overlay]: disabled until wired for production — re-enable to restore Generate another report. */}
+        <Button type="button" variant="outline" size="md" disabled onClick={onGenerateAnother}>
           <RefreshIcon /> <span className="ml-2">Generate another report</span>
         </Button>
         <div className="flex-grow" />
@@ -158,12 +159,13 @@ export function ReportConfigurationPanel({
         >
           Send to Client
         </Button>
+        {/* NOTE [v2-overlay]: disabled until wired for production — re-enable to restore Save Report. */}
         <Button
           type="button"
           variant={draftSaved ? 'outline' : 'primary'}
           size="md"
           onClick={handleSaveDraft}
-          disabled={draftSaved}
+          disabled
           className={draftSaved ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50' : undefined}
         >
           {draftSaved ? (
