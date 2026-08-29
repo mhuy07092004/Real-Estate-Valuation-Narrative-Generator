@@ -14,7 +14,7 @@ export type DashboardStatIconKey =
   | 'checkCircle'
   | 'alertTriangle'
   | 'alertCircle'
-export type DashboardActionIconKey = 'sparkle' | 'document' | 'users'
+export type DashboardActionIconKey = 'sparkle' | 'document' | 'users' | 'userPlus' | 'nodes'
 
 export type DashboardStat = {
   label: string
@@ -30,6 +30,24 @@ export type DashboardQuickActionData = {
   subtitle: string
   tone: QuickActionTone
   iconKey: DashboardActionIconKey
+  to?: string
+}
+
+export type ThisWeekMetric = {
+  current: number
+  total: number
+}
+
+export type AgentThisWeek = {
+  reportsGenerated: ThisWeekMetric
+  appraisalsSent: ThisWeekMetric
+}
+
+export type AgentPipeline = {
+  prospecting: number
+  appraisalSent: number
+  listing: number
+  sold: number
 }
 
 export type DashboardMockPayload = {
@@ -38,6 +56,8 @@ export type DashboardMockPayload = {
   reports: RecentReport[]
   insights: AiInsight[]
   quickActions: DashboardQuickActionData[]
+  thisWeek?: AgentThisWeek
+  pipeline?: AgentPipeline
 }
 
 export type CaseStatus =
@@ -68,6 +88,7 @@ type ApiSuccess<T> = {
 
 type StoredClientRow = {
   clientId: string
+  status?: string
   createdAt: string
 }
 
@@ -98,13 +119,32 @@ function formatCompactCurrency(value: number): string {
   return `$${Math.round(value)}`
 }
 
-function countCreatedThisWeek(rows: Array<{ createdAt: string }>): number {
-  const now = Date.now()
+function isCreatedThisWeek(isoDate: string): boolean {
+  const created = new Date(isoDate).getTime()
   const sevenDaysMs = 7 * 24 * 60 * 60 * 1000
-  return rows.filter((row) => {
-    const created = new Date(row.createdAt).getTime()
-    return Number.isFinite(created) && created >= now - sevenDaysMs
-  }).length
+  return Number.isFinite(created) && created >= Date.now() - sevenDaysMs
+}
+
+function countCreatedThisWeek(rows: Array<{ createdAt: string }>): number {
+  return rows.filter((row) => isCreatedThisWeek(row.createdAt)).length
+}
+
+function countPipeline(clients: StoredClientRow[]): AgentPipeline {
+  const pipeline: AgentPipeline = {
+    prospecting: 0,
+    appraisalSent: 0,
+    listing: 0,
+    sold: 0,
+  }
+
+  for (const client of clients) {
+    if (client.status === 'prospecting') pipeline.prospecting += 1
+    else if (client.status === 'appraisal_sent') pipeline.appraisalSent += 1
+    else if (client.status === 'listing') pipeline.listing += 1
+    else if (client.status === 'sold') pipeline.sold += 1
+  }
+
+  return pipeline
 }
 
 function getRelativeTimeLabel(isoDate: string): string {
@@ -141,6 +181,8 @@ async function getAgentDashboardPayload(): Promise<DashboardMockPayload> {
         reports.length
       : 0
   const pendingReports = reports.filter((item) => !item.pdfStoragePath).length
+  const sentReports = reports.filter((item) => Boolean(item.pdfStoragePath))
+  const sentThisWeek = countCreatedThisWeek(sentReports)
 
   const recentReports: RecentReport[] = reports
     .slice()
@@ -154,9 +196,10 @@ async function getAgentDashboardPayload(): Promise<DashboardMockPayload> {
 
       return {
         id: report.reportId,
-        title: `${report.propertyType || 'Report'} - ${report.propertyAddressLine || '0'}`,
+        title: report.propertyAddressLine || `${report.propertyType || 'Report'}`,
         detail: `${formatCurrency(Number.isFinite(report.estimatedValue) ? report.estimatedValue : 0)} • ${status}`,
         timeAgo: getRelativeTimeLabel(report.updatedAt),
+        clientName: report.clientName ?? '',
       }
     })
 
@@ -184,19 +227,39 @@ async function getAgentDashboardPayload(): Promise<DashboardMockPayload> {
         tone: 'orange',
         iconKey: 'trend',
       },
-      {
-        label: 'Pending Reports',
-        value: String(pendingReports || 0),
-        trend: '0 due today',
-        tone: 'sky',
-        iconKey: 'clock',
-      },
     ],
     reports: recentReports,
     insights: [],
+    thisWeek: {
+      reportsGenerated: { current: generatedThisWeek, total: generatedReports },
+      appraisalsSent: { current: sentThisWeek, total: sentReports.length },
+    },
+    pipeline: countPipeline(clients),
     quickActions: [
-      { id: '1', title: 'Generate Appraisal', subtitle: 'Create new report', tone: 'blue', iconKey: 'sparkle' },
-      { id: '2', title: 'Client Reports', subtitle: 'View all reports', tone: 'teal', iconKey: 'document' },
+      {
+        id: 'client-reports',
+        title: 'Client Reports',
+        subtitle: 'View all reports',
+        tone: 'teal',
+        iconKey: 'document',
+        to: '/dashboard/agent/report',
+      },
+      {
+        id: 'add-client',
+        title: 'Add Client',
+        subtitle: 'Manage clients',
+        tone: 'blue',
+        iconKey: 'userPlus',
+        to: '/dashboard/agent/clients',
+      },
+      {
+        id: 'comparables',
+        title: 'Comparables',
+        subtitle: 'Comparable sales',
+        tone: 'teal',
+        iconKey: 'nodes',
+        to: '/dashboard/agent/generate-report?step=2',
+      },
     ],
   }
 }

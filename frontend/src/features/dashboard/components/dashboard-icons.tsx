@@ -144,6 +144,32 @@ function DocumentActionIcon() {
   )
 }
 
+function UserPlusIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M3.5 18.5c0-2.5 2.5-4.5 5.5-4.5s5.5 2 5.5 4.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path d="M17 8v6M14 11h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function NodesIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="6.5" cy="7" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="17.5" cy="7" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="12" cy="17" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M8.5 8.5l2.2 6.2M15.5 8.5l-2.2 6.2" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  )
+}
+
 const STAT_ICONS: Record<DashboardStatIconKey, () => ReactNode> = {
   document: DocumentIcon,
   users: UsersIcon,
@@ -158,6 +184,8 @@ const ACTION_ICONS: Record<DashboardActionIconKey, () => ReactNode> = {
   sparkle: SparkleIcon,
   document: DocumentActionIcon,
   users: UsersIcon,
+  userPlus: UserPlusIcon,
+  nodes: NodesIcon,
 }
 
 export function getStatIcon(key: DashboardStatIconKey): ReactNode {

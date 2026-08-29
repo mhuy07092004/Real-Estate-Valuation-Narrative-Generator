@@ -1,5 +1,5 @@
-import { RoleDashboardView } from '../../../features/dashboard/components/role-dashboard-view'
+import { AgentDashboardView } from '../../../features/dashboard/components/agent-dashboard-view'
 
 export function AgentDashboard() {
-  return <RoleDashboardView role="agent" />
+  return <AgentDashboardView />
 }
