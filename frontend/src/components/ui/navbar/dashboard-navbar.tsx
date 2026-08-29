@@ -369,7 +369,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F5F6F8]">
+    <div className="dashboard-shell flex min-h-screen bg-[#F5F6F8]">
       <DashboardSidebar
         collapsed={collapsed}
         onToggleCollapsed={() => setCollapsed((value) => !value)}

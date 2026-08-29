@@ -24,7 +24,7 @@ export function RoleOptionsList({ id, roles, resolvedRole, onSelect }: RoleOptio
               onMouseEnter={() => preloadDashboardRole(value)}
               onFocus={() => preloadDashboardRole(value)}
               className={[
-                'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors',
+                'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[length:var(--dash-nav)] transition-colors 3xl:py-2.5',
                 selected
                   ? 'bg-relaive-primary/15 font-medium text-relaive-primary'
                   : 'text-relaive-navy/80 hover:bg-relaive-navy/5',

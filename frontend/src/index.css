@@ -14,6 +14,20 @@
   --font-family-sans: 'Inter', sans-serif;
   --font-family-button: 'Google Sans Code', monospace;
   --font-logo: 'Kode Mono', monospace;
+
+  --breakpoint-3xl: 120rem;
+}
+
+/* Dashboard chrome scales with viewport (laptop → QHD/27"). */
+.dashboard-shell {
+  --dash-sidebar: clamp(16.25rem, 15vw, 20.5rem);
+  --dash-sidebar-collapsed: clamp(4.5rem, 4.5vw, 5.75rem);
+  --dash-topbar: clamp(3.5rem, 3.25rem + 0.4vw, 4.5rem);
+  --dash-nav: clamp(0.8125rem, 0.7rem + 0.18vw, 0.9375rem);
+  --dash-icon: clamp(1.125rem, 0.95rem + 0.18vw, 1.375rem);
+  --dash-logo: clamp(2.25rem, 1.85rem + 0.4vw, 2.75rem);
+  --dash-pad-x: clamp(0.75rem, 0.5rem + 0.4vw, 1.25rem);
+  --dash-pad-y: clamp(0.625rem, 0.45rem + 0.2vw, 0.875rem);
 }
 
 html,

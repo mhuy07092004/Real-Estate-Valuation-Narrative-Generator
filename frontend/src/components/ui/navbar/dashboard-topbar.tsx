@@ -68,10 +68,13 @@ export function DashboardTopbar({
     'inline-flex items-center gap-1.5 rounded-md transition-colors hover:text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary/40'
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-black/5 bg-white px-5">
-      <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-sm text-relaive-gray">
+    <header className="sticky top-0 z-40 flex h-(--dash-topbar) items-center justify-between border-b border-black/5 bg-white px-[clamp(1.25rem,1rem+0.8vw,2rem)]">
+      <nav
+        aria-label="Breadcrumb"
+        className="flex min-w-0 items-center gap-2 text-[length:var(--dash-nav)] text-relaive-gray 3xl:gap-2.5"
+      >
         <button type="button" onClick={onNavigateHome} className={breadcrumbLinkClass}>
-          <HomeIcon className="h-3.5 w-3.5 shrink-0" />
+          <HomeIcon className="size-(--dash-icon) shrink-0" />
           Homepage
         </button>
         <ChevronRightIcon />
@@ -92,16 +95,16 @@ export function DashboardTopbar({
         )}
       </nav>
 
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2.5 3xl:gap-3">
         <button
           type="button"
           aria-label="Notifications"
           onClick={onNavigateToNotifications}
-          className="relative flex h-9 w-9 items-center justify-center rounded-lg text-relaive-gray transition-colors hover:bg-relaive-navy/5 hover:text-relaive-navy"
+          className="relative flex size-9 items-center justify-center rounded-lg text-relaive-gray transition-colors hover:bg-relaive-navy/5 hover:text-relaive-navy 3xl:size-10"
         >
-          <BellIcon />
+          <BellIcon className="size-(--dash-icon)" />
           {unreadNotificationCount > 0 ? (
-            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-400 px-1 text-[10px] font-semibold text-white">
+            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-400 px-1 text-[clamp(0.625rem,0.5rem+0.1vw,0.75rem)] font-semibold text-white">
               {unreadNotificationCount}
             </span>
           ) : null}
@@ -114,21 +117,25 @@ export function DashboardTopbar({
             aria-haspopup="menu"
             aria-expanded={userMenuOpen}
             onClick={onToggleUserMenu}
-            className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-black/40"
+            className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-black/40 3xl:gap-3 3xl:px-2.5"
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/10 bg-gradient-to-br from-relaive-secondary to-relaive-primary text-xs font-semibold text-white">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-black/10 bg-gradient-to-br from-relaive-secondary to-relaive-primary text-[length:var(--dash-nav)] font-semibold text-white 3xl:size-10">
               {user ? userInitials : <UserIcon className="text-white" />}
             </span>
             <span className="hidden min-w-0 flex-col leading-tight sm:flex">
-              <span className="truncate text-sm font-semibold text-relaive-navy">{displayName}</span>
-              <span className="truncate text-xs text-relaive-gray">{activeRoleLabel}</span>
+              <span className="truncate text-[length:var(--dash-nav)] font-semibold text-relaive-navy">
+                {displayName}
+              </span>
+              <span className="truncate text-[clamp(0.6875rem,0.6rem+0.1vw,0.8125rem)] text-relaive-gray">
+                {activeRoleLabel}
+              </span>
             </span>
           </button>
 
           {userMenuOpen && (
             <div
               role="menu"
-              className="absolute right-0 top-[calc(100%+8px)] z-50 w-[300px] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-lg"
+              className="absolute right-0 top-[calc(100%+8px)] z-50 w-[clamp(18.75rem,22vw,22.5rem)] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-lg"
             >
               <div className="flex items-center gap-3 border-b border-black/5 px-4 py-3.5">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-relaive-secondary to-relaive-primary text-sm font-semibold text-white">
