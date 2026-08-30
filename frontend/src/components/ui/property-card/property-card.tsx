@@ -45,7 +45,7 @@ function formatPrice(price: number): string {
   }).format(price)
 }
 
-function BedIcon({ className = '' }: { className?: string }) {
+export function BedIcon({ className = '' }: { className?: string }) {
   return (
     <svg
       className={className}
@@ -68,7 +68,7 @@ function BedIcon({ className = '' }: { className?: string }) {
   )
 }
 
-function BathIcon({ className = '' }: { className?: string }) {
+export function BathIcon({ className = '' }: { className?: string }) {
   return (
     <svg
       className={className}

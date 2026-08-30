@@ -14,6 +14,7 @@ export type QuickAction = {
 
 type QuickActionsPanelProps = {
   actions: QuickAction[]
+  title?: string
   className?: string
 }
 
@@ -54,13 +55,19 @@ function QuickActionButton({ action }: { action: QuickAction }) {
   )
 }
 
-export function QuickActionsPanel({ actions, className = '' }: QuickActionsPanelProps) {
+export function QuickActionsPanel({ actions, title = 'Quick Actions', className = '' }: QuickActionsPanelProps) {
   return (
     <section className={className}>
       <h2 className="mb-3 text-xs font-semibold tracking-[0.14em] text-relaive-gray uppercase">
-        Quick Actions
+        {title}
       </h2>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+      <div
+        className={
+          actions.length === 4
+            ? 'grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4'
+            : 'grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4'
+        }
+      >
         {actions.map((action) => (
           <QuickActionButton key={action.id} action={action} />
         ))}

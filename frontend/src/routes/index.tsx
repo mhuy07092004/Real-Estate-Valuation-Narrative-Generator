@@ -28,6 +28,12 @@ import { RoiCalculation } from '../pages/dashboard/investor/ROI-calculation'
 import { AffordabilityCalculation } from '../pages/dashboard/buyer/affortability-calculation'
 import { NotificationPage } from '../pages/dashboard/notification'
 import { GenerateReport } from '../pages/dashboard/generate-report'
+import { ComparableSales as AgentComparableSales } from '../pages/dashboard/real-estate-agent/comparable-sales'
+import { SavedProperties as AgentSavedProperties } from '../pages/dashboard/real-estate-agent/saved-properties'
+import { SavedProperties as InvestorSavedProperties } from '../pages/dashboard/investor/saved-properties'
+import { SavedEvidence } from '../pages/dashboard/property-valuer/saved-evidence'
+import { ComparableSales as InvestorComparableSales } from '../pages/dashboard/investor/comparable-sales'
+import { ComparableSales as BuyerComparableSales } from '../pages/dashboard/buyer/comparable-sales'
 import { ProtectedRoute } from '../features/auth/components/protected-route'
 
 function DashboardReport() {
@@ -36,6 +42,19 @@ function DashboardReport() {
   if (role === 'valuer') return <ValuerReport />
   if (role === 'buyer') return <BuyerReport />
   return <AgentReport />
+}
+
+function DashboardComparableSales() {
+  const { role } = useParams<{ role: string }>()
+  if (role === 'investor') return <InvestorComparableSales />
+  if (role === 'buyer') return <BuyerComparableSales />
+  return <AgentComparableSales />
+}
+
+function DashboardSavedProperties() {
+  const { role } = useParams<{ role: string }>()
+  if (role === 'investor') return <InvestorSavedProperties />
+  return <AgentSavedProperties />
 }
 
 export function AppRoutes() {
@@ -65,12 +84,15 @@ export function AppRoutes() {
           <Route path="evidence-centre" element={<EvidenceCentre />} />
           <Route path="search-properties" element={<SearchProperty />} />
           <Route path="saved" element={<SavedProperty />} />
+          <Route path="saved-properties" element={<DashboardSavedProperties />} />
+          <Route path="saved-evidence" element={<SavedEvidence />} />
           <Route path="settings" element={<Settings />} />
           <Route path="copilot" element={<Copilot />} />
           <Route path="roi-calculation" element={<RoiCalculation />} />
           <Route path="affortability-calculation" element={<AffordabilityCalculation />} />
           <Route path="notifications" element={<NotificationPage />} />
           <Route path="generate-report" element={<GenerateReport />} />
+          <Route path="comparable-sales" element={<DashboardComparableSales />} />
           <Route path="mock" element={<MockPageRoute />} />
         </Route>
       </Route>

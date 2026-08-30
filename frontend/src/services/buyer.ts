@@ -2,7 +2,6 @@
 
 import type { PropertyCardData } from '../components/ui/property-card/property-card'
 import { fetchJson } from './api-client'
-import type { CaseItem } from './dashboard'
 import type { InboxNotification } from './common'
 
 export type AffordabilitySummaryValueTone = 'orange' | 'green' | 'red' | 'navy'
@@ -34,11 +33,36 @@ export function getSearchProperties(): Promise<PropertyCardData[]> {
   return fetchJson('/api/buyer/properties/search')
 }
 
-export function getSavedProperties(): Promise<PropertyCardData[]> {
+export type BuyerSavedProperty = {
+  id: string
+  address: string
+  savedAgo: string
+  propertyType: string
+  beds: number
+  baths: number
+  areaSqm: number
+}
+
+export function getSavedProperties(): Promise<BuyerSavedProperty[]> {
   return fetchJson('/api/buyer/properties/saved')
 }
 
-export function getBuyerReportListMockData(): Promise<CaseItem[]> {
+export type BuyerReportListStatus = 'generated' | 'shared'
+
+export type BuyerReportListItem = {
+  id: string
+  address: string
+  suburb: string
+  clientName: string
+  status: BuyerReportListStatus
+  estimatedValue: number
+  beds: number
+  baths: number
+  areaSqm: number
+  updatedAt: string
+}
+
+export function getBuyerReportListMockData(): Promise<BuyerReportListItem[]> {
   return fetchJson('/api/buyer/reports')
 }
 

@@ -4,6 +4,7 @@ import type {
   EvidenceCentreMockPayload,
   EvidenceItem,
   ValuationCasesMockPayload,
+  ValuerSavedEvidence,
 } from '../../../services/valuer'
 import type { InboxNotification } from '../../../services/common'
 import { simulateLatency } from './mock-utils'
@@ -304,7 +305,42 @@ const VALUER_NOTIFICATIONS: InboxNotification[] = [
   },
 ]
 
+const VALUER_SAVED_EVIDENCE: ValuerSavedEvidence[] = [
+  {
+    id: 'valuer-saved-gertrude',
+    address: '22 Gertrude Street, Fitzroy VIC 3065',
+    savedAgo: '1 day ago',
+    propertyType: 'Terrace',
+    beds: 3,
+    baths: 2,
+    areaSqm: 248,
+  },
+  {
+    id: 'valuer-saved-chapel',
+    address: '8 Chapel Street, Windsor VIC 3181',
+    savedAgo: '6 days ago',
+    propertyType: 'House',
+    beds: 4,
+    baths: 2,
+    areaSqm: 365,
+  },
+  {
+    id: 'valuer-saved-high',
+    address: '15 High Street, Kew VIC 3101',
+    savedAgo: '2 weeks ago',
+    propertyType: 'House',
+    beds: 5,
+    baths: 3,
+    areaSqm: 620,
+  },
+]
+
 export const valuerHandlers = [
+  http.get('/api/valuer/evidence/saved', async () => {
+    await simulateLatency()
+    return HttpResponse.json(VALUER_SAVED_EVIDENCE)
+  }),
+
   http.get('/api/valuer/evidence', async () => {
     await simulateLatency()
     return HttpResponse.json(EVIDENCE_LIST_DATA)

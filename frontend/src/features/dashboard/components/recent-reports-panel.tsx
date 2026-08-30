@@ -12,9 +12,12 @@ export type RecentReport = {
 type RecentReportsPanelProps = {
   reports: RecentReport[]
   className?: string
+  title?: string
   viewAllTo?: string
   generateReportBase?: string
-  variant?: 'default' | 'agent'
+  variant?: 'default' | 'agent' | 'inspection'
+  showGenerateNewLink?: boolean
+  generateNewLabel?: string
 }
 
 function getReportPrice(detail: string) {
@@ -52,6 +55,15 @@ function ChevronIcon() {
   )
 }
 
+function CalendarIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M8 3.5v3M16 3.5v3M4 9.5h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 function ViewAllLink({ to }: { to?: string }) {
   const className =
     'shrink-0 text-sm font-medium text-relaive-primary transition-colors hover:text-relaive-primary-hover'
@@ -74,17 +86,21 @@ function ViewAllLink({ to }: { to?: string }) {
 export function RecentReportsPanel({
   reports,
   className = '',
+  title = 'Recent Reports',
   viewAllTo,
   generateReportBase = '/dashboard/agent/generate-report',
   variant = 'default',
+  showGenerateNewLink = false,
+  generateNewLabel = '+ Generate new report',
 }: RecentReportsPanelProps) {
   const navigate = useNavigate()
   const isAgent = variant === 'agent'
+  const isInspection = variant === 'inspection'
 
   return (
     <Card className={className}>
       <header className="flex items-center justify-between gap-3 border-b border-black/5 pb-4">
-        <h3 className="text-lg font-semibold text-black sm:text-xl">Recent Reports</h3>
+        <h3 className="text-lg font-semibold text-black sm:text-xl">{title}</h3>
         <ViewAllLink to={viewAllTo} />
       </header>
 
@@ -105,7 +121,23 @@ export function RecentReportsPanel({
                 <HouseIcon />
               </span>
 
-              {isAgent ? (
+              {isInspection ? (
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold text-black">{report.title}</span>
+                    <span className="mt-0.5 block truncate text-sm text-relaive-gray">{report.detail}</span>
+                    <span className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-relaive-gray">
+                      <span className="shrink-0 text-relaive-gray/80">
+                        <CalendarIcon />
+                      </span>
+                      {report.timeAgo}
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-relaive-gray/60">
+                    <ChevronIcon />
+                  </span>
+                </div>
+              ) : isAgent ? (
                 <button
                   type="button"
                   aria-label={`Open report: ${report.title}`}
@@ -151,6 +183,16 @@ export function RecentReportsPanel({
           )
         })}
       </ul>
+
+      {showGenerateNewLink ? (
+        <button
+          type="button"
+          className="mt-1 inline-flex text-sm font-medium text-relaive-primary transition-colors hover:text-relaive-primary-hover"
+          onClick={() => navigate(generateReportBase)}
+        >
+          {generateNewLabel}
+        </button>
+      ) : null}
     </Card>
   )
 }

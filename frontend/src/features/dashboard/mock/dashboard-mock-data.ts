@@ -1,7 +1,19 @@
 import type { DashboardMockPayload } from '../../../services/dashboard'
+import { DASHBOARD_COPY_BY_ROLE } from '../utils/dashboard-copy'
 import type { DashboardRole } from '../utils/dashboard-role'
 
-const AGENT_DATA: DashboardMockPayload = {
+function withRoleCopy(role: DashboardRole, payload: Omit<DashboardMockPayload, 'thisWeekCopy' | 'pipelineCopy' | 'recentReportsTitle' | 'quickActionsTitle'>): DashboardMockPayload {
+  const copy = DASHBOARD_COPY_BY_ROLE[role]
+  return {
+    ...payload,
+    thisWeekCopy: copy.thisWeek,
+    pipelineCopy: copy.pipeline,
+    recentReportsTitle: copy.recentReportsTitle,
+    quickActionsTitle: copy.quickActionsTitle,
+  }
+}
+
+const AGENT_DATA: DashboardMockPayload = withRoleCopy('agent', {
   welcomeSubtitle: '4 pending client reports • 12 active listings',
   stats: [
     {
@@ -105,9 +117,9 @@ const AGENT_DATA: DashboardMockPayload = {
       iconKey: 'users',
     },
   ],
-}
+})
 
-const VALUER_DATA: DashboardMockPayload = {
+const VALUER_DATA: DashboardMockPayload = withRoleCopy('valuer', {
   welcomeSubtitle: '3 open valuation cases • 8 evidence packs ready',
   stats: [
     {
@@ -197,9 +209,9 @@ const VALUER_DATA: DashboardMockPayload = {
       iconKey: 'document',
     },
   ],
-}
+})
 
-const BUYER_DATA: DashboardMockPayload = {
+const BUYER_DATA: DashboardMockPayload = withRoleCopy('buyer', {
   welcomeSubtitle: '6 shortlisted homes • 2 affordability checks pending',
   stats: [
     {
@@ -289,9 +301,9 @@ const BUYER_DATA: DashboardMockPayload = {
       iconKey: 'document',
     },
   ],
-}
+})
 
-const INVESTOR_DATA: DashboardMockPayload = {
+const INVESTOR_DATA: DashboardMockPayload = withRoleCopy('investor', {
   welcomeSubtitle: '2 portfolios tracked • 5 ROI scenarios saved',
   stats: [
     {
@@ -381,7 +393,7 @@ const INVESTOR_DATA: DashboardMockPayload = {
       iconKey: 'document',
     },
   ],
-}
+})
 
 export const DATA_BY_ROLE: Record<DashboardRole, DashboardMockPayload> = {
   agent: AGENT_DATA,

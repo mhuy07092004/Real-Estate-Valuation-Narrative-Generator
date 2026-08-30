@@ -1,7 +1,11 @@
 import dayjs from 'dayjs'
 import { http, HttpResponse } from 'msw'
-import type { ClientItem, ClientListSummary } from '../../../services/agent'
-import type { CaseItem } from '../../../services/dashboard'
+import type {
+  AgentClientReport,
+  AgentSavedProperty,
+  ClientItem,
+  ClientListSummary,
+} from '../../../services/agent'
 import type { InboxNotification } from '../../../services/common'
 import { simulateLatency } from './mock-utils'
 
@@ -118,39 +122,102 @@ const CLIENT_LIST_DATA: ClientItem[] = [
   },
 ]
 
-const AGENT_REPORT_LIST: CaseItem[] = [
+const AGENT_REPORT_LIST: AgentClientReport[] = [
   {
-    id: 'AG-3021',
-    address: '22 Bridge Rd',
+    id: 'AG-3028',
+    address: '45 Park Ave',
     suburb: 'Richmond VIC 3121',
     clientName: 'Sarah Mitchell',
-    status: 'exported',
-    purpose: 'Pre-Listing Appraisal',
-    confidence: 92,
-    updatedAt: hoursAgo(2),
-    hasWarning: false,
+    status: 'generated',
+    estimatedValue: 1430000,
+    beds: 3,
+    baths: 2,
+    areaSqm: 398,
+    updatedAt: hoursAgo(3),
   },
   {
-    id: 'AG-3020',
-    address: '5 Oxford St',
+    id: 'AG-3027',
+    address: '12 Church St',
     suburb: 'Fitzroy VIC 3065',
-    clientName: 'James Nguyen',
-    status: 'draft',
-    purpose: 'Sale Appraisal',
-    confidence: null,
+    clientName: 'David Park',
+    status: 'shared',
+    estimatedValue: 1180000,
+    beds: 2,
+    baths: 1,
+    areaSqm: 186,
     updatedAt: daysAgo(1),
-    hasWarning: false,
   },
   {
-    id: 'AG-3019',
-    address: '18 Church St',
-    suburb: 'Hawthorn VIC 3122',
-    clientName: 'Chen Family Trust',
-    status: 'approved',
-    purpose: 'Rental Appraisal',
-    confidence: 87,
+    id: 'AG-3026',
+    address: '88 Brunswick St',
+    suburb: 'Fitzroy VIC 3065',
+    clientName: 'James & Kathy Wu',
+    status: 'generated',
+    estimatedValue: 1650000,
+    beds: 4,
+    baths: 2,
+    areaSqm: 512,
+    updatedAt: daysAgo(2),
+  },
+  {
+    id: 'AG-3025',
+    address: '7 Bridge Rd',
+    suburb: 'Richmond VIC 3121',
+    clientName: 'Tom Nguyen',
+    status: 'generated',
+    estimatedValue: 980000,
+    beds: 2,
+    baths: 1,
+    areaSqm: 142,
     updatedAt: daysAgo(3),
-    hasWarning: false,
+  },
+  {
+    id: 'AG-3024',
+    address: '3 Collingwood St',
+    suburb: 'Collingwood VIC 3066',
+    clientName: 'Emma Chen',
+    status: 'shared',
+    estimatedValue: 1210000,
+    beds: 3,
+    baths: 2,
+    areaSqm: 274,
+    updatedAt: daysAgo(4),
+  },
+  {
+    id: 'AG-3023',
+    address: '9 Chapel St',
+    suburb: 'Prahran VIC 3181',
+    clientName: 'Olivia Brown',
+    status: 'generated',
+    estimatedValue: 2140000,
+    beds: 4,
+    baths: 3,
+    areaSqm: 620,
+    updatedAt: daysAgo(5),
+  },
+  {
+    id: 'AG-3022',
+    address: '15 Smith St',
+    suburb: 'Collingwood VIC 3066',
+    clientName: 'Priya Sharma',
+    status: 'generated',
+    estimatedValue: 875000,
+    beds: 2,
+    baths: 1,
+    areaSqm: 110,
+    updatedAt: daysAgo(7),
+  },
+  {
+    id: 'AG-3021',
+    address: '41 High St',
+    suburb: 'Prahran VIC 3181',
+    clientName: 'Chen Family Trust',
+    status: 'shared',
+    estimatedValue: 1890000,
+    beds: 3,
+    baths: 2,
+    areaSqm: 445,
+    updatedAt: daysAgo(14),
   },
 ]
 
@@ -217,6 +284,36 @@ const AGENT_NOTIFICATIONS: InboxNotification[] = [
   },
 ]
 
+const AGENT_SAVED_PROPERTIES: AgentSavedProperty[] = [
+  {
+    id: 'saved-park-ave',
+    address: '47 Park Avenue, South Yarra VIC 3141',
+    savedAgo: '3 days ago',
+    propertyType: 'House',
+    beds: 3,
+    baths: 2,
+    areaSqm: 420,
+  },
+  {
+    id: 'saved-church-st',
+    address: '12 Church Street, Richmond VIC 3121',
+    savedAgo: '1 week ago',
+    propertyType: 'House',
+    beds: 4,
+    baths: 2,
+    areaSqm: 380,
+  },
+  {
+    id: 'saved-swan-st',
+    address: '9 Swan Street, Cremorne VIC 3121',
+    savedAgo: '2 weeks ago',
+    propertyType: 'House',
+    beds: 3,
+    baths: 1,
+    areaSqm: 310,
+  },
+]
+
 export const agentHandlers = [
   http.get('/api/agent/clients', async () => {
     await simulateLatency()
@@ -251,6 +348,11 @@ export const agentHandlers = [
 
     client.notes = body.notes
     return HttpResponse.json(client)
+  }),
+
+  http.get('/api/agent/properties/saved', async () => {
+    await simulateLatency()
+    return HttpResponse.json(AGENT_SAVED_PROPERTIES)
   }),
 
   http.get('/api/agent/reports', async () => {

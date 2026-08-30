@@ -1,7 +1,8 @@
 import { http, HttpResponse } from 'msw'
 import type {
-  InvestorReportItem,
+  InvestorReportListItem,
   InvestorReportSummary,
+  InvestorSavedProperty,
   RoiCalculationMock,
 } from '../../../services/investor'
 import type { InboxNotification } from '../../../services/common'
@@ -45,61 +46,102 @@ const ROI_CALCULATION_DATA: RoiCalculationMock = {
   ],
 }
 
-const INVESTOR_REPORT_LIST: InvestorReportItem[] = [
+const INVESTOR_REPORT_LIST: InvestorReportListItem[] = [
   {
-    id: 'IN-4102',
-    propertyName: '9 Riverside Dr',
+    id: 'IN-4108',
+    address: '9 Riverside Dr',
     suburb: 'Southbank VIC 3006',
-    portfolio: 'Melbourne Core',
-    reportType: 'Investment Analysis',
+    clientName: 'Melbourne Core',
     status: 'shared',
-    purchaseValue: 620_000,
-    grossYield: 4.8,
+    estimatedValue: 1_120_000,
+    beds: 2,
+    baths: 2,
+    areaSqm: 92,
     updatedAt: hoursAgo(5),
   },
   {
-    id: 'IN-4101',
-    propertyName: '61 Beach Rd',
-    suburb: 'St Kilda VIC 3182',
-    portfolio: 'Melbourne Core',
-    reportType: 'Yield Assessment',
-    status: 'draft',
-    purchaseValue: 540_000,
-    grossYield: null,
-    updatedAt: daysAgo(2),
-  },
-  {
-    id: 'IN-4100',
-    propertyName: '14 Bay St',
-    suburb: 'Port Melbourne VIC 3207',
-    portfolio: 'Growth Portfolio',
-    reportType: 'Capital Growth Review',
-    status: 'archived',
-    purchaseValue: 880_000,
-    grossYield: 3.9,
-    updatedAt: daysAgo(4),
-  },
-  {
-    id: 'IN-4099',
-    propertyName: '22 King St',
+    id: 'IN-4107',
+    address: '22 King St',
     suburb: 'Newtown NSW 2042',
-    portfolio: 'Sydney Satellite',
-    reportType: 'Cash-Flow Scenario',
-    status: 'in_review',
-    purchaseValue: 715_000,
-    grossYield: 5.1,
+    clientName: 'Sydney Satellite',
+    status: 'generated',
+    estimatedValue: 1_050_000,
+    beds: 2,
+    baths: 1,
+    areaSqm: 85,
     updatedAt: hoursAgo(8),
   },
   {
-    id: 'IN-4098',
-    propertyName: '8 Grove Ave',
-    suburb: 'Ashfield NSW 2131',
-    portfolio: 'Sydney Satellite',
-    reportType: 'Market Comparison',
-    status: 'draft',
-    purchaseValue: 695_000,
-    grossYield: null,
+    id: 'IN-4106',
+    address: '61 Beach Rd',
+    suburb: 'St Kilda VIC 3182',
+    clientName: 'Melbourne Core',
+    status: 'generated',
+    estimatedValue: 890_000,
+    beds: 2,
+    baths: 1,
+    areaSqm: 78,
     updatedAt: daysAgo(1),
+  },
+  {
+    id: 'IN-4105',
+    address: '8 Grove Ave',
+    suburb: 'Ashfield NSW 2131',
+    clientName: 'Sydney Satellite',
+    status: 'generated',
+    estimatedValue: 695_000,
+    beds: 3,
+    baths: 1,
+    areaSqm: 142,
+    updatedAt: daysAgo(2),
+  },
+  {
+    id: 'IN-4104',
+    address: '14 Bay St',
+    suburb: 'Port Melbourne VIC 3207',
+    clientName: 'Growth Portfolio',
+    status: 'generated',
+    estimatedValue: 1_450_000,
+    beds: 3,
+    baths: 2,
+    areaSqm: 186,
+    updatedAt: daysAgo(4),
+  },
+  {
+    id: 'IN-4103',
+    address: '101 Collins St',
+    suburb: 'Melbourne VIC 3000',
+    clientName: 'Melbourne Core',
+    status: 'generated',
+    estimatedValue: 720_000,
+    beds: 1,
+    baths: 1,
+    areaSqm: 58,
+    updatedAt: daysAgo(5),
+  },
+  {
+    id: 'IN-4102',
+    address: '44 Punt Rd',
+    suburb: 'Richmond VIC 3121',
+    clientName: 'Growth Portfolio',
+    status: 'generated',
+    estimatedValue: 1_380_000,
+    beds: 3,
+    baths: 2,
+    areaSqm: 210,
+    updatedAt: daysAgo(7),
+  },
+  {
+    id: 'IN-4101',
+    address: '7 Toorak Rd',
+    suburb: 'South Yarra VIC 3141',
+    clientName: 'Growth Portfolio',
+    status: 'shared',
+    estimatedValue: 2_450_000,
+    beds: 4,
+    baths: 3,
+    areaSqm: 510,
+    updatedAt: daysAgo(14),
   },
 ]
 
@@ -165,7 +207,42 @@ const INVESTOR_NOTIFICATIONS: InboxNotification[] = [
   },
 ]
 
+const INVESTOR_SAVED_PROPERTIES: InvestorSavedProperty[] = [
+  {
+    id: 'investor-saved-collins',
+    address: '101 Collins Street, Melbourne VIC 3000',
+    savedAgo: '4 days ago',
+    propertyType: 'Apartment',
+    beds: 2,
+    baths: 2,
+    areaSqm: 92,
+  },
+  {
+    id: 'investor-saved-punt',
+    address: '44 Punt Road, Richmond VIC 3121',
+    savedAgo: '1 week ago',
+    propertyType: 'Townhouse',
+    beds: 3,
+    baths: 2,
+    areaSqm: 186,
+  },
+  {
+    id: 'investor-saved-toorak',
+    address: '7 Toorak Road, South Yarra VIC 3141',
+    savedAgo: '12 days ago',
+    propertyType: 'House',
+    beds: 4,
+    baths: 3,
+    areaSqm: 510,
+  },
+]
+
 export const investorHandlers = [
+  http.get('/api/investor/properties/saved', async () => {
+    await simulateLatency()
+    return HttpResponse.json(INVESTOR_SAVED_PROPERTIES)
+  }),
+
   http.get('/api/investor/roi-calculation', async () => {
     await simulateLatency()
     return HttpResponse.json(ROI_CALCULATION_DATA)
@@ -180,7 +257,7 @@ export const investorHandlers = [
     await simulateLatency()
     const summary: InvestorReportSummary = {
       totalReports: INVESTOR_REPORT_LIST.length,
-      draftCount: INVESTOR_REPORT_LIST.filter((item) => item.status === 'draft').length,
+      draftCount: INVESTOR_REPORT_LIST.filter((item) => item.status === 'generated').length,
       sharedCount: INVESTOR_REPORT_LIST.filter((item) => item.status === 'shared').length,
     }
     return HttpResponse.json(summary)

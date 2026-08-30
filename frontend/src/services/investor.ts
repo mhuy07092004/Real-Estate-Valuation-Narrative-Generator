@@ -34,6 +34,8 @@ export type RoiCalculationMock = {
 
 export type InvestorReportStatus = 'draft' | 'in_review' | 'shared' | 'archived'
 
+export type InvestorReportListStatus = 'generated' | 'shared'
+
 export type InvestorReportItem = {
   id: string
   propertyName: string
@@ -43,6 +45,19 @@ export type InvestorReportItem = {
   status: InvestorReportStatus
   purchaseValue: number
   grossYield: number | null
+  updatedAt: string
+}
+
+export type InvestorReportListItem = {
+  id: string
+  address: string
+  suburb: string
+  clientName: string
+  status: InvestorReportListStatus
+  estimatedValue: number
+  beds: number
+  baths: number
+  areaSqm: number
   updatedAt: string
 }
 
@@ -56,7 +71,7 @@ export function getRoiCalculationMockData(): Promise<RoiCalculationMock> {
   return fetchJson('/api/investor/roi-calculation')
 }
 
-export function getInvestorReportListMockData(): Promise<InvestorReportItem[]> {
+export function getInvestorReportListMockData(): Promise<InvestorReportListItem[]> {
   return fetchJson('/api/investor/reports')
 }
 
@@ -70,4 +85,18 @@ export function getInvestorNotifications(): Promise<InboxNotification[]> {
 
 export function getInvestorUnreadNotificationCount(): Promise<number> {
   return fetchJson('/api/investor/notifications/unread-count')
+}
+
+export type InvestorSavedProperty = {
+  id: string
+  address: string
+  savedAgo: string
+  propertyType: string
+  beds: number
+  baths: number
+  areaSqm: number
+}
+
+export function getInvestorSavedProperties(): Promise<InvestorSavedProperty[]> {
+  return fetchJson('/api/investor/properties/saved')
 }

@@ -1,7 +1,7 @@
 import { SalesSearch } from '../../../components/ui/search-bar/sales-search'
 import { SearchIcon } from '../../../components/ui/search-bar/address-search'
 
-export function EvidenceCentre() {
+export function ComparableSales() {
   return (
     <div className="flex min-h-full flex-col">
       <div className="flex flex-1 flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:p-8">
@@ -14,7 +14,7 @@ export function EvidenceCentre() {
             </span>
           </div>
           <p className="text-base font-semibold text-[#1C2A38]">
-            Search a property address to find comparable evidence
+            Search a property address to find comparable sales
           </p>
           <p className="mt-1.5 text-sm text-relaive-gray">
             Enter an address above to get started

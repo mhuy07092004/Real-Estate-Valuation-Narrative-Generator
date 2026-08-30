@@ -1,7 +1,10 @@
 import { http, HttpResponse } from 'msw'
 import type { PropertyCardData } from '../../../components/ui/property-card/property-card'
-import type { AffordabilityCalculationMock } from '../../../services/buyer'
-import type { CaseItem } from '../../../services/dashboard'
+import type {
+  AffordabilityCalculationMock,
+  BuyerReportListItem,
+  BuyerSavedProperty,
+} from '../../../services/buyer'
 import type { InboxNotification } from '../../../services/common'
 import { simulateLatency } from './mock-utils'
 
@@ -133,72 +136,132 @@ const SEARCH_PROPERTIES_DATA: PropertyCardData[] = [
   },
 ]
 
-const SAVED_PROPERTIES_DATA: PropertyCardData[] = [
+const BUYER_SAVED_PROPERTIES: BuyerSavedProperty[] = [
   {
-    id: 'saved-1',
-    address: {
-      street: '18 Cecil St',
-      suburb: 'South Melbourne',
-      state: 'VIC',
-      postcode: '3205',
-    },
-    price: 1325000,
-    estimatedRange: { min: '$1.25M', max: '$1.38M' },
+    id: 'buyer-saved-cecil',
+    address: '18 Cecil Street, South Melbourne VIC 3205',
+    savedAgo: '2 days ago',
     propertyType: 'House',
-    features: { beds: 3, baths: 2, areaSqm: 295, parking: 1 },
-    listedDays: 6,
-    status: 'within_range',
+    beds: 3,
+    baths: 2,
+    areaSqm: 295,
   },
   {
-    id: 'saved-2',
-    address: {
-      street: '9 York St',
-      suburb: 'South Melbourne',
-      state: 'VIC',
-      postcode: '3205',
-    },
-    price: 865000,
-    estimatedRange: { min: '$810k', max: '$890k' },
+    id: 'buyer-saved-york',
+    address: '9 York Street, South Melbourne VIC 3205',
+    savedAgo: '5 days ago',
     propertyType: 'Unit',
-    features: { beds: 2, baths: 2, areaSqm: 110 },
-    listedDays: 12,
-    status: 'below_range',
+    beds: 2,
+    baths: 2,
+    areaSqm: 110,
+  },
+  {
+    id: 'buyer-saved-coventry',
+    address: '3 Coventry Street, Southbank VIC 3006',
+    savedAgo: '1 week ago',
+    propertyType: 'Apartment',
+    beds: 2,
+    baths: 1,
+    areaSqm: 78,
   },
 ]
 
-const BUYER_REPORT_LIST: CaseItem[] = [
+const BUYER_REPORT_LIST: BuyerReportListItem[] = [
   {
-    id: 'BY-5210',
+    id: 'BY-5216',
     address: '3 Grove St',
     suburb: 'Camberwell VIC 3124',
     clientName: 'Self',
-    status: 'exported',
-    purpose: 'Pre-Purchase Report',
-    confidence: 88,
+    status: 'generated',
+    estimatedValue: 1_280_000,
+    beds: 3,
+    baths: 2,
+    areaSqm: 312,
     updatedAt: hoursAgo(6),
-    hasWarning: false,
   },
   {
-    id: 'BY-5209',
+    id: 'BY-5215',
+    address: '18 Bridge Rd',
+    suburb: 'Richmond VIC 3121',
+    clientName: 'Self',
+    status: 'generated',
+    estimatedValue: 795_000,
+    beds: 2,
+    baths: 1,
+    areaSqm: 110,
+    updatedAt: hoursAgo(12),
+  },
+  {
+    id: 'BY-5214',
     address: '27 Toorak Rd',
     suburb: 'Toorak VIC 3142',
     clientName: 'Self',
-    status: 'draft',
-    purpose: 'Due Diligence Review',
-    confidence: null,
+    status: 'shared',
+    estimatedValue: 2_100_000,
+    beds: 4,
+    baths: 3,
+    areaSqm: 420,
     updatedAt: daysAgo(2),
-    hasWarning: false,
   },
   {
-    id: 'BY-5208',
+    id: 'BY-5213',
+    address: '9 Swan St',
+    suburb: 'Richmond VIC 3121',
+    clientName: 'Self',
+    status: 'generated',
+    estimatedValue: 815_000,
+    beds: 2,
+    baths: 1,
+    areaSqm: 98,
+    updatedAt: daysAgo(3),
+  },
+  {
+    id: 'BY-5212',
     address: '44 High St',
     suburb: 'Kew VIC 3101',
     clientName: 'Self',
-    status: 'approved',
-    purpose: 'Buyer Advisory Report',
-    confidence: 91,
+    status: 'generated',
+    estimatedValue: 1_560_000,
+    beds: 3,
+    baths: 2,
+    areaSqm: 280,
     updatedAt: daysAgo(5),
-    hasWarning: false,
+  },
+  {
+    id: 'BY-5211',
+    address: '12 Park St',
+    suburb: 'South Melbourne VIC 3205',
+    clientName: 'Joint search',
+    status: 'shared',
+    estimatedValue: 920_000,
+    beds: 2,
+    baths: 1,
+    areaSqm: 98,
+    updatedAt: daysAgo(6),
+  },
+  {
+    id: 'BY-5210',
+    address: '5 Clarendon St',
+    suburb: 'South Melbourne VIC 3205',
+    clientName: 'Self',
+    status: 'generated',
+    estimatedValue: 1_180_000,
+    beds: 3,
+    baths: 2,
+    areaSqm: 312,
+    updatedAt: daysAgo(8),
+  },
+  {
+    id: 'BY-5209',
+    address: '22 Smith St',
+    suburb: 'Fitzroy VIC 3065',
+    clientName: 'Self',
+    status: 'generated',
+    estimatedValue: 1_050_000,
+    beds: 2,
+    baths: 1,
+    areaSqm: 85,
+    updatedAt: daysAgo(12),
   },
 ]
 
@@ -276,7 +339,7 @@ export const buyerHandlers = [
 
   http.get('/api/buyer/properties/saved', async () => {
     await simulateLatency()
-    return HttpResponse.json(SAVED_PROPERTIES_DATA)
+    return HttpResponse.json(BUYER_SAVED_PROPERTIES)
   }),
 
   http.get('/api/buyer/reports', async () => {

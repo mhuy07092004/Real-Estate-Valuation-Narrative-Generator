@@ -1,7 +1,6 @@
 // Agent types + HTTP service — CRM client list, reports, notifications.
 
 import { fetchJson } from './api-client'
-import type { CaseItem } from './dashboard'
 import type { InboxNotification } from './common'
 
 export type ClientStatus =
@@ -168,23 +167,23 @@ export function updateClientNotes(id: string, notes: string): Promise<ClientItem
   }).then((response) => toClientItem(response.data, response.data.reportCount ?? 0))
 }
 
-export function getAgentReportListMockData(): Promise<CaseItem[]> {
-  return fetchJson<StoredReportResponse>('/api/reports').then((response) =>
-    (response.data ?? []).map((row) => {
-      const clientParts = [row.clientName, row.clientEmail].filter(Boolean)
-      return {
-        id: row.reportId,
-        address: row.propertyAddressLine,
-        suburb: `${row.propertySuburb} ${row.propertyState} ${row.propertyPostcode}`,
-        clientName: clientParts.length ? clientParts.join(' · ') : '',
-        status: row.pdfStoragePath || row.clientEmail || row.clientName ? 'exported' : 'draft',
-        purpose: `${row.propertyType} Appraisal`,
-        confidence: null,
-        updatedAt: row.updatedAt,
-        hasWarning: false,
-      } satisfies CaseItem
-    }),
-  )
+export type AgentClientReportStatus = 'generated' | 'shared'
+
+export type AgentClientReport = {
+  id: string
+  address: string
+  suburb: string
+  clientName: string
+  status: AgentClientReportStatus
+  estimatedValue: number
+  beds: number
+  baths: number
+  areaSqm: number
+  updatedAt: string
+}
+
+export function getAgentReportListMockData(): Promise<AgentClientReport[]> {
+  return fetchJson('/api/agent/reports')
 }
 
 export function getAgentNotifications(): Promise<InboxNotification[]> {
@@ -193,4 +192,18 @@ export function getAgentNotifications(): Promise<InboxNotification[]> {
 
 export function getAgentUnreadNotificationCount(): Promise<number> {
   return fetchJson('/api/agent/notifications/unread-count')
+}
+
+export type AgentSavedProperty = {
+  id: string
+  address: string
+  savedAgo: string
+  propertyType: string
+  beds: number
+  baths: number
+  areaSqm: number
+}
+
+export function getAgentSavedProperties(): Promise<AgentSavedProperty[]> {
+  return fetchJson('/api/agent/properties/saved')
 }

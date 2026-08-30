@@ -1,5 +1,5 @@
 import type { CaseStatus } from '../../../services/dashboard'
-import type { ClientStatus } from '../../../services/agent'
+import type { AgentClientReportStatus, ClientStatus } from '../../../services/agent'
 import type { EvidenceStatus } from '../../../services/valuer'
 import type { InvestorReportStatus } from '../../../services/investor'
 
@@ -211,6 +211,55 @@ export function InvestorReportStatusBadge({ status, className = '' }: InvestorRe
       className={`inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${styles.bg} ${styles.text} ${className}`}
     >
       {styles.label}
+    </span>
+  )
+}
+
+const AGENT_CLIENT_REPORT_STATUS_STYLES: Record<
+  AgentClientReportStatus,
+  { bg: string; text: string; label: string }
+> = {
+  generated: {
+    bg: 'bg-[#EEF0F3]',
+    text: 'text-[#4A5568]',
+    label: 'Generated',
+  },
+  shared: {
+    bg: 'bg-[#E8F6EE]',
+    text: 'text-[#2F855A]',
+    label: 'Shared',
+  },
+}
+
+export function getAgentClientReportStatusLabel(status: AgentClientReportStatus): string {
+  return AGENT_CLIENT_REPORT_STATUS_STYLES[status].label
+}
+
+type AgentClientReportStatusBadgeProps = {
+  status: AgentClientReportStatus
+  className?: string
+}
+
+export function AgentClientReportStatusBadge({
+  status,
+  className = '',
+}: AgentClientReportStatusBadgeProps) {
+  const styles = AGENT_CLIENT_REPORT_STATUS_STYLES[status]
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${styles.bg} ${styles.text} ${className}`}
+    >
+      {styles.label}
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M6 9l6 6 6-6"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
     </span>
   )
 }

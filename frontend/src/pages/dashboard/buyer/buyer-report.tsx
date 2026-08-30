@@ -1,54 +1,91 @@
-import type { DataTableTab } from '../../../components/ui/table/data-table'
-import { CaseTable } from '../../../components/ui/table/case-table'
+import { useEffect, useMemo, useState } from 'react'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import { FilterButton } from '../../../components/ui/button/filter-button'
+import { ClientReportCard } from '../../../features/dashboard/components/client-report-card'
 import { useAsyncData } from '../../../hooks/use-async-data'
-import type { CaseItem } from '../../../services/dashboard'
-import { getBuyerReportListMockData } from '../../../services/buyer'
+import {
+  getBuyerReportListMockData,
+  type BuyerReportListItem,
+  type BuyerReportListStatus,
+} from '../../../services/buyer'
 
-const REPORT_TABS: DataTableTab<CaseItem>[] = [
-  { id: 'recent', label: 'Recent' },
-  {
-    id: 'draft',
-    label: 'Draft',
-    filter: (item) => item.status === 'draft',
-  },
-  {
-    id: 'shared',
-    label: 'Shared',
-    filter: (item) => item.status === 'exported',
-  },
-  {
-    id: 'archived',
-    label: 'Archived',
-    filter: (item) => item.status === 'approved',
-  },
-]
+dayjs.extend(relativeTime)
+
+function SortIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M8 6v12M5 9l3-3 3 3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16 18V6M13 15l3 3 3-3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
 
 export function BuyerReport() {
-  const { data: cases } = useAsyncData(getBuyerReportListMockData, [])
+  const { data, isLoading } = useAsyncData(getBuyerReportListMockData, [])
+  const [reports, setReports] = useState<BuyerReportListItem[]>([])
+  const [recentFirst, setRecentFirst] = useState(true)
 
-  if (!cases) {
-    return <div className="p-6 text-sm text-relaive-gray sm:p-8">Loading reports…</div>
+  useEffect(() => {
+    if (data) setReports(data)
+  }, [data])
+
+  const sortedReports = useMemo(() => {
+    return [...reports].sort((a, b) => {
+      const delta = new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      return recentFirst ? delta : -delta
+    })
+  }, [reports, recentFirst])
+
+  function handleAddressChange(id: string, address: string) {
+    setReports((current) =>
+      current.map((item) => (item.id === id ? { ...item, address } : item)),
+    )
+  }
+
+  function handleStatusChange(id: string, status: BuyerReportListStatus) {
+    setReports((current) =>
+      current.map((item) => (item.id === id ? { ...item, status } : item)),
+    )
   }
 
   return (
-    <div className="flex flex-col">
-      <header className="font-sans px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pt-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-[#1C2A38] sm:text-[28px]">
-          Buyer Report
-        </h1>
-        <p className="mt-1 text-sm text-[#1C2A3880] sm:text-base">
-          Manage, share and export your appraisal reports
-        </p>
-      </header>
+    <div className="flex min-h-full flex-col">
+      <div className="flex flex-1 flex-col gap-6 p-4 sm:gap-7 sm:p-6 lg:p-8">
+        <header className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-[#1C2A38] sm:text-[28px]">
+              Buyer Reports
+            </h1>
+            <p className="mt-1 text-sm text-relaive-gray sm:text-base">
+              {reports.length} {reports.length === 1 ? 'report' : 'reports'}
+            </p>
+          </div>
+          <FilterButton
+            label={recentFirst ? 'Recent first' : 'Oldest first'}
+            icon={<SortIcon />}
+            onClick={() => setRecentFirst((current) => !current)}
+          />
+        </header>
 
-      <div className="flex flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:p-8">
-        <CaseTable
-          cases={cases}
-          tabs={REPORT_TABS}
-          defaultTabId="recent"
-          searchPlaceholder="Search reports, properties, clients..."
-          emptyMessage="No reports match your search."
-        />
+        {isLoading && reports.length === 0 ? (
+          <p className="text-sm text-relaive-gray">Loading reports…</p>
+        ) : sortedReports.length === 0 ? (
+          <p className="text-sm text-relaive-gray">No buyer reports yet.</p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {sortedReports.map((report) => (
+              <li key={report.id}>
+                <ClientReportCard
+                  report={report}
+                  timeAgo={dayjs(report.updatedAt).fromNow()}
+                  onAddressChange={handleAddressChange}
+                  onStatusChange={handleStatusChange}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   )

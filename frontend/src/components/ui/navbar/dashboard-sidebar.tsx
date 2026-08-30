@@ -23,7 +23,7 @@ type DashboardSidebarProps = {
   onRoleChange: (role: DashboardRole) => void
   navSections: SidebarNavSection[]
   activeNav: string
-  onNavChange: (label: string) => void
+  onNavChange: (label: string, to?: string) => void
   onSignOut: () => void
 }
 
@@ -155,7 +155,7 @@ export function DashboardSidebar({
                       href="#"
                       onClick={(event) => {
                         event.preventDefault()
-                        onNavChange(item.label)
+                        onNavChange(item.label, item.to)
                       }}
                       aria-current={active ? 'page' : undefined}
                       title={collapsed ? item.label : undefined}

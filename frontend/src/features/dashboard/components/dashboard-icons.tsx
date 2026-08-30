@@ -110,6 +110,49 @@ function AlertCircleIcon() {
   )
 }
 
+function HeartIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 20.2s-7-4.4-9.3-8.7C1.3 8.6 2.7 5 6.2 4.3c2-.4 3.8.5 5.8 2.6 2-2.1 3.8-3 5.8-2.6 3.5.7 4.9 4.3 3.5 7.2-2.3 4.3-9.3 8.7-9.3 8.7z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function DollarIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M14.5 9.3c-.4-.7-1.3-1.1-2.4-1.1-1.6 0-2.6.8-2.6 1.9 0 3 5.4 1.4 5.4 4.4 0 1.2-1.1 2-2.7 2-1.2 0-2.2-.5-2.7-1.3M12 7.3v9.4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function CalculatorIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="5.5" y="3.5" width="13" height="17" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M8 7.5h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M8.5 11.5h1.5M13.5 11.5h1.5M8.5 15h1.5M13.5 15h1.5M8.5 18.5h1.5M13.5 18.5h1.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 function SparkleIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -178,6 +221,8 @@ const STAT_ICONS: Record<DashboardStatIconKey, () => ReactNode> = {
   checkCircle: CheckCircleIcon,
   alertTriangle: AlertTriangleIcon,
   alertCircle: AlertCircleIcon,
+  heart: HeartIcon,
+  dollar: DollarIcon,
 }
 
 const ACTION_ICONS: Record<DashboardActionIconKey, () => ReactNode> = {
@@ -186,6 +231,8 @@ const ACTION_ICONS: Record<DashboardActionIconKey, () => ReactNode> = {
   users: UsersIcon,
   userPlus: UserPlusIcon,
   nodes: NodesIcon,
+  heart: HeartIcon,
+  calculator: CalculatorIcon,
 }
 
 export function getStatIcon(key: DashboardStatIconKey): ReactNode {

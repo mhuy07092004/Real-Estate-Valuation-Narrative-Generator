@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react'
 import { BookmarkIcon } from '../../../components/ui/navbar/dashboard-navbar-icons'
 import { SavedPropertyCard } from '../../../features/dashboard/components/saved-property-card'
 import { useAsyncData } from '../../../hooks/use-async-data'
-import { getSavedProperties, type BuyerSavedProperty } from '../../../services/buyer'
+import { getValuerSavedEvidence, type ValuerSavedEvidence } from '../../../services/valuer'
 
-export function SavedProperty() {
-  const { data } = useAsyncData(getSavedProperties, [])
-  const [properties, setProperties] = useState<BuyerSavedProperty[]>([])
+export function SavedEvidence() {
+  const { data } = useAsyncData(getValuerSavedEvidence, [])
+  const [items, setItems] = useState<ValuerSavedEvidence[]>([])
 
   useEffect(() => {
-    if (data) setProperties(data)
+    if (data) setItems(data)
   }, [data])
 
   return (
@@ -21,24 +21,25 @@ export function SavedProperty() {
           </span>
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-[#1C2A38] sm:text-[28px]">
-              Saved Properties
+              Saved Evidence
             </h1>
             <p className="mt-1 text-sm text-relaive-gray sm:text-base">
-              Properties saved while searching the market
+              Sales evidence saved for valuation research
             </p>
           </div>
         </header>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {properties.length === 0 ? (
-            <p className="text-sm text-relaive-gray">No saved properties yet.</p>
+          {items.length === 0 ? (
+            <p className="text-sm text-relaive-gray">No saved evidence yet.</p>
           ) : (
-            properties.map((property) => (
+            items.map((item) => (
               <SavedPropertyCard
-                key={property.id}
-                property={property}
+                key={item.id}
+                property={item}
+                compareTo="/dashboard/valuer/evidence-centre"
                 onRemove={(id) =>
-                  setProperties((current) => current.filter((item) => item.id !== id))
+                  setItems((current) => current.filter((entry) => entry.id !== id))
                 }
               />
             ))

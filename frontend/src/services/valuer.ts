@@ -51,3 +51,17 @@ export function getValuerNotifications(): Promise<InboxNotification[]> {
 export function getValuerUnreadNotificationCount(): Promise<number> {
   return fetchJson('/api/valuer/notifications/unread-count')
 }
+
+export type ValuerSavedEvidence = {
+  id: string
+  address: string
+  savedAgo: string
+  propertyType: string
+  beds: number
+  baths: number
+  areaSqm: number
+}
+
+export function getValuerSavedEvidence(): Promise<ValuerSavedEvidence[]> {
+  return fetchJson('/api/valuer/evidence/saved')
+}

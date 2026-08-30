@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react'
 import { BookmarkIcon } from '../../../components/ui/navbar/dashboard-navbar-icons'
 import { SavedPropertyCard } from '../../../features/dashboard/components/saved-property-card'
 import { useAsyncData } from '../../../hooks/use-async-data'
-import { getSavedProperties, type BuyerSavedProperty } from '../../../services/buyer'
+import { getAgentSavedProperties, type AgentSavedProperty } from '../../../services/agent'
 
-export function SavedProperty() {
-  const { data } = useAsyncData(getSavedProperties, [])
-  const [properties, setProperties] = useState<BuyerSavedProperty[]>([])
+export function SavedProperties() {
+  const { data } = useAsyncData(getAgentSavedProperties, [])
+  const [properties, setProperties] = useState<AgentSavedProperty[]>([])
 
   useEffect(() => {
     if (data) setProperties(data)
@@ -24,7 +24,7 @@ export function SavedProperty() {
               Saved Properties
             </h1>
             <p className="mt-1 text-sm text-relaive-gray sm:text-base">
-              Properties saved while searching the market
+              Properties saved for comparable sales research
             </p>
           </div>
         </header>

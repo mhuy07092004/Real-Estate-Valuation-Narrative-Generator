@@ -45,11 +45,34 @@ function SummaryRow({ label, value, valueClassName, isLast = false }: SummaryRow
 }
 
 export function AffordabilityCalculation() {
-  const { data } = useAsyncData(getAffordabilityCalculationMockData, [])
-  const { data: disclaimer } = useAsyncData(getAffordabilityDisclaimerNotification, [])
+  const { data, error: dataError, isLoading: isDataLoading } = useAsyncData(
+    getAffordabilityCalculationMockData,
+    [],
+  )
+  const {
+    data: disclaimer,
+    error: disclaimerError,
+    isLoading: isDisclaimerLoading,
+  } = useAsyncData(getAffordabilityDisclaimerNotification, [])
 
-  if (!data || !disclaimer) {
+  if (isDataLoading || isDisclaimerLoading) {
     return <div className="p-6 text-sm text-relaive-gray sm:p-8">Loading affordability calculator…</div>
+  }
+
+  if (dataError || disclaimerError || !data || !disclaimer) {
+    return (
+      <div className="p-6 text-sm text-red-600 sm:p-8">
+        Unable to load affordability calculator. Please try again later.
+      </div>
+    )
+  }
+
+  if (!data.metrics?.length || !data.summary?.length) {
+    return (
+      <div className="p-6 text-sm text-red-600 sm:p-8">
+        Affordability data is unavailable right now. Please try again later.
+      </div>
+    )
   }
 
   const [borrowingCapacity, ...loanMetrics] = data.metrics

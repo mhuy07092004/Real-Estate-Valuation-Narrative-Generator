@@ -144,7 +144,11 @@ const DECISION_TOOLS_NAV: Record<DashboardRole, SidebarNavSection[]> = {
     {
       title: 'Decision Tools',
       items: [
-        { label: 'Affordability', icon: CalculatorIcon },
+        {
+          label: 'Affordability',
+          icon: CalculatorIcon,
+          to: '/dashboard/buyer/affortability-calculation',
+        },
         { label: 'Inspections', icon: BuildingIcon },
       ],
     },
@@ -169,14 +173,18 @@ function resolveActiveNavFromPath(pathname: string): string {
   if (pathname.endsWith('/valuation-cases')) return 'Valuation Cases'
   if (pathname.endsWith('/clients')) return 'Clients'
   if (pathname.endsWith('/report')) return REPORT_PAGE_TITLE[extractRoleFromPathname(pathname)]
-  if (pathname.endsWith('/evidence-centre')) return 'Evidence Center'
+  if (pathname.endsWith('/evidence-centre')) return 'Evidence Centre'
   if (pathname.endsWith('/search-properties')) return 'Search Properties'
-  if (pathname.endsWith('/saved')) return 'Saved'
+  if (pathname.endsWith('/saved-evidence')) return 'Saved Evidence'
+  if (pathname.endsWith('/saved') || pathname.endsWith('/saved-properties')) {
+    return 'Saved Properties'
+  }
   if (pathname.endsWith('/settings')) return 'Settings'
   if (pathname.endsWith('/copilot')) return 'AI Copilot'
   if (pathname.endsWith('/notifications')) return 'Alert'
   if (pathname.endsWith('/affortability-calculation')) return 'Affordability'
   if (pathname.endsWith('/roi-calculation')) return 'ROI Calculator'
+  if (pathname.endsWith('/comparable-sales')) return 'Comparable Sales'
   if (pathname.endsWith('/generate-report')) {
     const role = extractRoleFromPathname(pathname)
     if (role === 'agent') return 'Generate Appraisal'
@@ -247,11 +255,13 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
     } else if (pathname.endsWith('/report')) {
       setActiveNav(REPORT_PAGE_TITLE[resolvedRole])
     } else if (pathname.endsWith('/evidence-centre')) {
-      setActiveNav('Evidence Center')
+      setActiveNav('Evidence Centre')
     } else if (pathname.endsWith('/search-properties')) {
       setActiveNav('Search Properties')
-    } else if (pathname.endsWith('/saved')) {
-      setActiveNav('Saved')
+    } else if (pathname.endsWith('/saved-evidence')) {
+      setActiveNav('Saved Evidence')
+    } else if (pathname.endsWith('/saved') || pathname.endsWith('/saved-properties')) {
+      setActiveNav('Saved Properties')
     } else if (pathname.endsWith('/settings')) {
       setActiveNav('Settings')
     } else if (pathname.endsWith('/copilot')) {
@@ -262,6 +272,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       setActiveNav('Affordability')
     } else if (pathname.endsWith('/roi-calculation')) {
       setActiveNav('ROI Calculator')
+    } else if (pathname.endsWith('/comparable-sales')) {
+      setActiveNav('Comparable Sales')
     } else if (pathname.endsWith('/generate-report')) {
       if (resolvedRole === 'agent') {
         setActiveNav('Generate Appraisal')
@@ -317,8 +329,12 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
     navigate(`/dashboard/${resolvedRole}`)
   }
 
-  function handleNavChange(label: string) {
+  function handleNavChange(label: string, to?: string) {
     setActiveNav(label)
+    if (to) {
+      navigate(to)
+      return
+    }
     if (label === 'Dashboard') {
       navigate(`/dashboard/${resolvedRole}`)
     } else if (label === 'Valuation Cases' && resolvedRole === 'valuer') {
@@ -330,12 +346,18 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate(`/dashboard/${resolvedRole}/clients`)
     } else if (label === REPORT_PAGE_TITLE[resolvedRole]) {
       navigate(`/dashboard/${resolvedRole}/report`)
-    } else if (label === 'Evidence Center' && resolvedRole === 'valuer') {
+    } else if (label === 'Evidence Centre' && resolvedRole === 'valuer') {
       navigate('/dashboard/valuer/evidence-centre')
     } else if (label === 'Search Properties' && resolvedRole === 'buyer') {
       navigate('/dashboard/buyer/search-properties')
-    } else if (label === 'Saved' && resolvedRole === 'buyer') {
-      navigate('/dashboard/buyer/saved')
+    } else if (label === 'Saved Evidence' && resolvedRole === 'valuer') {
+      navigate('/dashboard/valuer/saved-evidence')
+    } else if (label === 'Saved Properties' || label === 'Saved') {
+      if (resolvedRole === 'buyer') {
+        navigate('/dashboard/buyer/saved')
+      } else {
+        navigate(`/dashboard/${resolvedRole}/saved-properties`)
+      }
     } else if (label === 'Settings') {
       navigate(`/dashboard/${resolvedRole}/settings`)
     } else if (label === 'AI Copilot') {
@@ -346,6 +368,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate(`/dashboard/${resolvedRole}/roi-calculation`)
     } else if (label === 'Affordability' && resolvedRole === 'buyer') {
       navigate('/dashboard/buyer/affortability-calculation')
+    } else if (label === 'Comparable Sales') {
+      navigate(`/dashboard/${resolvedRole}/comparable-sales`)
     } else if (label === 'Generate Appraisal' && resolvedRole === 'agent') {
       navigate('/dashboard/agent/generate-report')
     } else if (label === 'New Valuation' && resolvedRole === 'valuer') {

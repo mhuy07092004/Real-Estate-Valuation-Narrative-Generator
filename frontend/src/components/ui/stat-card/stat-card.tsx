@@ -5,6 +5,7 @@ type StatTone = 'blue' | 'teal' | 'orange' | 'sky'
 type StatCardProps = {
   icon?: ReactNode
   label: string
+  hint?: string
   value: string
   trend?: string
   tone?: StatTone
@@ -41,6 +42,7 @@ const TONE_STYLES: Record<
 export function StatCard({
   icon,
   label,
+  hint,
   value,
   trend,
   tone = 'blue',
@@ -61,6 +63,7 @@ export function StatCard({
         </div>
       )}
       <p className="text-sm text-relaive-gray">{label}</p>
+      {hint ? <p className="mt-0.5 text-xs text-relaive-gray/80">{hint}</p> : null}
       <p
         className={`mt-1 font-bold tracking-tight ${
           valueClassName ? valueClassName : 'text-2xl sm:text-3xl text-relaive-navy'
