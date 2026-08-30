@@ -1,5 +1,5 @@
 import type { ReactElement, SVGProps } from 'react'
-import { BellIcon, LogOutIcon, UserIcon } from '../../../components/ui/navbar/dashboard-navbar-icons'
+import { BellIcon, HelpCircleIcon, LogOutIcon, UserIcon } from '../../../components/ui/navbar/dashboard-navbar-icons'
 
 function iconProps(props: SVGProps<SVGSVGElement>) {
   return {
@@ -35,35 +35,6 @@ function BillingIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
-function ApiKeyIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...iconProps(props)}>
-      <circle cx="8" cy="15" r="3.5" />
-      <path d="M10.5 12.5L18 5" />
-      <path d="M15 8l2 2M18 5l2 2" />
-    </svg>
-  )
-}
-
-function IntegrationsIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...iconProps(props)}>
-      <path d="M9 8V5.5a2 2 0 1 1 4 0V8" />
-      <rect x="4" y="8" width="14" height="8" rx="2" />
-      <path d="M18 11h2v3h-2" />
-    </svg>
-  )
-}
-
-function SecurityIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...iconProps(props)}>
-      <path d="M12 3.5l7 3v5c0 5-3 7.5-7 9-4-1.5-7-4-7-9v-5z" />
-      <path d="M9.5 12l1.8 1.8 3.2-3.6" />
-    </svg>
-  )
-}
-
 function AppearanceIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...iconProps(props)}>
@@ -87,11 +58,9 @@ export type SettingsSectionId =
   | 'profile'
   | 'subscription'
   | 'billing'
-  | 'api-keys'
-  | 'integrations'
   | 'notifications'
-  | 'security'
   | 'appearance'
+  | 'help-support'
 
 type SettingsNavItem = {
   id: SettingsSectionId
@@ -103,11 +72,9 @@ export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
   { id: 'profile', label: 'Profile', icon: UserIcon },
   { id: 'subscription', label: 'Subscription', icon: SubscriptionIcon },
   { id: 'billing', label: 'Billing & Invoices', icon: BillingIcon },
-  { id: 'api-keys', label: 'API Keys', icon: ApiKeyIcon },
-  { id: 'integrations', label: 'Integrations', icon: IntegrationsIcon },
   { id: 'notifications', label: 'Notifications', icon: BellIcon },
-  { id: 'security', label: 'Security', icon: SecurityIcon },
   { id: 'appearance', label: 'Appearance', icon: AppearanceIcon },
+  { id: 'help-support', label: 'Help & Support', icon: HelpCircleIcon },
 ]
 
 type SettingsNavProps = {

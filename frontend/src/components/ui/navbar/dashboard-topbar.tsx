@@ -4,30 +4,26 @@ import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-
 import type { User } from '../../../types/auth'
 import {
   BellIcon,
-  ChevronDownIcon,
   ChevronRightIcon,
+  HelpCircleIcon,
   HomeIcon,
   LogOutIcon,
-  NavPlaceholderIcon,
+  SettingsIcon,
   UserIcon,
 } from './dashboard-navbar-icons'
-import { RoleOptionsList } from './role-options-list'
-import type { RoleOption } from './dashboard-navbar.types'
 
-const ACCOUNT_MENU_ITEMS = ['Profile', 'Account Settings', 'Security', 'Help & Support'] as const
+const ACCOUNT_MENU_ITEMS = [
+  { label: 'Account Settings', icon: SettingsIcon, to: 'settings' },
+  { label: 'Help & Support', icon: HelpCircleIcon },
+] as const
 
 type DashboardTopbarProps = {
   userMenuRef: RefObject<HTMLDivElement | null>
   user: User | null
   userMenuOpen: boolean
   onToggleUserMenu: () => void
-  roleListOpen: boolean
-  onToggleRoleList: () => void
-  availableRoles: readonly RoleOption[]
   resolvedRole: DashboardRole
   activeRoleLabel: string
-  ActiveRoleIcon: RoleOption['icon']
-  onRoleChange: (role: DashboardRole) => void
   displayName: string
   displayEmail: string
   userInitials: string
@@ -45,13 +41,8 @@ export function DashboardTopbar({
   user,
   userMenuOpen,
   onToggleUserMenu,
-  roleListOpen,
-  onToggleRoleList,
-  availableRoles,
   resolvedRole,
   activeRoleLabel,
-  ActiveRoleIcon,
-  onRoleChange,
   displayName,
   displayEmail,
   userInitials,
@@ -68,7 +59,7 @@ export function DashboardTopbar({
     'inline-flex items-center gap-1.5 rounded-md transition-colors hover:text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary/40'
 
   return (
-    <header className="sticky top-0 z-40 flex h-(--dash-topbar) items-center justify-between border-b border-black/5 bg-white px-[clamp(1.25rem,1rem+0.8vw,2rem)]">
+    <header className="sticky top-0 z-40 flex h-(--dash-topbar) items-center justify-between overflow-visible border-b border-black/5 bg-white px-[clamp(1.25rem,1rem+0.8vw,2rem)]">
       <nav
         aria-label="Breadcrumb"
         className="flex min-w-0 items-center gap-2 text-[length:var(--dash-nav)] text-relaive-gray 3xl:gap-2.5"
@@ -95,7 +86,7 @@ export function DashboardTopbar({
         )}
       </nav>
 
-      <div className="flex items-center gap-2.5 3xl:gap-3">
+      <div className="flex items-center gap-2.5 overflow-visible 3xl:gap-3">
         <button
           type="button"
           aria-label="Notifications"
@@ -116,8 +107,9 @@ export function DashboardTopbar({
             aria-label="User profile"
             aria-haspopup="menu"
             aria-expanded={userMenuOpen}
+            onMouseDown={(event) => event.stopPropagation()}
             onClick={onToggleUserMenu}
-            className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-black/40 3xl:gap-3 3xl:px-2.5"
+            className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-relaive-navy/5 3xl:gap-3 3xl:px-2.5"
           >
             <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-black/10 bg-gradient-to-br from-relaive-secondary to-relaive-primary text-[length:var(--dash-nav)] font-semibold text-white 3xl:size-10">
               {user ? userInitials : <UserIcon className="text-white" />}
@@ -150,41 +142,22 @@ export function DashboardTopbar({
               </div>
 
               <div className="border-b border-black/5 px-4 py-3">
-                <div className="flex flex-col gap-2">
-                  <button
-                    type="button"
-                    aria-expanded={roleListOpen}
-                    aria-controls="user-menu-role-accordion"
-                    onClick={onToggleRoleList}
-                    className="flex w-full items-center gap-2 rounded-xl border border-black/10 bg-white px-3 py-2.5 text-left text-sm font-medium text-relaive-navy transition-colors hover:bg-[#F8F9FB]"
-                  >
-                    <ActiveRoleIcon className="shrink-0 text-relaive-primary" />
-                    <span className="min-w-0 flex-1 truncate">{activeRoleLabel}</span>
-                    <ChevronDownIcon
-                      className={[
-                        'shrink-0 text-relaive-gray transition-transform',
-                        roleListOpen ? 'rotate-180' : '',
-                      ].join(' ')}
-                    />
-                  </button>
-
-                  {roleListOpen && (
-                    <RoleOptionsList
-                      id="user-menu-role-accordion"
-                      roles={availableRoles}
-                      resolvedRole={resolvedRole}
-                      onSelect={onRoleChange}
-                    />
-                  )}
+                <div className="rounded-xl bg-[#F5F6F8] px-3.5 py-3">
+                  <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-relaive-gray">
+                    Current Role
+                  </p>
+                  <p className="mt-1 truncate text-sm font-semibold text-relaive-navy">
+                    {activeRoleLabel}
+                  </p>
                 </div>
               </div>
 
               <ul className="border-b border-black/5 py-1.5">
-                {ACCOUNT_MENU_ITEMS.map((label) => {
+                {ACCOUNT_MENU_ITEMS.map(({ label, icon: Icon, ...item }) => {
                   const itemClassName =
                     'flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-relaive-navy transition-colors hover:bg-relaive-navy/5'
 
-                  if (label === 'Account Settings') {
+                  if ('to' in item && item.to === 'settings') {
                     return (
                       <li key={label}>
                         <Link
@@ -193,7 +166,7 @@ export function DashboardTopbar({
                           onClick={onNavigateToSettings}
                           className={itemClassName}
                         >
-                          <NavPlaceholderIcon className="shrink-0 text-relaive-gray" />
+                          <Icon className="shrink-0 text-relaive-gray" />
                           <span>{label}</span>
                         </Link>
                       </li>
@@ -203,7 +176,7 @@ export function DashboardTopbar({
                   return (
                     <li key={label}>
                       <button type="button" role="menuitem" className={itemClassName}>
-                        <NavPlaceholderIcon className="shrink-0 text-relaive-gray" />
+                        <Icon className="shrink-0 text-relaive-gray" />
                         <span>{label}</span>
                       </button>
                     </li>

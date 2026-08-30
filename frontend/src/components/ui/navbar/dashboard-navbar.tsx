@@ -40,7 +40,7 @@ import { DashboardTopbar } from './dashboard-topbar'
 import type { RoleOption, SidebarNavSection } from './dashboard-navbar.types'
 
 const ROLES = [
-  { label: 'Real-Estate Agent', value: 'agent', icon: BriefcaseIcon },
+  { label: 'Real Estate Agent', value: 'agent', icon: BriefcaseIcon },
   { label: 'Property Valuer', value: 'valuer', icon: ValuationIcon },
   { label: 'Investor', value: 'investor', icon: InvestorIcon },
   { label: 'Buyer', value: 'buyer', icon: UserIcon },
@@ -212,7 +212,6 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [roleOpen, setRoleOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const [roleListOpen, setRoleListOpen] = useState(false)
   const [activeNav, setActiveNav] = useState(() => resolveActiveNavFromPath(pathname))
 
   const resolvedRole: DashboardRole =
@@ -297,14 +296,12 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
 
   useClickOutside(userMenuRef, userMenuOpen, () => {
     setUserMenuOpen(false)
-    setRoleListOpen(false)
   })
 
   function handleRoleChange(nextRole: DashboardRole) {
     setActiveDashboardRole(nextRole)
     setActiveNav('Dashboard')
     setRoleOpen(false)
-    setRoleListOpen(false)
     setUserMenuOpen(false)
     navigate(`/dashboard/${nextRole}`, { replace: true })
   }
@@ -317,7 +314,6 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
 
   function handleNavigateToSettings() {
     setUserMenuOpen(false)
-    setRoleListOpen(false)
     setActiveNav('Settings')
   }
 
@@ -399,10 +395,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   }
 
   function handleToggleUserMenu() {
-    setUserMenuOpen((open) => {
-      if (open) setRoleListOpen(false)
-      return !open
-    })
+    setUserMenuOpen((open) => !open)
   }
 
   return (
@@ -423,19 +416,14 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
         onSignOut={handleSignOut}
       />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col overflow-visible">
         <DashboardTopbar
           userMenuRef={userMenuRef}
           user={user}
           userMenuOpen={userMenuOpen}
           onToggleUserMenu={handleToggleUserMenu}
-          roleListOpen={roleListOpen}
-          onToggleRoleList={() => setRoleListOpen((open) => !open)}
-          availableRoles={availableRoles}
           resolvedRole={resolvedRole}
           activeRoleLabel={activeRoleLabel}
-          ActiveRoleIcon={ActiveRoleIcon}
-          onRoleChange={handleRoleChange}
           displayName={displayName}
           displayEmail={displayEmail}
           userInitials={userInitials}

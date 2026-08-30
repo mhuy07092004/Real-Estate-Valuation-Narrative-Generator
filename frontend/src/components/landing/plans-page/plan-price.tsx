@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import {
   SubscriptionCard,
   type SubscriptionCardProps,
 } from '../../ui/card/subscription-card'
+import { PLAN_TIERS, type PlanIconKey } from '../../../services/plans'
 
 type BillingPeriod = 'monthly' | 'annually'
 
@@ -100,107 +101,18 @@ function ShieldIcon() {
   )
 }
 
-const PLANS: SubscriptionCardProps[] = [
-  {
-    icon: <LightningIcon />,
-    badge: 'Best for Beginners',
-    title: 'Starter',
-    description:
-      'Get started with AI-powered real estate reporting and property valuation workflows.',
-    price: 'Free',
-    features: [
-      '5 appraisal reports /month',
-      'Automated valuation summaries',
-      'Basic comparable sales overview',
-      'Limited PDF export',
-    ],
-    primaryCta: { label: 'Start Free', href: '#' },
-    secondaryCta: { label: 'Try Demo', href: '#' },
-    primaryCtaStyle: 'primary',
-  },
-  {
-    icon: <UsersIcon />,
-    badge: 'Most Popular',
-    badgeTone: 'popular',
-    title: 'Professional',
-    description:
-      'Unlock deeper market intelligence with advanced analytics, branded reports, and customizable AI insights.',
-    price: '$79',
-    priceSuffix: '/month',
-    features: [
-      '50 monthly reports',
-      'Advanced comparable sales analysis',
-      'Create branded client-ready reports',
-      'Flexible report templates',
-      'AI confidence insights',
-    ],
-    primaryCta: { label: 'Upgrade to Professional', href: '#' },
-    secondaryCta: { label: 'Start Free Trial', href: '#' },
-    primaryCtaStyle: 'primary',
-    highlighted: true,
-  },
-  {
-    icon: <ChartIcon />,
-    badge: 'Predictive Analytics',
-    title: 'Investor Pro',
-    description:
-      'Predictive market intelligence and investment-focused analytics powered by AI.',
-    price: '$129',
-    priceSuffix: '/month',
-    features: [
-      '100 AI-generated reports/month',
-      'ROI & cash flow forecasting',
-      'Investment opportunity scoring',
-      'Suburb growth prediction insights',
-      'Risk & market trend analysis',
-      'All features in Professional Plan',
-    ],
-    primaryCta: { label: 'Upgrade to Investor Pro', href: '#' },
-    secondaryCta: { label: 'Start Free Trial', href: '#' },
-    primaryCtaStyle: 'primary',
-  },
-  {
-    icon: <BuildingIcon />,
-    badge: 'Agency Ready',
-    title: 'Team Workspace',
-    description:
-      'Collaborative AI valuation workflows designed for teams and agency operations.',
-    price: '$299',
-    priceSuffix: '/month',
-    features: [
-      'Unlimited appraisal reports/ month',
-      'Unlimited shared team workspace',
-      'Team collaboration & report reviews',
-      'Internal comments & review',
-      'Multi-user access controls',
-      'Shared report management system',
-      'All features in Investor Pro plan',
-    ],
-    primaryCta: { label: 'Upgrade to Team Workspace', href: '#' },
-    secondaryCta: { label: 'Start Free Trial', href: '#' },
-    primaryCtaStyle: 'primary',
-  },
-  {
-    icon: <ShieldIcon />,
-    badge: 'Enterprise Ready',
-    badgeTone: 'enterprise',
-    title: 'Enterprise Intelligence',
-    description:
-      'Enterprise-scale AI property intelligence with advanced monitoring, security, and infrastructure support.',
-    price: 'Contact Us',
-    features: [
-      'Unlimited AI-generated reports',
-      'Enterprise analytics dashboard',
-      'AI model monitoring',
-      'Dataset management system',
-      'Audit logs & compliance tools',
-    ],
-    primaryCta: { label: 'Request Enterprise Demo', href: '#' },
-    secondaryCta: { label: 'Contact Sales', href: '#' },
-    primaryCtaStyle: 'gold',
-    variant: 'dark',
-  },
-]
+const ICON_BY_KEY: Record<PlanIconKey, ReactNode> = {
+  lightning: <LightningIcon />,
+  users: <UsersIcon />,
+  chart: <ChartIcon />,
+  building: <BuildingIcon />,
+  shield: <ShieldIcon />,
+}
+
+const PLANS: SubscriptionCardProps[] = PLAN_TIERS.map(({ iconKey, ...tier }) => ({
+  ...tier,
+  icon: ICON_BY_KEY[iconKey],
+}))
 
 function BillingToggle({
   period,
