@@ -1,4 +1,4 @@
-import { Route, Routes, useParams } from 'react-router-dom'
+import { Route, Routes, useParams, Navigate } from 'react-router-dom'
 import Landing from '../pages/Landing'
 import SignInPageRoute from '../pages/signin'
 import SignUpPageRoute from '../pages/signup'
@@ -18,6 +18,10 @@ import { SearchProperty } from '../pages/dashboard/buyer/search-property'
 import { SavedProperty } from '../pages/dashboard/buyer/saved-property'
 import { ValuationCases } from '../pages/dashboard/property-valuer/valuation-cases'
 import { ClientAgent } from '../pages/dashboard/real-estate-agent/client-agent'
+import { MarketInsights as AgentMarketInsights } from '../pages/dashboard/real-estate-agent/market-insights'
+import { MarketInsights as ValuerMarketInsights } from '../pages/dashboard/property-valuer/market-insights'
+import { SuburbExplorer as InvestorSuburbExplorer } from '../pages/dashboard/investor/suburb-explorer'
+import { SuburbExplorer as BuyerSuburbExplorer } from '../pages/dashboard/buyer/subrub-explorer'
 import { AgentReport } from '../pages/dashboard/real-estate-agent/agent-report'
 import { Settings } from '../pages/dashboard/settings'
 import { Copilot } from '../pages/dashboard/copilot'
@@ -57,6 +61,20 @@ function DashboardSavedProperties() {
   return <AgentSavedProperties />
 }
 
+function DashboardMarketInsights() {
+  const { role } = useParams<{ role: string }>()
+  if (role === 'valuer') return <ValuerMarketInsights />
+  if (role === 'agent') return <AgentMarketInsights />
+  return <Navigate to={`/dashboard/${role ?? 'agent'}`} replace />
+}
+
+function DashboardSuburbExplorer() {
+  const { role } = useParams<{ role: string }>()
+  if (role === 'investor') return <InvestorSuburbExplorer />
+  if (role === 'buyer') return <BuyerSuburbExplorer />
+  return <Navigate to={`/dashboard/${role ?? 'buyer'}`} replace />
+}
+
 export function AppRoutes() {
   return (
     <Routes>
@@ -80,6 +98,8 @@ export function AppRoutes() {
           <Route index element={<DashboardRoleHome />} />
           <Route path="valuation-cases" element={<ValuationCases />} />
           <Route path="clients" element={<ClientAgent />} />
+          <Route path="market-insights" element={<DashboardMarketInsights />} />
+          <Route path="suburb-explorer" element={<DashboardSuburbExplorer />} />
           <Route path="report" element={<DashboardReport />} />
           <Route path="evidence-centre" element={<EvidenceCentre />} />
           <Route path="search-properties" element={<SearchProperty />} />

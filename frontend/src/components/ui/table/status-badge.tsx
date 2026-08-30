@@ -154,16 +154,32 @@ export function getClientStatusLabel(status: ClientStatus): string {
 type ClientStatusBadgeProps = {
   status: ClientStatus
   className?: string
+  showChevron?: boolean
 }
 
-export function ClientStatusBadge({ status, className = '' }: ClientStatusBadgeProps) {
+export function ClientStatusBadge({
+  status,
+  className = '',
+  showChevron = false,
+}: ClientStatusBadgeProps) {
   const styles = CLIENT_STATUS_STYLES[status]
 
   return (
     <span
-      className={`inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${styles.bg} ${styles.text} ${className}`}
+      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${styles.bg} ${styles.text} ${className}`}
     >
       {styles.label}
+      {showChevron ? (
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M6 9l6 6 6-6"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ) : null}
     </span>
   )
 }

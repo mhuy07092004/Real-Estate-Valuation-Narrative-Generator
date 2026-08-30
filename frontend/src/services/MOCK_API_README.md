@@ -220,6 +220,40 @@ Errors (plain JSON):
 ### `getAgentUnreadNotificationCount(): Promise<number>`
 `GET /api/agent/notifications/unread-count`
 
+### `getMarketInsightsMockData(query: MarketInsightsQuery): Promise<MarketInsightsData | null>`
+**Not yet wired to `fetchJson`/MSW** — currently a pure local mock (in-memory lookup by suburb) used
+by the Market Insights page's suburb search box. Documented here so the shape can become a real
+endpoint later: suggested `GET /api/agent/market-insights?suburb=<suburb>`.
+```ts
+type MarketInsightsQuery = {
+  suburb: string            // free-text "Suburb STATE", e.g. "Richmond VIC" (from the search input)
+}
+
+type MarketTrendPoint = {
+  month: string              // short month label, e.g. "Jan"
+  priceIndex: number         // relative price index (not a dollar value), ~0-120 scale
+}
+
+type MarketInsightsStats = {
+  medianPrice: string        // pre-formatted, e.g. "$1.28M"
+  medianPriceTrend: string   // e.g. "+8.2%"
+  monthlyGrowth: string      // e.g. "+0.68%"
+  monthlyGrowthTrend: string // e.g. "+0.12pp"
+  daysOnMarket: number       // e.g. 22
+  daysOnMarketTrend: string  // e.g. "-3 days"
+  rentalYield: string        // e.g. "3.4%"
+  rentalYieldTrend: string   // e.g. "+0.2%"
+}
+
+type MarketInsightsData = {
+  suburb: string
+  stats: MarketInsightsStats
+  priceTrend: MarketTrendPoint[]   // 12 points, Jan-Dec
+}
+```
+Response is `null` when the requested suburb has no data (frontend shows a "not found" state
+with suggestions — the real endpoint should return `404`/`null` rather than throwing).
+
 ---
 
 ## `buyer.ts` (Buyer)
@@ -260,6 +294,35 @@ type PropertyCardData = {
 
 ### `getBuyerUnreadNotificationCount(): Promise<number>`
 `GET /api/buyer/notifications/unread-count`
+
+### `getSuburbExplorerMockData(query: SuburbExplorerQuery): Promise<SuburbExplorerData | null>`
+**Not yet wired to `fetchJson`/MSW** — currently a pure local mock (in-memory lookup by suburb),
+independent from the equivalent functions in `investor.ts`/`agent.ts` (duplicated on purpose so
+each role's page has no cross-role dependency). Suggested real endpoint:
+`GET /api/buyer/suburb-explorer?suburb=<suburb>`.
+```ts
+type SuburbExplorerQuery = { suburb: string }   // free-text "Suburb STATE", e.g. "Richmond VIC"
+
+type SuburbTrendPoint = { month: string; priceIndex: number }   // priceIndex: relative, ~0-120 scale
+
+type SuburbExplorerStats = {
+  medianPrice: string
+  medianPriceTrend: string
+  monthlyGrowth: string
+  monthlyGrowthTrend: string
+  daysOnMarket: number
+  daysOnMarketTrend: string
+  rentalYield: string
+  rentalYieldTrend: string
+}
+
+type SuburbExplorerData = {
+  suburb: string
+  stats: SuburbExplorerStats
+  priceTrend: SuburbTrendPoint[]   // 12 points, Jan-Dec
+}
+```
+Response is `null` when the requested suburb has no data (frontend shows a "not found" state).
 
 ---
 
@@ -302,6 +365,13 @@ type InvestorReportSummary = { totalReports: number; draftCount: number; sharedC
 
 ### `getInvestorUnreadNotificationCount(): Promise<number>`
 `GET /api/investor/notifications/unread-count`
+
+### `getSuburbExplorerMockData(query: SuburbExplorerQuery): Promise<SuburbExplorerData | null>`
+**Not yet wired to `fetchJson`/MSW** — currently a pure local mock (in-memory lookup by suburb),
+independent from the equivalent functions in `buyer.ts`/`agent.ts` (duplicated on purpose so each
+role's page has no cross-role dependency). Suggested real endpoint:
+`GET /api/investor/suburb-explorer?suburb=<suburb>`. Same shape as `buyer.ts`'s
+`getSuburbExplorerMockData` (see above).
 
 ---
 
@@ -348,6 +418,12 @@ type ValuationCasesMockPayload = {
 
 ### `getValuerUnreadNotificationCount(): Promise<number>`
 `GET /api/valuer/notifications/unread-count`
+
+### `getMarketInsightsMockData(query: MarketInsightsQuery): Promise<MarketInsightsData | null>`
+**Not yet wired to `fetchJson`/MSW** — currently a pure local mock (in-memory lookup by suburb),
+independent from the equivalent function in `agent.ts` (duplicated on purpose so each role's page
+has no cross-role dependency). Suggested real endpoint: `GET /api/valuer/market-insights?suburb=<suburb>`.
+Same shape as `agent.ts`'s `getMarketInsightsMockData` (see above).
 
 ---
 

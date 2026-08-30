@@ -172,6 +172,8 @@ function extractRoleFromPathname(pathname: string): DashboardRole {
 function resolveActiveNavFromPath(pathname: string): string {
   if (pathname.endsWith('/valuation-cases')) return 'Valuation Cases'
   if (pathname.endsWith('/clients')) return 'Clients'
+  if (pathname.endsWith('/market-insights')) return 'Market Insights'
+  if (pathname.endsWith('/suburb-explorer')) return 'Suburb Explorer'
   if (pathname.endsWith('/report')) return REPORT_PAGE_TITLE[extractRoleFromPathname(pathname)]
   if (pathname.endsWith('/evidence-centre')) return 'Evidence Centre'
   if (pathname.endsWith('/search-properties')) return 'Search Properties'
@@ -181,7 +183,7 @@ function resolveActiveNavFromPath(pathname: string): string {
   }
   if (pathname.endsWith('/settings')) return 'Settings'
   if (pathname.endsWith('/copilot')) return 'AI Copilot'
-  if (pathname.endsWith('/notifications')) return 'Alert'
+  if (pathname.endsWith('/notifications')) return 'Notifications'
   if (pathname.endsWith('/affortability-calculation')) return 'Affordability'
   if (pathname.endsWith('/roi-calculation')) return 'ROI Calculator'
   if (pathname.endsWith('/comparable-sales')) return 'Comparable Sales'
@@ -252,6 +254,10 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       setActiveNav('Valuation Cases')
     } else if (pathname.endsWith('/clients')) {
       setActiveNav('Clients')
+    } else if (pathname.endsWith('/market-insights')) {
+      setActiveNav('Market Insights')
+    } else if (pathname.endsWith('/suburb-explorer')) {
+      setActiveNav('Suburb Explorer')
     } else if (pathname.endsWith('/report')) {
       setActiveNav(REPORT_PAGE_TITLE[resolvedRole])
     } else if (pathname.endsWith('/evidence-centre')) {
@@ -267,7 +273,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
     } else if (pathname.endsWith('/copilot')) {
       setActiveNav('AI Copilot')
     } else if (pathname.endsWith('/notifications')) {
-      setActiveNav('Alert')
+      setActiveNav('Notifications')
     } else if (pathname.endsWith('/affortability-calculation')) {
       setActiveNav('Affordability')
     } else if (pathname.endsWith('/roi-calculation')) {
@@ -316,7 +322,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   }
 
   function handleNavigateToNotifications() {
-    setActiveNav('Alert')
+    setActiveNav('Notifications')
     navigate(`/dashboard/${resolvedRole}/notifications`)
   }
 
@@ -344,6 +350,10 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       resolvedRole === 'agent'
     ) {
       navigate(`/dashboard/${resolvedRole}/clients`)
+    } else if (label === 'Market Insights') {
+      navigate(`/dashboard/${resolvedRole}/market-insights`)
+    } else if (label === 'Suburb Explorer') {
+      navigate(`/dashboard/${resolvedRole}/suburb-explorer`)
     } else if (label === REPORT_PAGE_TITLE[resolvedRole]) {
       navigate(`/dashboard/${resolvedRole}/report`)
     } else if (label === 'Evidence Centre' && resolvedRole === 'valuer') {
@@ -362,7 +372,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate(`/dashboard/${resolvedRole}/settings`)
     } else if (label === 'AI Copilot') {
       navigate(`/dashboard/${resolvedRole}/copilot`)
-    } else if (label === 'Alert') {
+    } else if (label === 'Notifications') {
       navigate(`/dashboard/${resolvedRole}/notifications`)
     } else if (label === 'ROI Calculator') {
       navigate(`/dashboard/${resolvedRole}/roi-calculation`)
