@@ -162,7 +162,7 @@ function getRelativeTimeLabel(isoDate: string): string {
   return `${days} days ago`
 }
 
-async function getAgentDashboardPayload(): Promise<DashboardMockPayload> {
+async function getAgentDashboardPayload(role: DashboardRole): Promise<DashboardMockPayload> {
   const [reportsRes, clientsRes] = await Promise.all([
     fetchJson<ApiSuccess<StoredReportRow[]>>('/api/reports'),
     fetchJson<ApiSuccess<StoredClientRow[]>>('/api/clients'),
@@ -183,6 +183,30 @@ async function getAgentDashboardPayload(): Promise<DashboardMockPayload> {
   const pendingReports = reports.filter((item) => !item.pdfStoragePath).length
   const sentReports = reports.filter((item) => Boolean(item.pdfStoragePath))
   const sentThisWeek = countCreatedThisWeek(sentReports)
+
+  const stats: DashboardStat[] = [
+    {
+      label: 'Generated Reports',
+      value: String(generatedReports || 0),
+      trend: `+${generatedThisWeek || 0} this week`,
+      tone: 'blue',
+      iconKey: 'document',
+    },
+    {
+      label: 'Active Clients',
+      value: String(activeClients || 0),
+      trend: `+${newClientsThisWeek || 0} new`,
+      tone: 'teal',
+      iconKey: 'users',
+    },
+    {
+      label: 'Avg Appraisal',
+      value: formatCompactCurrency(avgAppraisal || 0),
+      trend: '+0 vs. last month',
+      tone: 'orange',
+      iconKey: 'trend',
+    },
+  ]
 
   const recentReports: RecentReport[] = reports
     .slice()
@@ -205,29 +229,7 @@ async function getAgentDashboardPayload(): Promise<DashboardMockPayload> {
 
   return {
     welcomeSubtitle: `${pendingReports || 0} pending client reports • ${activeClients || 0} active clients`,
-    stats: [
-      {
-        label: 'Generated Reports',
-        value: String(generatedReports || 0),
-        trend: `+${generatedThisWeek || 0} this week`,
-        tone: 'blue',
-        iconKey: 'document',
-      },
-      {
-        label: 'Active Clients',
-        value: String(activeClients || 0),
-        trend: `+${newClientsThisWeek || 0} new`,
-        tone: 'teal',
-        iconKey: 'users',
-      },
-      {
-        label: 'Avg Appraisal',
-        value: formatCompactCurrency(avgAppraisal || 0),
-        trend: '+0 vs. last month',
-        tone: 'orange',
-        iconKey: 'trend',
-      },
-    ],
+    stats: role === 'valuer' ? stats.slice(0, 2) : stats,
     reports: recentReports,
     insights: [],
     thisWeek: {
@@ -242,7 +244,7 @@ async function getAgentDashboardPayload(): Promise<DashboardMockPayload> {
         subtitle: 'View all reports',
         tone: 'teal',
         iconKey: 'document',
-        to: '/dashboard/agent/report',
+        to: `/dashboard/${role}/report`,
       },
       {
         id: 'add-client',
@@ -250,7 +252,7 @@ async function getAgentDashboardPayload(): Promise<DashboardMockPayload> {
         subtitle: 'Manage clients',
         tone: 'blue',
         iconKey: 'userPlus',
-        to: '/dashboard/agent/clients',
+        to: `/dashboard/${role}/clients`,
       },
       {
         id: 'comparables',
@@ -258,16 +260,12 @@ async function getAgentDashboardPayload(): Promise<DashboardMockPayload> {
         subtitle: 'Comparable sales',
         tone: 'teal',
         iconKey: 'nodes',
-        to: '/dashboard/agent/generate-report?step=2',
+        to: `/dashboard/${role}/generate-report?step=2`,
       },
     ],
   }
 }
 
 export function getDashboardMockData(role: DashboardRole): Promise<DashboardMockPayload> {
-  if (role === 'agent') {
-    return getAgentDashboardPayload()
-  }
-
-  return fetchJson(`/api/dashboard/${role}`)
+  return getAgentDashboardPayload(role)
 }

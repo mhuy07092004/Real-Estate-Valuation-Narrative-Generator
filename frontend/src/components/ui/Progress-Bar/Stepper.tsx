@@ -41,7 +41,7 @@ function StepIcon({
   status: StepStatus
 }) {
   const base =
-    'flex size-10 shrink-0 items-center justify-center rounded-xl text-sm font-semibold'
+    'flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold'
 
   if (status === 'active') {
     return (

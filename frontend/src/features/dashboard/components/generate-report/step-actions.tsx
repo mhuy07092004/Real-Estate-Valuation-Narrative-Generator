@@ -23,16 +23,18 @@ export function StepActions({
         </Button>
       ) : null}
 
-      <Button
-        type="button"
-        variant="primary"
-        size="md"
-        onClick={onContinue}
-        disabled={continueDisabled}
-        className="ml-auto"
-      >
-        {continueLabel}
-      </Button>
+      {onContinue ? (
+        <Button
+          type="button"
+          variant="primary"
+          size="md"
+          onClick={onContinue}
+          disabled={continueDisabled}
+          className="ml-auto"
+        >
+          {continueLabel}
+        </Button>
+      ) : null}
     </div>
   )
 }

@@ -58,7 +58,7 @@ const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
       items: [
         { label: 'Generate Appraisal', icon: PlusIcon },
         { label: 'Comparable Sales', icon: ComparableSalesIcon },
-        { label: 'Client', icon: UserIcon },
+        { label: 'Saved Properties', icon: HeartIcon },
         { label: 'Client Report', icon: ReportDocIcon, badge: 3 },
       ],
     },
@@ -179,6 +179,7 @@ function resolveActiveNavFromPath(pathname: string): string {
   if (pathname.endsWith('/roi-calculation')) return 'ROI Calculator'
   if (pathname.endsWith('/generate-report')) {
     const role = extractRoleFromPathname(pathname)
+    if (role === 'agent') return 'Generate Appraisal'
     if (role === 'valuer') return 'New Valuation'
     if (role === 'investor') return 'Generate Report'
     return 'Generate Report'
@@ -262,7 +263,9 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
     } else if (pathname.endsWith('/roi-calculation')) {
       setActiveNav('ROI Calculator')
     } else if (pathname.endsWith('/generate-report')) {
-      if (resolvedRole === 'valuer') {
+      if (resolvedRole === 'agent') {
+        setActiveNav('Generate Appraisal')
+      } else if (resolvedRole === 'valuer') {
         setActiveNav('New Valuation')
       } else if (resolvedRole === 'investor') {
         setActiveNav('Generate Report')
@@ -343,7 +346,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate(`/dashboard/${resolvedRole}/roi-calculation`)
     } else if (label === 'Affordability' && resolvedRole === 'buyer') {
       navigate('/dashboard/buyer/affortability-calculation')
-    } else if (label === 'Generate Report' && resolvedRole === 'agent') {
+    } else if (label === 'Generate Appraisal' && resolvedRole === 'agent') {
       navigate('/dashboard/agent/generate-report')
     } else if (label === 'New Valuation' && resolvedRole === 'valuer') {
       navigate('/dashboard/valuer/generate-report')

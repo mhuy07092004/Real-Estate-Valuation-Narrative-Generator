@@ -261,26 +261,21 @@ const DASHBOARD_DATA: Record<DashboardRole, unknown> = {
       { id: '2', title: 'Affordability', subtitle: 'Run calculator', tone: 'teal', iconKey: 'document' },
     ],
   },
+  // Shape: see ValuerDashboardPayload in frontend/src/services/dashboard.ts
   valuer: {
-    welcomeSubtitle: '3 open valuation cases • 8 evidence packs ready',
-    stats: [
-      { label: 'Open Cases', value: '3', trend: '1 due today', tone: 'blue', iconKey: 'document' },
-      { label: 'Evidence Items', value: '42', trend: '+6 this week', tone: 'teal', iconKey: 'users' },
-      { label: 'Avg Valuation', value: '$920k', trend: '+4% vs. last month', tone: 'orange', iconKey: 'trend' },
-      { label: 'Pending Reviews', value: '2', trend: 'Awaiting peer check', tone: 'sky', iconKey: 'clock' },
-    ],
-    reports: [
-      { id: '1', title: 'Valuation Case - Riverview Rd', detail: '$1,050,000 • In Progress', timeAgo: '1 hour ago' },
-      { id: '2', title: 'Evidence Pack - Westmead', detail: '$890,000 • Ready', timeAgo: 'Yesterday' },
-    ],
-    insights: [
-      { id: '1', title: 'Peer Review Requested', description: 'Riverview Rd draft needs second opinion', badge: 'Action Required', tone: 'teal' },
-      { id: '2', title: 'Comparable Alert', description: 'New sale within 400m of open case', badge: 'Market Update', tone: 'orange' },
-    ],
-    quickActions: [
-      { id: '1', title: 'Generate Appraisal', subtitle: 'Start valuation', tone: 'blue', iconKey: 'sparkle' },
-      { id: '2', title: 'Evidence Center', subtitle: 'Browse comps', tone: 'teal', iconKey: 'document' },
-    ],
+    stats: [],
+    cases: [],
+    monthlyProgress: {
+      completed: { current: 0, total: 0 },
+      inProgress: { current: 0, total: 0 },
+    },
+    valueDistribution: {
+      under800k: 0,
+      range800kTo1_2m: 0,
+      range1_2mTo2m: 0,
+      over2m: 0,
+    },
+    quickActions: [],
   },
 }
 
@@ -696,10 +691,11 @@ mockRouter.get('/copilot/messages', (_req, res) => {
 
 mockRouter.get('/appraisal/steps', (_req, res) => {
   res.json([
-    { id: 'property-input', label: 'Property Input' },
-    { id: 'comparables', label: 'Comparables' },
+    { id: 'property-details', label: 'Property Details' },
+    { id: 'comparable-sales', label: 'Comparable Sales' },
     { id: 'market-intelligence', label: 'Market Intelligence' },
-    { id: 'report', label: 'Report' },
+    { id: 'report-type', label: 'Report Type' },
+    { id: 'generated-report', label: 'Generated Report' },
   ])
 })
 
@@ -712,7 +708,7 @@ mockRouter.get('/appraisal/property-input-methods', (_req, res) => {
 })
 
 mockRouter.get('/appraisal/property-types', (_req, res) => {
-  res.json(['House', 'Unit', 'Townhouse'])
+  res.json(['House', 'Townhouse', 'Unit', 'Apartment', 'Villa'])
 })
 
 mockRouter.get('/appraisal/ai-analysis-metrics', (_req, res) => {

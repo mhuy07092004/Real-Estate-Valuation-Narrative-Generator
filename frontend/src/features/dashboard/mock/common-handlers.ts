@@ -73,10 +73,11 @@ const COPILOT_MESSAGES_DATA: CopilotMessage[] = [
 ]
 
 const APPRAISAL_STEPS_DATA: StepperStep[] = [
-  { id: 'property-input', label: 'Property Input' },
-  { id: 'comparables', label: 'Comparables' },
+  { id: 'property-details', label: 'Property Details' },
+  { id: 'comparable-sales', label: 'Comparable Sales' },
   { id: 'market-intelligence', label: 'Market Intelligence' },
-  { id: 'report', label: 'Report' },
+  { id: 'report-type', label: 'Report Type' },
+  { id: 'generated-report', label: 'Generated Report' },
 ]
 
 const PROPERTY_INPUT_METHODS_DATA: PropertyInputMethodOption[] = [
@@ -100,7 +101,13 @@ const PROPERTY_INPUT_METHODS_DATA: PropertyInputMethodOption[] = [
   },
 ]
 
-const PROPERTY_TYPE_OPTIONS_DATA = ['House', 'Unit', 'Townhouse'] as const
+const PROPERTY_TYPE_OPTIONS_DATA = [
+  'House',
+  'Townhouse',
+  'Unit',
+  'Apartment',
+  'Villa',
+] as const
 
 const COMPARABLE_SALES_DATA: ComparableSale[] = [
   {

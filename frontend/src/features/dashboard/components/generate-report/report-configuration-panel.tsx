@@ -28,19 +28,23 @@ import { StepActions } from './step-actions'
 
 type ReportConfigurationPanelProps = {
   onBack: () => void
+  onContinue?: () => void
+  forceSubmitted?: boolean
   initialSubmitted?: boolean
   initialSelectedTemplateId?: string
 }
 
 export function ReportConfigurationPanel({
   onBack,
+  onContinue,
+  forceSubmitted = false,
   initialSubmitted = false,
   initialSelectedTemplateId,
 }: ReportConfigurationPanelProps) {
   const navigate = useNavigate()
   const { role } = useParams<{ role?: string }>()
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [submitted, setSubmitted] = useState(false)
+  const submitted = forceSubmitted || initialSubmitted
   const [sendToClientOpen, setSendToClientOpen] = useState(false)
   const { data: templates } = useAsyncData(getReportTemplates, [])
   const { data: narrativePreview, isLoading: isNarrativeLoading } = useAsyncData(
@@ -66,7 +70,7 @@ export function ReportConfigurationPanel({
   const selectedTemplate = (templates ?? []).find((template) => template.id === selectedId)
 
   useEffect(() => {
-    if (!initialSubmitted) return
+    if (!initialSubmitted && !forceSubmitted) return
     if (!templates?.length) return
 
     const matchedTemplate = initialSelectedTemplateId
@@ -76,8 +80,7 @@ export function ReportConfigurationPanel({
     if (!selectedId) {
       setSelectedId(matchedTemplate?.id ?? templates[0].id)
     }
-    setSubmitted(true)
-  }, [initialSubmitted, initialSelectedTemplateId, templates, selectedId])
+  }, [initialSubmitted, forceSubmitted, initialSelectedTemplateId, templates, selectedId])
 
   const parseEstimatedValue = (value: string | undefined): number => {
     const source = value ?? ''
@@ -354,12 +357,14 @@ export function ReportConfigurationPanel({
               onSuccess={handleSendSuccess}
             />
           ) : null}
+
+          <StepActions onBack={onBack} backLabel="Back" />
         </div>
       ) : (
         <StepActions
           onBack={onBack}
-          onContinue={() => setSubmitted(true)}
-          continueLabel="Submit"
+          onContinue={onContinue}
+          continueLabel="Next: Generated Report >"
           continueDisabled={!selectedId}
         />
       )}

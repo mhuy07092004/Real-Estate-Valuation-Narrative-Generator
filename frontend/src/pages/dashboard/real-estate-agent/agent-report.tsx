@@ -51,7 +51,7 @@ export function AgentReport() {
           searchPlaceholder="Search reports, properties, clients..."
           emptyMessage="No reports match your search."
           onRowClick={(item) =>
-            navigate(`/dashboard/agent/generate-report?step=4&ready=1&reportId=${encodeURIComponent(item.id)}`)
+            navigate(`/dashboard/agent/generate-report?step=5&ready=1&reportId=${encodeURIComponent(item.id)}`)
           }
         />
       </div>

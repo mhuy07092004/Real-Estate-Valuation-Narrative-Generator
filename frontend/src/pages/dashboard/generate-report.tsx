@@ -13,14 +13,40 @@ import { ComparablesPanel } from '../../features/dashboard/components/generate-r
 import { MarketIntelligencePanel } from '../../features/dashboard/components/generate-report/market-intelligence-panel'
 import { ReportConfigurationPanel } from '../../features/dashboard/components/generate-report/report-configuration-panel'
 
+const STEP_HEADERS = [
+  {
+    title: 'Property Details',
+    subtitle: 'Enter the subject property information',
+  },
+  {
+    title: 'Comparable Sales',
+    subtitle: 'Selected similar properties',
+  },
+  {
+    title: 'Market Intelligence',
+    subtitle: 'Suburb analytics and trends',
+  },
+  {
+    title: 'Report Type',
+    subtitle: 'Select template and customize',
+  },
+  {
+    title: 'Generated Report',
+    subtitle: 'Your appraisal is ready',
+  },
+] as const
+
+const LAST_STEP_INDEX = STEP_HEADERS.length - 1
+
 export function GenerateReport() {
   const [searchParams] = useSearchParams()
+  const openReadyView = searchParams.get('ready') === '1'
   const initialStep = useMemo(() => {
+    if (openReadyView) return LAST_STEP_INDEX
     const raw = Number(searchParams.get('step') ?? '1')
     if (!Number.isFinite(raw)) return 0
-    return Math.min(Math.max(raw - 1, 0), 3)
-  }, [searchParams])
-  const openReadyView = searchParams.get('ready') === '1'
+    return Math.min(Math.max(raw - 1, 0), LAST_STEP_INDEX)
+  }, [searchParams, openReadyView])
   const selectedReportId = searchParams.get('reportId')
   const { data: selectedReport } = useAsyncData(
     () =>
@@ -35,6 +61,7 @@ export function GenerateReport() {
 
   const [currentStep, setCurrentStep] = useState(initialStep)
   const { data: steps } = useAsyncData(getAppraisalSteps, [])
+  const header = STEP_HEADERS[currentStep] ?? STEP_HEADERS[0]
 
   useEffect(() => {
     if (!selectedReportId) {
@@ -75,17 +102,17 @@ export function GenerateReport() {
 
   return (
     <div className="flex flex-col">
-      <header className="font-sans px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pt-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-[#1C2A38] sm:text-[28px]">
-          Generate Appraisal
-        </h1>
-        <p className="mt-1 text-sm text-[#1C2A3880] sm:text-base">
-          A.I Powered Property Intelligence Platform
-        </p>
-      </header>
-
       <div className="flex flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:p-8">
         <Stepper steps={steps ?? []} activeStep={currentStep} />
+
+        <header className="font-sans">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#1C2A38] sm:text-[28px]">
+            {header.title}
+          </h1>
+          <p className="mt-1 text-sm text-[#1C2A3880] sm:text-base">
+            {header.subtitle}
+          </p>
+        </header>
 
         {currentStep === 0 ? (
           <PropertyInputPanel onContinue={handleStepOneContinue} />
@@ -105,11 +132,12 @@ export function GenerateReport() {
           />
         ) : null}
 
-        {currentStep === 3 ? (
+        {currentStep === 3 || currentStep === 4 ? (
           hasHydratedFromSavedReport ? (
             <ReportConfigurationPanel
-              onBack={() => setCurrentStep(2)}
-              initialSubmitted={openReadyView}
+              onBack={() => setCurrentStep(currentStep === 4 ? 3 : 2)}
+              onContinue={() => setCurrentStep(4)}
+              forceSubmitted={currentStep === 4}
               initialSelectedTemplateId={initialTemplateId}
             />
           ) : (

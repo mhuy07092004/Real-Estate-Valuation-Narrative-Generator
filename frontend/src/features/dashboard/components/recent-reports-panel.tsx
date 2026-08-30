@@ -13,6 +13,7 @@ type RecentReportsPanelProps = {
   reports: RecentReport[]
   className?: string
   viewAllTo?: string
+  generateReportBase?: string
   variant?: 'default' | 'agent'
 }
 
@@ -74,6 +75,7 @@ export function RecentReportsPanel({
   reports,
   className = '',
   viewAllTo,
+  generateReportBase = '/dashboard/agent/generate-report',
   variant = 'default',
 }: RecentReportsPanelProps) {
   const navigate = useNavigate()
@@ -110,7 +112,7 @@ export function RecentReportsPanel({
                   className="flex min-w-0 flex-1 items-center gap-3 text-left"
                   onClick={() =>
                     navigate(
-                      `/dashboard/agent/generate-report?step=4&ready=1&reportId=${encodeURIComponent(report.id)}`,
+                      `${generateReportBase}?step=5&ready=1&reportId=${encodeURIComponent(report.id)}`,
                     )
                   }
                 >
