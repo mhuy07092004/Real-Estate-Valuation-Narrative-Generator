@@ -296,6 +296,185 @@ Files touched: `frontend/src/v2/pages/dashboard/real-estate-agent/comparable-sal
 
 Verified live (Playwright): searched 91 Church Street, Richmond VIC 3121 → Date Range/Property Type filters render and are wired → Subject Property card shows real address + beds/baths/land/type → Save Property → confirmed a real `SavedPropertySearch` row was created in the DB, button flips to "✓ Saved" → no stats row anywhere → comparable rows render in the lean figma style with property type included. Zero console errors.
 
+### 9.8 `figma-protoype_v2` — refined source, diffed and re-applied (2026-08-29)
+
+A second, refined figma export landed at repo-root-sibling `figma-protoype_v2/` (same 65 files as `figma_prototype/`, 29 differ in content, none added/removed — a revision of the same design, not a fork). **`figma-protoype_v2` is now the source of truth for all future role migrations** — read from there, not `figma_prototype`, when starting Valuer/Investor/Buyer/Settings/Notifications.
+
+Diffed against every already-shipped Agent-role v2 screen. Findings:
+
+- **No-op** (cosmetic/internal only, nothing to change): `AgentDashboard.tsx` (recent-reports data shape rename, no visual change — v1's shared `RecentReportsPanel` already matches), `MarketIntelligencePage.tsx` (chart data-key rename only), `ComparableSalesPage.tsx` (unchanged between the two prototypes).
+- **Fixed**:
+  - `ClientsPage.tsx` → `client-stage-dropdown.tsx`: added a `ChevronDown` icon next to the stage badge so it visually reads as a dropdown.
+  - `GenerateAppraisalPage.tsx`'s `StepReportType` → `report-type-step.tsx`: added the "Report will include" checklist card (previously investor/buyer-only in the first draft, now shown for every role) — agent-specific list: Estimated Value Range, Comparable Sales Evidence, Market Analysis, Campaign Strategy, Property Description, Vendor Recommendation.
+  - `GenerateAppraisalPage.tsx`'s send button label → `report-configuration-panel.tsx`: renamed "Send to Client" → "Share via email" on the action-bar toggle button. (v1's `SendReportCard` component itself has its own independent wording, was never a figma port, left untouched.)
+- **Explicitly excluded** (no-fabrication rule, §4.5-adjacent precedent): `ClientReportsPage.tsx` gained an inline-editable "note" appended to the report title (pencil icon, local-only `useState`, no backend field). Checked the `Report` Prisma model — there's no `notes` column. Same category as the "mark as sent" status dropdown already excluded from `agent-report.tsx` for the same reason (§9.4 step 3). **Not built.** If a real notes field gets added to the backend later, this becomes portable — revisit then, don't silently re-propose it without checking first.
+- **Not applicable**: `Sidebar.tsx` / `DashboardTopBar.tsx` / `App.tsx` all changed the figma-only demo "switch role" affordance (dropdown → 2×2 grid picker). The real app has no role switcher — role is fixed to the authenticated account — and neither component was ever ported 1:1 (v1's own navbar is used with items added). Nothing to do.
+- **Deferred to later phases** (not yet migrated to v2 at all, so nothing to re-diff yet — just noted so the future session building them starts from the right source): `SettingsPage.tsx` (a near-total rewrite, 645 changed lines — Settings + a new "Help" section merged in, see `App.tsx`'s new `page === "help"` route), `NotificationsPage.tsx`, and all Valuer/Investor/Buyer dashboards/report pages.
+
+---
+
+## 10. Valuer / Investor / Buyer roles — Phase 2 continued
+
+Scope decision (2026-08-29): build these frontend-first, on mock/existing data, following the
+exact same append-only + toggle pattern as the Agent role. Where a screen needs real backend
+support that doesn't exist yet, **don't build it now** — use local v2-only mock data (same
+shape a real service would return, so swapping later is a one-line change) and log the gap in
+[`backend/V2_BACKEND_TODO.md`](backend/V2_BACKEND_TODO.md) instead. Where real backend support
+already exists (most of `/api/appraisal/*`, `/api/reports`, `/api/saved-properties`), wire to
+it immediately — same "no fabrication for things that could be real" rule as the Agent role.
+
+Source of truth: `figma-protoype_v2/`, not the stale `figma_prototype/` (§9.8).
+
+### 10.1 Architecture change needed: the wizard becomes role-parameterized
+
+`v2/pages/dashboard/generate-report.tsx` and its 4 panels were built Agent-only (fixed 4-step
+flow, `AGENT_REPORT_TEMPLATE_ID` hardcoded, no `role` concept). Figma's actual wizard
+(`GenerateAppraisalPage.tsx`) is one component parameterized by `role: "agent"|"valuer"|"investor"|"buyer"`,
+with per-role step counts/labels/AI-processing-steps/report templates (`STEP_LABELS`, `AI_STEPS`,
+`getStepNumbers`, `defaultAgent`/`reportTypeName` maps). Valuer keeps the same 4 steps as Agent
+(Property Details → Evidence Centre → Market Intelligence → Report Type/Generated); Investor and
+Buyer each insert one extra step (ROI Analysis / Affordability) before Report Type, so 5-6 steps.
+
+Plan: extend the wizard shell to read `role` from the route param (`useParams<{role}>()`,
+same pattern v1 already uses elsewhere) and branch step config the same way figma does, rather
+than duplicating the whole wizard four times. This is the one piece of real architecture work
+underneath all three roles — do it once, first, before any role-specific screens.
+
+### 10.2 Reuse map (confirmed by research across all three roles)
+
+- **`ComparableSalesView`** (`v2/features/dashboard/components/comparable-sales/comparable-sales-view.tsx`) — role-agnostic, data-only. Reusable as-is for: Investor's wizard Comparables step + standalone page (identical to Agent), and Valuer's **Evidence Centre** (figma's Step2 renders the exact same row list for both Comparable Sales and Evidence Centre, only the title/subtitle differ — per §4.5, this becomes a third consumer of the same shared core, not a new component).
+- **`MarketIntelligenceView`** — role-agnostic in figma (identical for every role). Reusable as-is for Valuer's and Investor's wizard Market Intelligence step + standalone page.
+- **ROI Analysis (Investor) and Affordability (Buyer) are both 100% client-side math, zero backend calls.** `useCalculator` / `useAffordability` from `GenerateAppraisalPage.tsx` port verbatim as new shared-core view components (`roi-analysis-view.tsx`, `affordability-view.tsx`), each with a `compact` (wizard step) / `full` (standalone calculator page) variant per §4.5 — same pattern as Comparable Sales/Market Intelligence, just with local computation instead of a fetch.
+- `report-type-step.tsx` / `processing-overlay.tsx` — already built to be extended per-role (add valuer/investor/buyer branches to the report-type card config and `AI_STEPS`), not rebuilt.
+- `v2/services/saved-properties.ts` (`saveComparableProperty`, real `POST /api/saved-properties`) — reusable as-is for Buyer's Saved Properties page. Note: figma's `SavedPropertiesPage.tsx` copy reads agent/comparable-sales-flavored ("save a subject property from Comparable Sales") rather than buyer-flavored — v2 will use buyer-appropriate framing/copy around the same real save action rather than porting that copy literally.
+
+### 10.3 Resolved decisions (research surfaced these as ambiguous or contradictory in figma itself)
+
+1. **Investor's "Portfolio" gap** (§3.3 originally listed this) doesn't correspond to any real figma screen — there's no `PortfolioPage.tsx`. The closest match is `WatchlistPage.tsx` (saved properties/suburbs/searches/alerts). **Correction**: retitle this gap item "Watchlist," not "Portfolio," and build only the parts with a real backing (Saved Properties/Searches tabs, via the existing `SavedPropertySearch` model) first; Saved Suburbs/Alerts are net-new backend, deferred (see TODO doc).
+2. **`ROICalculatorPage.tsx` vs `InvestmentIntelligencePage.tsx`** — ~~overlap (both are ROI calculators, different UX/depth). Decision: build one shared `RoiAnalysisView` core per §10.2, used by the wizard step and the standalone `ROICalculatorPage`-equivalent route. Don't build `InvestmentIntelligencePage` as a separate screen in this phase — it's a deeper/duplicate variant of the same feature; revisit only if specifically requested later.~~ **Correction (Phase 4, 2026-08-29): this was wrong.** `InvestmentIntelligencePage.tsx` is a 4-tab page (Calculator/Cash Flow/Portfolio/Risk) and only its Calculator tab resembles the ROI Calculator at all — and even that tab uses a materially different model (holding period + capital-growth rate → projected exit value, IRR, NPV; the ROI Calculator instead models today's loan/cash flow from a deposit + interest rate, with no holding-period or exit-value concept). The other three tabs (Cash Flow + tax estimate, Portfolio suburb ranking, Risk factor scoring) have zero equivalent anywhere in this app. Built as real, separate functionality: `frontend/src/v2/pages/dashboard/investor/investment-intelligence.tsx` (route: `/dashboard/investor/investment-intelligence`, net-new route pattern per §9.1, no v1 counterpart) with its own calculator core `frontend/src/v2/features/dashboard/components/investment-intelligence/use-capital-growth-calculator.ts`. Portfolio tab uses illustrative static suburb data (no real suburb-ranking backend exists — see backend/V2_BACKEND_TODO.md); Risk tab is ported as-is (in the prototype it is not actually derived from the Calculator tab's inputs).
+3. **Buyer's `SavedPropertiesPage.tsx`** semantic mismatch (§10.2) — resolved above: reuse the real save flow, write buyer-appropriate copy, don't port figma's literal text.
+4. **Two existing mock backend endpoints are dead-ends, not fixer-uppers**: `/api/investor/roi-calculation` and `/api/buyer/affordability-calculation` return data shaped nothing like what the real client-side calculators need. Recommendation (also in the backend TODO doc): once v2 ports the real calculators, stop calling these; don't extend them.
+
+### 10.4a Progress — wizard role-parameterization + Investor: done (2026-08-29)
+
+- **Wizard role-parameterization** (§10.1) shipped: `wizard-config.ts` (role-keyed step
+  lists/AI-processing-steps/titles, client-side — not the fixed-4-step `/api/appraisal/steps`
+  mock), `generate-report.tsx` now renders steps by id per role, `processing-overlay.tsx` and
+  `report-type-step.tsx` (with a new role-keyed `REPORT_TYPE_CONFIG`, including the agent
+  "Report will include" checklist from §9.8) take a `role` prop instead of being Agent-only.
+- **Report-document dedup**: new `report-document-shared.tsx` (header banner, comparables
+  table, valuation range bar, certification block, market-stat tiles, property-detail list) —
+  `vendor-appraisal-report.tsx` refactored onto it with no visual change, and the new
+  `investment-analysis-report.tsx` reuses the same blocks.
+- **ROI Analysis**: `use-roi-calculator.ts` (figma's `useCalculator` ported verbatim, pure
+  client-side), `roi-analysis-view.tsx` shared core (no real compact/full content difference
+  in figma itself, so no variant branching — documented in the file), `roi-analysis-panel.tsx`
+  (wizard step) and `pages/dashboard/investor/roi-calculator.tsx` (standalone page, wired to
+  `roi-calculation` route via `VersionSwitch`) both use it. Scenario persists across the wizard
+  step and the standalone page via `roi-scenario-store.ts` (same localStorage-backed pattern
+  as `AppraisalInputContext`).
+- **Investor pages**: `investor-home.tsx` (reuses `getDashboardMockData('investor')` +
+  `getInvestorReportSummary()` — both real existing mock endpoints, no fabricated widgets;
+  figma's "Market Signals"/"Portfolio Overview" panels have no backend equivalent and weren't
+  ported), `investor-reports.tsx` (reskin of `getInvestorReportListMockData()`, display-only
+  since these aren't real persisted `Report` rows yet — see backend TODO).
+- `frontend/src/v2/services/saved-properties.ts` gained `listSavedProperties()` (real
+  `GET /api/saved-properties`) for future reuse.
+- Touched v1 files (mechanical, same pattern as §4.3): `pages/dashboard/index.tsx` (added the
+  Investor `VersionSwitch` branch alongside Agent's), `routes/index.tsx` (`report` and
+  `roi-calculation` routes wrapped for Investor).
+- Verified live (Playwright): home dashboard toggle, ROI calculator standalone page with a
+  live-recalculating edit, Investment Reports list, and the full 5-step wizard (Property
+  Details → Comparable Sales → Market Intelligence → ROI Analysis → Report Type → Generated
+  Report) producing a real Investment Analysis Report — real Groq narrative, real comparables
+  table, real market stats, risk-assessment figures computed from the user's own ROI scenario.
+  Zero console errors.
+- `tsc -b --noEmit` and `vite build` both clean throughout.
+
+### 10.4c Progress — Buyer: done (2026-08-29)
+
+- **Affordability**: `use-affordability-calculator.ts` (figma's `useAffordability` ported
+  verbatim, pure client-side — the unused `sensitivityData` computation in both figma
+  variants was never rendered anywhere, so it wasn't ported either), `affordability-view.tsx`
+  shared core (again no real compact/full difference between the wizard step and the
+  standalone page, same as ROI), `affordability-panel.tsx` (wizard step) and
+  `pages/dashboard/buyer/affordability-calculator.tsx` (standalone page, wired to the
+  `affortability-calculation` route). Inputs persist across the wizard step and standalone
+  page via `affordability-scenario-store.ts` (same pattern as `roi-scenario-store.ts`).
+- **`buyer-advisory-report.tsx`** — new report document reusing `report-document-shared.tsx`.
+  Narrative uses the real `buyer-advisory` reportType (already Groq-backed). Affordability
+  Assessment section uses the user's own real inputs from the wizard step.
+- **Buyer pages**: `buyer-home.tsx` (reuses `getDashboardMockData('buyer')`; side panel shows
+  the **real** saved-properties count via `/api/saved-properties` instead of a mock widget),
+  `saved-properties.tsx` — a real bug fix, not just a reskin: v1's buyer Saved Properties page
+  called a mock-only endpoint (`/api/buyer/properties/saved`) instead of the real, already-
+  built `SavedPropertySearch` CRUD; v2's version calls the real endpoint via the existing
+  `v2/services/saved-properties.ts` (`listSavedProperties()`, newly added there).
+- Touched v1 files (mechanical, same §4.3 pattern): `pages/dashboard/index.tsx` (Buyer
+  `VersionSwitch` branch), `routes/index.tsx` (`saved`, `affortability-calculation` routes
+  wrapped for Buyer).
+- Not built this round (kept on v1, no regression): Buyer's Reports list reskin, Property
+  Search, Compare Properties, Inspections — all still net-new/mock-data work per §10.4, not
+  blocking since the core wizard + home + affordability + real saved-properties are done.
+- Verified live (Playwright): home dashboard toggle (shows real saved-properties count),
+  standalone Affordability Calculator, Saved Properties page (real data), and the full
+  6-step wizard (Property Details → Comparable Sales → Market Intelligence → Affordability →
+  Report Type → Generated Report) producing a real Buyer Advisory Report — real Groq
+  narrative, real comparables table, real market stats, and a correctly-styled Affordability
+  Assessment (tested at "Moderate" level) computed from the user's real inputs. Zero console
+  errors. `tsc -b --noEmit` and `vite build` both clean.
+
+**All four roles (Agent, Investor, Valuer, Buyer) now have working v2 home dashboards and a
+role-parameterized wizard producing a real, role-appropriate generated report — the core
+"Phase 2" migration goal from §10 is complete.** Remaining work is the net-new gap screens
+each role still has in figma (Suburb Explorer, Market Comparison, Audit Trail, Explainable
+AI, Property Search, Compare Properties, Inspections, the various Reports-list reskins) —
+all deferred, tracked in this doc and `backend/V2_BACKEND_TODO.md`, not blocking.
+
+### 10.4b Progress — Valuer: done (2026-08-29)
+
+- **Evidence Centre = Comparable Sales, relabeled.** Read `EvidenceCentrePage.tsx` in full —
+  confirmed it's structurally identical to `ComparableSalesPage.tsx` (search bar, date/type
+  filters, Subject Property card, save action, results list), differing only in copy
+  ("Save Evidence" vs "Save Property", etc). Extracted the standalone-page logic that used to
+  live only in `comparable-sales.tsx` into a shared `comparable-search-page.tsx` core taking a
+  `copy` config, so `comparable-sales.tsx` (Agent) and the new `evidence-centre.tsx` (Valuer)
+  are both ~20-line copy-config wrappers instead of two duplicated pages — same real backend
+  (`/api/appraisal/comparable-sales`, `/api/saved-properties`) either way.
+- **Wizard step 2** (`comparables-panel.tsx`) took a `role` prop instead of being duplicated —
+  renders the exact same compact `ComparableSalesView`, just titled "Evidence Centre" for
+  Valuer (matches figma's `isValuer` title swap on the same step component). `wizard-config.ts`
+  already had this step's `id` as `evidence-centre` for Valuer; `generate-report.tsx` routes
+  both `comparables` and `evidence-centre` step ids to the same panel.
+  `property-input-panel.tsx`'s continue-button label is role-aware now too ("Next: Evidence
+  Centre" vs "Next: Comparable Sales").
+- **`full-valuation-report.tsx`** — new report document reusing the same
+  `report-document-shared.tsx` blocks as Vendor Appraisal/Investment Analysis. Narrative uses
+  the real `bank-valuation` reportType (already Groq-backed, no backend change needed). The
+  Valuation Methodology section is figma's own static informative text (names the Direct
+  Comparison Method) — not fabricated user data, same category as the certification statement.
+- **Valuer pages**: `valuer-home.tsx` (reuses `getDashboardMockData('valuer')` +
+  `getValuationCasesMockData()`, both real existing mock endpoints), `valuation-cases.tsx`
+  (reskin of `getValuerCaseListMockData()`, reuses the existing `StatusBadge` component
+  directly since it already supports the real `CaseStatus` enum — no invented status mapping).
+- Touched v1 files (mechanical, same §4.3 pattern): `pages/dashboard/index.tsx` (Valuer
+  `VersionSwitch` branch), `routes/index.tsx` (`valuation-cases`, `evidence-centre`, `report`
+  routes wrapped for Valuer).
+- Verified live (Playwright): home dashboard toggle, Evidence Centre search → Subject Property
+  card → Save Evidence (persists via the same real `/api/saved-properties` endpoint), Valuation
+  Cases list, and the full wizard (stepper correctly shows "Evidence Centre" as step 2, Step 1's
+  button correctly reads "Next: Evidence Centre") through to a generated Full Valuation Report
+  with real narrative/comparables/market stats and a Certificate of Valuation. Zero console
+  errors. `tsc -b --noEmit` and `vite build` both clean.
+
+### 10.4 Proposed execution order
+
+1. **Wizard role-parameterization** (§10.1) — foundational, unblocks everything else.
+2. **Investor** first for the full role build-out: cleanest reuse story (Comparable Sales + Market Intelligence steps are pure reuse, ROI Analysis is pure frontend math, Investment Reports is a straightforward reskin same shape as Agent's `agent-report.tsx`). Mirrors the original Agent-role pilot approach — prove the role-parameterized wizard pattern on the easiest role first.
+3. **Valuer** next: Evidence Centre reuses `ComparableSalesView` (adds a search-then-save entry point in front of it, new but small), Market Intelligence is pure reuse, "Full Valuation Report" narrative already has real backend support (`bank-valuation` reportType). Valuation Cases list, Audit Trail, and Explainable AI stay on local v2 mock data (no backend today) per the frontend-first rule.
+4. **Buyer** last: Affordability is pure frontend math (reuse pattern from Investor's ROI work), Saved Properties reuses the real save flow. Property Search, Compare Properties, and Inspections stay on local v2 mock data (richest net-new UI work, least backend today).
+5. Settings/Notifications v2 reskins and the deeper Valuer/Investor gap screens (Audit Trail, Explainable AI, Suburb Explorer, Market Comparison, Inspections) are a further-out phase — not blocking, come back to once the four core dashboards work end-to-end behind the toggle.
+
 #### A. Generate Appraisal wizard (`figma_prototype/src/app/components/GenerateAppraisalPage.tsx`)
 
 Current v2 files: `frontend/src/v2/features/dashboard/components/generate-report/report-type-step.tsx` and `report-configuration-panel.tsx`.

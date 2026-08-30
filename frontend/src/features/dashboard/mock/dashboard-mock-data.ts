@@ -184,18 +184,28 @@ const VALUER_DATA: DashboardMockPayload = {
   quickActions: [
     {
       id: '1',
-      title: 'Generate Appraisal',
+      title: 'New Valuation',
       subtitle: 'Start valuation',
       tone: 'blue',
       iconKey: 'sparkle',
     },
     {
       id: '2',
-      title: 'Evidence Center',
-      subtitle: 'Browse comps',
+      title: 'Valuation Cases',
+      subtitle: 'Track case progress',
       tone: 'teal',
+      iconKey: 'users',
+    },
+    {
+      id: '3',
+      title: 'Evidence Centre',
+      subtitle: 'Browse comps',
+      tone: 'orange',
       iconKey: 'document',
     },
+    // "Saved Evidence" (figma: ValuerDashboard.tsx ~136) intentionally omitted — this repo
+    // has no dedicated saved-evidence page for Valuer (only Evidence Centre and Valuation
+    // Cases exist), so it would either dead-end or duplicate the Evidence Centre action.
   ],
 }
 

@@ -10,6 +10,8 @@ type StatCardProps = {
   tone?: StatTone
   className?: string
   valueClassName?: string
+  /** Optional — when provided, the card becomes an interactive button (e.g. drills into the underlying list). */
+  onClick?: () => void
 }
 
 const TONE_STYLES: Record<
@@ -46,12 +48,29 @@ export function StatCard({
   tone = 'blue',
   className = '',
   valueClassName = '',
+  onClick,
 }: StatCardProps) {
   const styles = TONE_STYLES[tone]
+  const isInteractive = onClick != null
 
   return (
     <article
-      className={`flex flex-col rounded-3xl border border-black/5 bg-white p-5 shadow-[0_4px_24px_rgba(26,32,44,0.06)] sm:p-6 ${className}`}
+      role={isInteractive ? 'button' : undefined}
+      tabIndex={isInteractive ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={
+        isInteractive
+          ? (event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                onClick?.()
+              }
+            }
+          : undefined
+      }
+      className={`flex flex-col rounded-3xl border border-black/5 bg-white p-5 shadow-[0_4px_24px_rgba(26,32,44,0.06)] sm:p-6 ${
+        isInteractive ? 'cursor-pointer transition-colors hover:border-relaive-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary' : ''
+      } ${className}`}
     >
       {icon != null && (
         <div

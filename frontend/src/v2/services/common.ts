@@ -45,6 +45,18 @@ export function getMarketMetrics(): Promise<MarketMetrics> {
   return fetchJson(withAppraisalContext('/api/appraisal/market-metrics'))
 }
 
+// Phase 5 addition: the real /api/appraisal/market-metrics endpoint is deterministic per
+// suburb+postcode (backend/src/routes/mock.routes.ts's buildMarketMetrics() seeds off
+// `${suburb}${postcode}`), so calling it with a *different* address per call — rather than
+// going through the shared getAppraisalInputContext() singleton getMarketMetrics() above
+// reads from — gives real, distinct, backend-computed metrics for multiple suburbs at once.
+// Used by Market Comparison and Suburb Explorer (investor/buyer) to compare/explore real
+// suburbs side by side without racing writes to the single global appraisal context.
+export function getMarketMetricsForAddress(address: string): Promise<MarketMetrics> {
+  const query = new URLSearchParams({ address })
+  return fetchJson(`/api/appraisal/market-metrics?${query.toString()}`)
+}
+
 // v2-only addition: same real /api/appraisal/comparable-sales endpoint v1 already calls
 // (services/common.ts's getComparableSales()), but typed to include `propertyType` —
 // the backend mock now echoes the subject property's type onto each comparable

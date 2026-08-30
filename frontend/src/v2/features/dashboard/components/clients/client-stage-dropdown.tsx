@@ -4,6 +4,14 @@ import type { ClientStatus } from '../../../../../services/agent'
 
 const STATUS_OPTIONS: ClientStatus[] = ['prospecting', 'active', 'appraisal_sent', 'listing', 'sold']
 
+function ChevronDownIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 type ClientStageDropdownProps = {
   status: ClientStatus
   onChange: (status: ClientStatus) => void
@@ -33,9 +41,10 @@ export function ClientStageDropdown({ status, onChange, disabled = false }: Clie
           event.stopPropagation()
           setOpen((prev) => !prev)
         }}
-        className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex cursor-pointer items-center gap-1 disabled:cursor-not-allowed disabled:opacity-60"
       >
         <ClientStatusBadge status={status} />
+        <ChevronDownIcon />
       </button>
 
       {open ? (

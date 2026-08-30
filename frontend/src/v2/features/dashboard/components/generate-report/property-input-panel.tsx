@@ -1,15 +1,19 @@
 import { useState } from 'react'
 import { useAsyncData } from '../../../../../hooks/use-async-data'
 import { getPropertyTypeOptions, type AppraisalInputContext } from '../../../../../services/common'
+import type { WizardRole } from './wizard-config'
 
 // v2 reskin of wizard Step 1 (figma: GenerateAppraisalPage.tsx Step1) — filled inputs,
 // +/- spinner counters, pill property-type selector, replacing the "choose input method"
 // card layer (which only had one working option — Enter Address — the other two were
 // non-functional "coming soon" stubs) with the address form directly, matching figma.
 // Property type options are still real (services/common.ts's getPropertyTypeOptions()),
-// just rendered as pills instead of a datalist.
+// just rendered as pills instead of a datalist. Continue-button label is role-aware —
+// figma's Step1 says "Next: Evidence Centre" for Valuer, "Next: Comparable Sales"
+// otherwise (§10.2).
 
 type PropertyInputPanelProps = {
+  role?: WizardRole
   onContinue: (context?: AppraisalInputContext) => void
 }
 
@@ -56,7 +60,7 @@ const FIELD_CLASS =
   'w-full rounded-xl bg-black/5 px-4 py-2.5 text-sm text-relaive-navy placeholder:text-relaive-gray/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary'
 const LABEL_CLASS = 'mb-2 block text-xs font-semibold uppercase tracking-wide text-relaive-gray'
 
-export function PropertyInputPanel({ onContinue }: PropertyInputPanelProps) {
+export function PropertyInputPanel({ role = 'agent', onContinue }: PropertyInputPanelProps) {
   const [street, setStreet] = useState('')
   const [suburbState, setSuburbState] = useState('')
   const [propertyType, setPropertyType] = useState('')
@@ -167,7 +171,7 @@ export function PropertyInputPanel({ onContinue }: PropertyInputPanelProps) {
           disabled={!canProceed}
           className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-relaive-primary to-relaive-secondary px-6 py-3 text-sm font-medium text-white shadow-md transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Next: Comparable Sales
+          {role === 'valuer' ? 'Next: Evidence Centre' : 'Next: Comparable Sales'}
           <ChevronRightIcon />
         </button>
       </div>

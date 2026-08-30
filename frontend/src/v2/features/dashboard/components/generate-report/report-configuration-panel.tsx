@@ -14,14 +14,23 @@ import {
   getPropertySpecificFactors,
   persistGeneratedReport,
 } from '../../../../../services/common'
-import { AGENT_REPORT_TEMPLATE_ID, ReportTypeStep } from './report-type-step'
+import { REPORT_TYPE_CONFIG, ReportTypeStep } from './report-type-step'
 import { VendorAppraisalReport } from './vendor-appraisal-report'
+import { InvestmentAnalysisReport } from './investment-analysis-report'
+import { FullValuationReport } from './full-valuation-report'
+import { BuyerAdvisoryReport } from './buyer-advisory-report'
 import { ProcessingOverlayV2 } from './processing-overlay'
+import { resolveWizardRole } from './wizard-config'
+import { calculateRoi } from '../roi-analysis/use-roi-calculator'
+import { getRoiScenario } from '../roi-analysis/roi-scenario-store'
+import { calculateAffordability } from '../affordability/use-affordability-calculator'
+import { getAffordabilityInputs } from '../affordability/affordability-scenario-store'
 
-// v2 orchestrator for wizard step 4 — figma splits this into two steps ("Report Type" then
-// "Generated Report"); kept as one macro wizard step (same URL/stepper contract as v1) with
-// an internal phase switch, to avoid touching the shared 4-step stepper contract used
-// elsewhere in the app. See figma-ui-migration-plan.md §9.
+// v2 orchestrator for the wizard's final step — figma splits this into two steps ("Report
+// Type" then "Generated Report"); kept as one macro wizard step (same URL/stepper contract
+// as v1) with an internal phase switch. Role-parameterized (§10.1): picks the report-type
+// config, narrative reportType, and report-document component per role instead of being
+// Agent-only. See figma-ui-migration-plan.md §9 / §10.2.
 
 function RefreshIcon() {
   return (
@@ -49,7 +58,6 @@ type ReportConfigurationPanelProps = {
   onBack: () => void
   onGenerateAnother: () => void
   initialSubmitted?: boolean
-  initialSelectedTemplateId?: string
 }
 
 function parseEstimatedValue(value: string | undefined): number {
@@ -58,13 +66,16 @@ function parseEstimatedValue(value: string | undefined): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 850000
 }
 
-export function ReportConfigurationPanel({
-  onBack,
-  onGenerateAnother,
-  initialSubmitted = false,
-}: ReportConfigurationPanelProps) {
+export function ReportConfigurationPanel({ onBack, onGenerateAnother, initialSubmitted = false }: ReportConfigurationPanelProps) {
   const navigate = useNavigate()
   const { role } = useParams<{ role?: string }>()
+  const wizardRole = resolveWizardRole(role)
+  const isAgent = wizardRole === 'agent'
+  const isValuer = wizardRole === 'valuer'
+  const isInvestor = wizardRole === 'investor'
+  const isBuyer = wizardRole === 'buyer'
+  const templateId = REPORT_TYPE_CONFIG[wizardRole].templateId
+
   const { user } = useAuth()
   const [phase, setPhase] = useState<'type' | 'generating' | 'report'>(initialSubmitted ? 'report' : 'type')
   const [sendOpen, setSendOpen] = useState(false)
@@ -73,11 +84,23 @@ export function ReportConfigurationPanel({
 
   const context = getAppraisalInputContext()
   const { data: summary } = useAsyncData(getAppraisalSummary, [])
-  const { data: narrative } = useAsyncData(() => getNarrativePreview(AGENT_REPORT_TEMPLATE_ID), [])
-  const { data: factors } = useAsyncData(getPropertySpecificFactors, [])
-  const { data: recommendations } = useAsyncData(getAgentRecommendations, [])
+  const { data: narrative } = useAsyncData(() => getNarrativePreview(templateId), [templateId])
   const { data: disclaimer } = useAsyncData(getAppraisalDisclaimer, [])
   const { data: comparables } = useAsyncData(getComparableSales, [])
+
+  // Agent-only report content.
+  const { data: factors } = useAsyncData(getPropertySpecificFactors, [])
+  const { data: recommendations } = useAsyncData(getAgentRecommendations, [])
+
+  // Investor-only: the user's own real ROI scenario from the wizard's ROI Analysis step
+  // (not async — pure client-side computation, see roi-analysis/use-roi-calculator.ts).
+  const roiScenario = isInvestor ? getRoiScenario() : null
+  const roiResult = roiScenario ? calculateRoi(roiScenario) : null
+
+  // Buyer-only: the user's own real affordability inputs from the wizard's Affordability
+  // step (not async — pure client-side computation).
+  const affordabilityInputs = isBuyer ? getAffordabilityInputs() : null
+  const affordabilityResult = affordabilityInputs ? calculateAffordability(affordabilityInputs) : null
 
   function buildNarrativeText(): string {
     return (narrative?.sections ?? []).map((section) => `${section.heading} ${section.body}`).join('\n\n')
@@ -85,7 +108,7 @@ export function ReportConfigurationPanel({
 
   async function saveReport(options: { clientName?: string; clientEmail?: string; markAsExported?: boolean }) {
     await persistGeneratedReport({
-      reportTemplateId: AGENT_REPORT_TEMPLATE_ID,
+      reportTemplateId: templateId,
       narrativeText: buildNarrativeText(),
       estimatedValue: parseEstimatedValue(summary?.midpointEstimate),
       clientName: options.clientName,
@@ -119,18 +142,25 @@ export function ReportConfigurationPanel({
   }
 
   const isReportDataReady = Boolean(
-    context && summary && narrative && factors && recommendations && disclaimer && comparables,
+    context &&
+      summary &&
+      narrative &&
+      disclaimer &&
+      comparables &&
+      (!isAgent || (factors && recommendations)) &&
+      (!isInvestor || (roiScenario && roiResult)) &&
+      (!isBuyer || (affordabilityInputs && affordabilityResult)),
   )
 
   if (phase === 'type') {
-    return <ReportTypeStep onBack={onBack} onGenerate={() => setPhase('generating')} isGenerating={false} />
+    return <ReportTypeStep role={wizardRole} onBack={onBack} onGenerate={() => setPhase('generating')} isGenerating={false} />
   }
 
   if (phase === 'generating') {
-    return <ProcessingOverlayV2 dataReady={isReportDataReady} onDone={() => setPhase('report')} />
+    return <ProcessingOverlayV2 role={wizardRole} dataReady={isReportDataReady} onDone={() => setPhase('report')} />
   }
 
-  if (!isReportDataReady || !context || !summary || !narrative || !factors || !recommendations || !disclaimer || !comparables) {
+  if (!isReportDataReady || !context || !summary || !narrative || !disclaimer || !comparables) {
     return (
       <div className="rounded-2xl border border-black/5 bg-white px-5 py-8 text-sm text-relaive-gray">
         Preparing your report…
@@ -156,7 +186,7 @@ export function ReportConfigurationPanel({
           size="md"
           onClick={() => setSendOpen((open) => !open)}
         >
-          Send to Client
+          Share via email
         </Button>
         <Button
           type="button"
@@ -184,16 +214,52 @@ export function ReportConfigurationPanel({
         />
       ) : null}
 
-      <VendorAppraisalReport
-        context={context}
-        summary={summary}
-        narrative={narrative}
-        factors={factors}
-        recommendations={recommendations}
-        disclaimer={disclaimer}
-        comparables={comparables}
-        agentName={user?.fullName ?? 'Agent'}
-      />
+      {isAgent && factors && recommendations ? (
+        <VendorAppraisalReport
+          context={context}
+          summary={summary}
+          narrative={narrative}
+          factors={factors}
+          recommendations={recommendations}
+          disclaimer={disclaimer}
+          comparables={comparables}
+          agentName={user?.fullName ?? 'Agent'}
+        />
+      ) : isInvestor && roiResult && roiScenario ? (
+        <InvestmentAnalysisReport
+          context={context}
+          summary={summary}
+          narrative={narrative}
+          disclaimer={disclaimer}
+          comparables={comparables}
+          roi={roiResult}
+          scenario={roiScenario}
+          agentName={user?.fullName ?? 'Investment Analyst'}
+        />
+      ) : isValuer ? (
+        <FullValuationReport
+          context={context}
+          summary={summary}
+          narrative={narrative}
+          disclaimer={disclaimer}
+          comparables={comparables}
+          valuerName={user?.fullName ?? 'Valuer'}
+        />
+      ) : isBuyer && affordabilityResult && affordabilityInputs ? (
+        <BuyerAdvisoryReport
+          context={context}
+          summary={summary}
+          narrative={narrative}
+          disclaimer={disclaimer}
+          comparables={comparables}
+          affordability={affordabilityResult}
+          combinedIncome={affordabilityInputs.annualIncome + affordabilityInputs.partnerIncome}
+          deposit={affordabilityInputs.deposit}
+          interestRate={affordabilityInputs.interestRate}
+          loanTerm={affordabilityInputs.loanTerm}
+          agentName={user?.fullName ?? 'Buyer Advisor'}
+        />
+      ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="button" variant="outline" size="md" onClick={handleExportPdf}>

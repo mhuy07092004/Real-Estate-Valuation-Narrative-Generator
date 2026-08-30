@@ -30,7 +30,7 @@ function readUrlOverride(): UiVersion | null {
   return parseVersion(new URLSearchParams(window.location.search).get('ui'))
 }
 
-/** Current version: URL override (persisted for the session) wins, else the stored choice, else v1. */
+/** Current version: URL override (persisted for the session) wins, else the stored choice, else v2. */
 export function getUiVersion(): UiVersion {
   const urlOverride = readUrlOverride()
   if (urlOverride) {
@@ -38,7 +38,7 @@ export function getUiVersion(): UiVersion {
     return urlOverride
   }
 
-  return readStoredVersion() ?? 'v1'
+  return readStoredVersion() ?? 'v2'
 }
 
 export function setUiVersion(version: UiVersion): void {

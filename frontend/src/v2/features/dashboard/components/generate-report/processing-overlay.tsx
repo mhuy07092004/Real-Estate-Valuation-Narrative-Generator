@@ -1,19 +1,13 @@
 import { useEffect, useState } from 'react'
+import { WIZARD_AI_STEPS, WIZARD_PROCESSING_TITLE, type WizardRole } from './wizard-config'
 
 // v2 reskin of figma's ProcessingOverlay (GenerateAppraisalPage.tsx lines 1806-1854,
-// AI_STEPS.agent lines 168-176). Figma advances every step on a fixed setTimeout since
-// its data is fully mocked; v2's narrative/comparables/summary calls are real network
-// requests, so only the first few steps are decorative — the final step ("Finalising
-// report…") holds until `dataReady` actually flips true before calling onDone.
-// See figma-ui-migration-plan.md §9.7 A.1.
-
-const STEPS = [
-  'Searching comparable sales…',
-  'Analysing suburb market data…',
-  'Running valuation model…',
-  'Generating appraisal narrative…',
-  'Finalising report…',
-] as const
+// AI_STEPS.<role>). Figma advances every step on a fixed setTimeout since its data is
+// fully mocked; v2's narrative/comparables/summary calls are real network requests, so
+// only the first few steps are decorative — the final step ("Finalising report…") holds
+// until `dataReady` actually flips true before calling onDone. Role-parameterized so
+// every role's wizard reuses this one component instead of four near-duplicates — see
+// figma-ui-migration-plan.md §9.7 A.1 / §10.1.
 
 const DECORATIVE_STEP_DELAYS_MS = [900, 700, 1200, 900]
 const FINAL_STEP_HOLD_MS = 500
@@ -27,13 +21,16 @@ function CheckIcon() {
 }
 
 type ProcessingOverlayV2Props = {
+  role: WizardRole
   dataReady: boolean
   onDone: () => void
 }
 
-export function ProcessingOverlayV2({ dataReady, onDone }: ProcessingOverlayV2Props) {
+export function ProcessingOverlayV2({ role, dataReady, onDone }: ProcessingOverlayV2Props) {
+  const steps = WIZARD_AI_STEPS[role]
+  const title = WIZARD_PROCESSING_TITLE[role]
   const [stepIndex, setStepIndex] = useState(0)
-  const lastStepIndex = STEPS.length - 1
+  const lastStepIndex = steps.length - 1
 
   useEffect(() => {
     if (stepIndex >= DECORATIVE_STEP_DELAYS_MS.length) return
@@ -52,12 +49,12 @@ export function ProcessingOverlayV2({ dataReady, onDone }: ProcessingOverlayV2Pr
       <div className="h-14 w-14 animate-spin rounded-full border-4 border-relaive-primary/10 border-t-relaive-primary" />
 
       <div className="space-y-1 text-center">
-        <p className="text-base font-semibold text-relaive-navy">Generating Appraisal Report</p>
-        <p className="text-sm text-relaive-gray">{STEPS[stepIndex]}</p>
+        <p className="text-base font-semibold text-relaive-navy">{title}</p>
+        <p className="text-sm text-relaive-gray">{steps[stepIndex]}</p>
       </div>
 
       <div className="w-64 space-y-2">
-        {STEPS.map((step, index) => (
+        {steps.map((step, index) => (
           <div
             key={step}
             className={`flex items-center gap-2 text-xs transition-all ${

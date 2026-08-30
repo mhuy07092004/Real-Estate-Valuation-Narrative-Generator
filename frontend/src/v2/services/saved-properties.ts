@@ -31,6 +31,39 @@ function parseAddressForSave(address: string): {
   }
 }
 
+export type SavedPropertyRow = {
+  savedPropertyId: string
+  addressLine: string
+  suburb: string
+  state: string
+  postcode: string
+  propertyType: string
+  bedrooms: number
+  bathrooms: number
+  landSizeSqm: number
+  createdAt: string
+}
+
+export async function listSavedProperties(): Promise<SavedPropertyRow[]> {
+  const response = await fetchJson<ApiResponse<SavedPropertyRow[]>>('/api/saved-properties')
+  if (!response.success) {
+    throw new Error(response.message)
+  }
+  return response.data
+}
+
+// Phase 4 addition: DELETE /api/saved-properties/:savedPropertyId already exists server-side
+// (backend/src/routes/saved-properties.routes.ts's `deleteSavedProperty` controller) — just
+// not previously wired up on the frontend. Real delete, not a fabricated local-only removal.
+export async function deleteSavedProperty(savedPropertyId: string): Promise<void> {
+  const response = await fetchJson<ApiResponse<null>>(`/api/saved-properties/${savedPropertyId}`, {
+    method: 'DELETE',
+  })
+  if (!response.success) {
+    throw new Error(response.message)
+  }
+}
+
 export async function saveComparableProperty(context: AppraisalInputContext): Promise<void> {
   const address = parseAddressForSave(context.address)
 

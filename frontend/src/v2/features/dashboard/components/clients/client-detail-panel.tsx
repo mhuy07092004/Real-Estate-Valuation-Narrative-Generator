@@ -2,8 +2,32 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../../../../../components/ui/button/button'
 import { updateClientNotes, type ClientItem, type ClientStatus } from '../../../../../services/agent'
+import { setAppraisalInputContext } from '../../../../../services/common'
 import { updateClient } from '../../../../services/agent'
 import { ClientStageDropdown } from './client-stage-dropdown'
+
+// ClientItem.address is a single display string built server-side as
+// `${addressLine}, ${suburb} ${state} ${postcode}` (see services/agent.ts toClientItem).
+// The edit form below needs the parts back out to PATCH /api/clients/:id (which stores
+// them as separate columns), hence this reverse-parse of that deterministic format.
+function parseClientAddress(address: string | null): {
+  addressLine: string
+  suburb: string
+  state: string
+  postcode: string
+} {
+  if (!address) return { addressLine: '', suburb: '', state: '', postcode: '' }
+
+  const match = address.match(/^(.*),\s*(.*)\s+([A-Za-z]{2,3})\s+(\d{4})$/)
+  if (!match) return { addressLine: address, suburb: '', state: '', postcode: '' }
+
+  return {
+    addressLine: match[1].trim(),
+    suburb: match[2].trim(),
+    state: match[3].trim().toUpperCase(),
+    postcode: match[4].trim(),
+  }
+}
 
 function EmailIcon() {
   return (
@@ -50,18 +74,26 @@ export function ClientDetailPanel({ client, className = '', onClientUpdated }: C
   const [isEditingContact, setIsEditingContact] = useState(false)
   const [draftEmail, setDraftEmail] = useState(client.email)
   const [draftPhone, setDraftPhone] = useState(client.phone)
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [draftName, setDraftName] = useState(client.name)
+  const [isEditingAddress, setIsEditingAddress] = useState(false)
+  const [draftAddress, setDraftAddress] = useState(parseClientAddress(client.address))
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     setIsEditingNotes(false)
     setIsEditingContact(false)
+    setIsEditingName(false)
+    setIsEditingAddress(false)
     setDraftNotes(client.notes)
     setDraftEmail(client.email)
     setDraftPhone(client.phone)
+    setDraftName(client.name)
+    setDraftAddress(parseClientAddress(client.address))
     setError(null)
     setIsSaving(false)
-  }, [client.id, client.notes, client.email, client.phone])
+  }, [client.id, client.notes, client.email, client.phone, client.name, client.address])
 
   async function handleStatusChange(status: ClientStatus) {
     setError(null)
@@ -101,6 +133,55 @@ export function ClientDetailPanel({ client, className = '', onClientUpdated }: C
     }
   }
 
+  async function handleSaveName() {
+    if (!draftName.trim()) {
+      setError('Name cannot be empty.')
+      return
+    }
+    setIsSaving(true)
+    setError(null)
+    try {
+      await updateClient(client.id, { fullName: draftName.trim() })
+      onClientUpdated()
+      setIsEditingName(false)
+    } catch {
+      setError('Could not save name. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  async function handleSaveAddress() {
+    const { addressLine, suburb, state, postcode } = draftAddress
+    if (!addressLine.trim() || !suburb.trim() || !state.trim() || !postcode.trim()) {
+      setError('Please fill in all property address fields.')
+      return
+    }
+    setIsSaving(true)
+    setError(null)
+    try {
+      await updateClient(client.id, {
+        addressLine: addressLine.trim(),
+        suburb: suburb.trim(),
+        state: state.trim().toUpperCase(),
+        postcode: postcode.trim(),
+      })
+      onClientUpdated()
+      setIsEditingAddress(false)
+    } catch {
+      setError('Could not save property address. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  function handleGenerateReport() {
+    if (client.address) {
+      setAppraisalInputContext({ address: client.address })
+    }
+    navigate('/dashboard/agent/generate-report')
+  }
+
   return (
     <aside className={`flex h-full flex-col rounded-3xl border border-black/5 bg-white p-5 shadow-[0_4px_24px_rgba(26,32,44,0.06)] sm:p-6 ${className}`}>
       <div className="flex items-start gap-3">
@@ -108,7 +189,38 @@ export function ClientDetailPanel({ client, className = '', onClientUpdated }: C
           {client.initials}
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="truncate text-base font-bold text-relaive-navy">{client.name}</h2>
+          {isEditingName ? (
+            <div className="flex flex-col gap-2">
+              <input
+                type="text"
+                value={draftName}
+                onChange={(event) => setDraftName(event.target.value)}
+                disabled={isSaving}
+                className="w-full rounded-lg border border-black/10 px-3 py-1.5 text-sm font-bold text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <Button type="button" variant="primary" size="sm" disabled={isSaving} onClick={handleSaveName}>
+                  {isSaving ? 'Saving…' : 'Save'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isSaving}
+                  onClick={() => {
+                    setDraftName(client.name)
+                    setIsEditingName(false)
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <button type="button" onClick={() => setIsEditingName(true)} className="block w-full text-left">
+              <h2 className="truncate text-base font-bold text-relaive-navy hover:underline">{client.name}</h2>
+            </button>
+          )}
           <div className="mt-1.5">
             <ClientStageDropdown status={client.status} onChange={handleStatusChange} disabled={isSaving} />
           </div>
@@ -169,12 +281,72 @@ export function ClientDetailPanel({ client, className = '', onClientUpdated }: C
 
       <div className="mt-6">
         <h3 className="text-[11px] font-semibold uppercase tracking-wider text-relaive-gray">Linked Properties</h3>
-        <div className="mt-2.5 flex items-start gap-2.5 text-sm text-relaive-navy">
-          <span className="mt-0.5 shrink-0 text-relaive-primary">
-            <PinIcon />
-          </span>
-          <span>{client.address ?? 'No property linked'}</span>
-        </div>
+        {isEditingAddress ? (
+          <div className="mt-2.5 flex flex-col gap-2">
+            <input
+              type="text"
+              placeholder="Street address"
+              value={draftAddress.addressLine}
+              onChange={(event) => setDraftAddress((prev) => ({ ...prev, addressLine: event.target.value }))}
+              disabled={isSaving}
+              className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
+            />
+            <div className="grid grid-cols-3 gap-2">
+              <input
+                type="text"
+                placeholder="Suburb"
+                value={draftAddress.suburb}
+                onChange={(event) => setDraftAddress((prev) => ({ ...prev, suburb: event.target.value }))}
+                disabled={isSaving}
+                className="col-span-1 w-full rounded-lg border border-black/10 px-3 py-2 text-sm text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
+              />
+              <input
+                type="text"
+                placeholder="State"
+                value={draftAddress.state}
+                onChange={(event) => setDraftAddress((prev) => ({ ...prev, state: event.target.value }))}
+                disabled={isSaving}
+                className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
+              />
+              <input
+                type="text"
+                placeholder="Postcode"
+                value={draftAddress.postcode}
+                onChange={(event) => setDraftAddress((prev) => ({ ...prev, postcode: event.target.value }))}
+                disabled={isSaving}
+                className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Button type="button" variant="primary" size="sm" disabled={isSaving} onClick={handleSaveAddress}>
+                {isSaving ? 'Saving…' : 'Save'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isSaving}
+                onClick={() => {
+                  setDraftAddress(parseClientAddress(client.address))
+                  setIsEditingAddress(false)
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsEditingAddress(true)}
+            className="mt-2.5 flex w-full items-start gap-2.5 text-left text-sm text-relaive-navy hover:underline"
+          >
+            <span className="mt-0.5 shrink-0 text-relaive-primary">
+              <PinIcon />
+            </span>
+            <span>{client.address ?? 'No property linked — click to add an address'}</span>
+          </button>
+        )}
       </div>
 
       <div className="mt-6">
@@ -217,7 +389,7 @@ export function ClientDetailPanel({ client, className = '', onClientUpdated }: C
           variant="primary"
           size="md"
           className="w-full rounded-xl"
-          onClick={() => navigate('/dashboard/agent/generate-report')}
+          onClick={handleGenerateReport}
         >
           Generate Report
         </Button>

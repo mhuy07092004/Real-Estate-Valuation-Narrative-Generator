@@ -10,6 +10,8 @@ export type RoleOption = {
 export type SidebarNavItem = {
   label: string
   icon: (props: SVGProps<SVGSVGElement>) => ReactElement
+  /** Optional badge count, rendered by shells that support it (currently v2 only). */
+  badge?: number
 }
 
 export type SidebarNavSection = {

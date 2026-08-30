@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useAsyncData } from '../../../../hooks/use-async-data'
 import { getAgentReportCards } from '../../../services/agent'
 import { StatusBadge } from '../../../../components/ui/table/status-badge'
+import { ReportListCard } from '../../../features/dashboard/components/reports/report-list-card'
+import { useOpenReport } from '../../../services/report-navigation'
 
 // v2 reskin of the Agent Client Reports page (figma: ClientReportsPage.tsx).
 // Card layout instead of a table, plus real fields (estimated value, beds/baths/land)
@@ -10,6 +11,11 @@ import { StatusBadge } from '../../../../components/ui/table/status-badge'
 // figma's page had a manual "mark as sent" toggle with no backing field, which isn't
 // carried over since there's nothing real to persist it against.
 // See figma-ui-migration-plan.md §9.1 / §9.4 step 3.
+//
+// Phase 2: card markup now comes from the shared ReportListCard component and the
+// wizard-deep-link URL from buildReportViewPath/useOpenReport (report-navigation.ts) —
+// this page was the working reference the other roles' report lists were missing.
+// Behavior is unchanged: navigate to /dashboard/agent/generate-report?step=4&ready=1&reportId=...
 
 const TABS = [
   { id: 'recent', label: 'Recent' },
@@ -52,16 +58,8 @@ function HomeIcon() {
   )
 }
 
-function ChevronRightIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
 export function AgentReportV2() {
-  const navigate = useNavigate()
+  const openReport = useOpenReport('agent')
   const { data: reports } = useAsyncData(getAgentReportCards, [])
   const [tab, setTab] = useState<(typeof TABS)[number]['id']>('recent')
   const [search, setSearch] = useState('')
@@ -139,37 +137,16 @@ export function AgentReportV2() {
 
       <div className="flex flex-col gap-3 p-4 sm:p-6 lg:p-8">
         {visible.map((report) => (
-          <button
+          <ReportListCard
             key={report.id}
-            type="button"
-            onClick={() =>
-              navigate(`/dashboard/agent/generate-report?step=4&ready=1&reportId=${encodeURIComponent(report.id)}`)
-            }
-            className="flex items-center gap-4 rounded-2xl border border-black/5 bg-white px-5 py-4 text-left transition-all hover:border-relaive-primary/20 hover:shadow-sm"
-          >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-relaive-primary/10 text-relaive-primary">
-              <HomeIcon />
-            </span>
-
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-relaive-navy">{report.title}</p>
-              <p className="truncate text-xs text-relaive-gray">
-                {report.clientName ?? 'No client linked'} · {report.suburb} · {relativeTime(report.updatedAt)}
-              </p>
-            </div>
-
-            <div className="hidden shrink-0 text-right sm:block">
-              <p className="text-sm font-bold text-relaive-navy">{formatCurrency(report.estimatedValue)}</p>
-              <p className="text-[10px] text-relaive-gray">
-                {report.bedrooms}b · {report.bathrooms}ba · {report.landSizeSqm}m²
-              </p>
-            </div>
-
-            <StatusBadge status={report.status} className="shrink-0" />
-            <span className="shrink-0 text-relaive-gray/50">
-              <ChevronRightIcon />
-            </span>
-          </button>
+            icon={<HomeIcon />}
+            title={report.title}
+            subtitle={`${report.clientName ?? 'No client linked'} · ${report.suburb} · ${relativeTime(report.updatedAt)}`}
+            price={formatCurrency(report.estimatedValue)}
+            secondaryStat={`${report.bedrooms}b · ${report.bathrooms}ba · ${report.landSizeSqm}m²`}
+            statusBadge={<StatusBadge status={report.status} />}
+            onClick={() => openReport(report.id)}
+          />
         ))}
 
         {visible.length === 0 ? (

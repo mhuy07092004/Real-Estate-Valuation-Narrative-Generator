@@ -10,6 +10,10 @@ export type RecentReport = {
 type RecentReportsPanelProps = {
   reports: RecentReport[]
   className?: string
+  /** Called with the clicked report's id. When omitted, the title button is inert. */
+  onOpenReport?: (reportId: string) => void
+  /** Called when "View All" is clicked. When omitted, the link is inert. */
+  onViewAll?: () => void
 }
 
 function getReportPrice(detail: string) {
@@ -33,7 +37,7 @@ function HouseIcon() {
   )
 }
 
-export function RecentReportsPanel({ reports, className = '' }: RecentReportsPanelProps) {
+export function RecentReportsPanel({ reports, className = '', onOpenReport, onViewAll }: RecentReportsPanelProps) {
   return (
     <Card className={className}>
       <header className="flex items-center justify-between gap-3 border-b border-black/5 pb-4">
@@ -41,7 +45,10 @@ export function RecentReportsPanel({ reports, className = '' }: RecentReportsPan
         <a
           href="#"
           className="shrink-0 text-sm font-medium text-relaive-primary transition-colors hover:text-relaive-primary-hover"
-          onClick={(event) => event.preventDefault()}
+          onClick={(event) => {
+            event.preventDefault()
+            onViewAll?.()
+          }}
         >
           View All ↗
         </a>
@@ -66,7 +73,7 @@ export function RecentReportsPanel({ reports, className = '' }: RecentReportsPan
                   type="button"
                   aria-label={`Open report: ${report.title}`}
                   className="block max-w-full truncate text-left text-sm font-semibold text-black transition-colors hover:text-relaive-primary hover:underline"
-                  onClick={() => {}}
+                  onClick={() => onOpenReport?.(report.id)}
                 >
                   {report.title}
                 </button>
