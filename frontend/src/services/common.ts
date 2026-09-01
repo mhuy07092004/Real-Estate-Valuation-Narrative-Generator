@@ -254,8 +254,8 @@ export type StepperStep = {
   label: string
 }
 
-export function getAppraisalSteps(): Promise<StepperStep[]> {
-  return fetchJson('/api/appraisal/steps')
+export function getAppraisalSteps(role?: string): Promise<StepperStep[]> {
+  return fetchJson(role ? `/api/appraisal/steps?role=${role}` : '/api/appraisal/steps')
 }
 
 // ---------------------------------------------------------------------------
@@ -329,6 +329,28 @@ export function getDemandSignals(): Promise<DemandSignal[]> {
   return fetchJson(withAppraisalContext('/api/appraisal/demand-signals'))
 }
 
+export type MarketIntelligenceStat = {
+  id: string
+  label: string
+  value: string
+  trend: string
+}
+
+export type MarketIntelligenceTrendPoint = {
+  month: string
+  priceIndex: number
+}
+
+export type MarketIntelligenceOverview = {
+  suburbLabel: string
+  stats: MarketIntelligenceStat[]
+  priceTrend: MarketIntelligenceTrendPoint[]
+}
+
+export function getMarketIntelligenceOverview(): Promise<MarketIntelligenceOverview> {
+  return fetchJson(withAppraisalContext('/api/appraisal/market-intelligence-overview'))
+}
+
 // ---------------------------------------------------------------------------
 // Report Configuration (Generate Appraisal — step 4)
 // ---------------------------------------------------------------------------
@@ -340,6 +362,7 @@ export type ReportTemplateOption = {
   title: string
   description: string
   iconKey: ReportTemplateIconKey
+  includes: string[]
 }
 
 export function getReportTemplates(): Promise<ReportTemplateOption[]> {

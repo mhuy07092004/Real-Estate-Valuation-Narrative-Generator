@@ -1,9 +1,10 @@
+import type { ReactNode } from 'react'
 import { Button } from '../../../../components/ui/button/button'
 
 type StepActionsProps = {
   onBack?: () => void
   onContinue?: () => void
-  continueLabel?: string
+  continueLabel?: ReactNode
   backLabel?: string
   continueDisabled?: boolean
 }

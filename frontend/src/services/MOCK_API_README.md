@@ -161,6 +161,7 @@ type ReportTemplateOption = {
   title: string
   description: string
   iconKey: 'vendor' | 'bank' | 'buyer' | 'investment'
+  includes: string[]         // checklist shown under the selected template, e.g. "Estimated Value Range"
 }
 ```
 

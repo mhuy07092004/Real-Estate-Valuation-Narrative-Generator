@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { Stepper } from '../../components/ui/Progress-Bar/Stepper'
 import { useAsyncData } from '../../hooks/use-async-data'
 import {
@@ -11,9 +11,20 @@ import {
 import { PropertyInputPanel } from '../../features/dashboard/components/generate-report/property-input-panel'
 import { ComparablesPanel } from '../../features/dashboard/components/generate-report/comparables-panel'
 import { MarketIntelligencePanel } from '../../features/dashboard/components/generate-report/market-intelligence-panel'
+import { RoiAnalysisPanel } from '../../features/dashboard/components/generate-report/roi-analysis-panel'
+import { AffordabilityPanel } from '../../features/dashboard/components/generate-report/affordability-panel'
 import { ReportConfigurationPanel } from '../../features/dashboard/components/generate-report/report-configuration-panel'
+import { GeneratedReportContainer } from '../../features/dashboard/components/generate-report/generated-report-container'
 
-const STEP_HEADERS = [
+type ExtraStep = 'roi' | 'affordability' | null
+
+function getExtraStepForRole(role?: string): ExtraStep {
+  if (role === 'investor') return 'roi'
+  if (role === 'buyer') return 'affordability'
+  return null
+}
+
+const BASE_STEP_HEADERS = [
   {
     title: 'Property Details',
     subtitle: 'Enter the subject property information',
@@ -26,6 +37,9 @@ const STEP_HEADERS = [
     title: 'Market Intelligence',
     subtitle: 'Suburb analytics and trends',
   },
+] as const
+
+const TAIL_STEP_HEADERS = [
   {
     title: 'Report Type',
     subtitle: 'Select template and customize',
@@ -36,17 +50,40 @@ const STEP_HEADERS = [
   },
 ] as const
 
-const LAST_STEP_INDEX = STEP_HEADERS.length - 1
+const EXTRA_STEP_HEADERS: Record<'roi' | 'affordability', { title: string; subtitle: string }> = {
+  roi: {
+    title: 'ROI Analysis',
+    subtitle: 'Estimate rental return and cash flow',
+  },
+  affordability: {
+    title: 'Affordability',
+    subtitle: 'Model your borrowing capacity',
+  },
+}
 
 export function GenerateReport() {
+  const { role } = useParams<{ role?: string }>()
+  const extraStep = getExtraStepForRole(role)
+
+  const stepHeaders = useMemo(
+    () =>
+      extraStep
+        ? [...BASE_STEP_HEADERS, EXTRA_STEP_HEADERS[extraStep], ...TAIL_STEP_HEADERS]
+        : [...BASE_STEP_HEADERS, ...TAIL_STEP_HEADERS],
+    [extraStep],
+  )
+  const lastStepIndex = stepHeaders.length - 1
+  const reportTypeIndex = extraStep ? 4 : 3
+  const generatedIndex = lastStepIndex
+
   const [searchParams] = useSearchParams()
   const openReadyView = searchParams.get('ready') === '1'
   const initialStep = useMemo(() => {
-    if (openReadyView) return LAST_STEP_INDEX
+    if (openReadyView) return lastStepIndex
     const raw = Number(searchParams.get('step') ?? '1')
     if (!Number.isFinite(raw)) return 0
-    return Math.min(Math.max(raw - 1, 0), LAST_STEP_INDEX)
-  }, [searchParams, openReadyView])
+    return Math.min(Math.max(raw - 1, 0), lastStepIndex)
+  }, [searchParams, openReadyView, lastStepIndex])
   const selectedReportId = searchParams.get('reportId')
   const { data: selectedReport } = useAsyncData(
     () =>
@@ -60,8 +97,8 @@ export function GenerateReport() {
   )
 
   const [currentStep, setCurrentStep] = useState(initialStep)
-  const { data: steps } = useAsyncData(getAppraisalSteps, [])
-  const header = STEP_HEADERS[currentStep] ?? STEP_HEADERS[0]
+  const { data: steps } = useAsyncData(() => getAppraisalSteps(role), [role])
+  const header = stepHeaders[currentStep] ?? stepHeaders[0]
 
   useEffect(() => {
     if (!selectedReportId) {
@@ -92,6 +129,12 @@ export function GenerateReport() {
     const match = selectedReport.narrativeText.match(/^\[([^\]]+)\]\s*/)
     return match?.[1]
   }, [selectedReport])
+
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>(undefined)
+
+  useEffect(() => {
+    if (initialTemplateId) setSelectedTemplateId(initialTemplateId)
+  }, [initialTemplateId])
 
   const handleStepOneContinue = (context?: AppraisalInputContext) => {
     if (context) {
@@ -132,13 +175,46 @@ export function GenerateReport() {
           />
         ) : null}
 
-        {currentStep === 3 || currentStep === 4 ? (
+        {extraStep && currentStep === 3 ? (
+          extraStep === 'roi' ? (
+            <RoiAnalysisPanel
+              onBack={() => setCurrentStep(2)}
+              onContinue={() => setCurrentStep(reportTypeIndex)}
+            />
+          ) : (
+            <AffordabilityPanel
+              onBack={() => setCurrentStep(2)}
+              onContinue={() => setCurrentStep(reportTypeIndex)}
+            />
+          )
+        ) : null}
+
+        {currentStep === reportTypeIndex ? (
           hasHydratedFromSavedReport ? (
             <ReportConfigurationPanel
-              onBack={() => setCurrentStep(currentStep === 4 ? 3 : 2)}
-              onContinue={() => setCurrentStep(4)}
-              forceSubmitted={currentStep === 4}
-              initialSelectedTemplateId={initialTemplateId}
+              onBack={() => setCurrentStep(extraStep ? 3 : 2)}
+              onContinue={(templateId) => {
+                setSelectedTemplateId(templateId)
+                setCurrentStep(generatedIndex)
+              }}
+              initialSelectedTemplateId={selectedTemplateId}
+            />
+          ) : (
+            <div className="rounded-2xl border border-black/5 bg-white px-5 py-8 text-sm text-relaive-gray">
+              Loading saved report...
+            </div>
+          )
+        ) : null}
+
+        {currentStep === generatedIndex ? (
+          hasHydratedFromSavedReport ? (
+            <GeneratedReportContainer
+              selectedTemplateId={selectedTemplateId}
+              onBack={() => setCurrentStep(reportTypeIndex)}
+              onGenerateAnother={() => {
+                setSelectedTemplateId(undefined)
+                setCurrentStep(0)
+              }}
             />
           ) : (
             <div className="rounded-2xl border border-black/5 bg-white px-5 py-8 text-sm text-relaive-gray">

@@ -1,54 +1,71 @@
-import { Card, CardTitle } from '../../../../components/ui/card/card'
+import { Card } from '../../../../components/ui/card/card'
+import { PriceTrendChart } from '../../../../components/ui/chart/price-trend-chart'
+import { StatCard } from '../../../../components/ui/stat-card/stat-card'
 import { useAsyncData } from '../../../../hooks/use-async-data'
-import {
-  getDemandSignals,
-  getSuburbOverview,
-  type DemandSignal,
-  type DemandSignalTone,
-  type SuburbOverviewMetric,
-} from '../../../../services/common'
-import { ChartTrendIcon } from './generate-report-icons'
+import { getMarketIntelligenceOverview, getAppraisalInputContext } from '../../../../services/common'
 import { StepActions } from './step-actions'
 
-const SIGNAL_STYLES: Record<DemandSignalTone, { bar: string; label: string }> = {
-  high: { bar: 'bg-emerald-500', label: 'text-emerald-600' },
-  medium: { bar: 'bg-orange-400', label: 'text-orange-500' },
-  strong: { bar: 'bg-emerald-500', label: 'text-emerald-600' },
-}
-
-function SuburbOverviewRow({ metric }: { metric: SuburbOverviewMetric }) {
+function HomeIcon() {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-black/5 py-3 last:border-b-0">
-      <span className="text-sm text-relaive-gray sm:text-[15px]">{metric.label}</span>
-      <span
-        className={`text-sm font-semibold sm:text-[15px] ${
-          metric.tone === 'positive' ? 'text-emerald-600' : 'text-relaive-navy'
-        }`}
-      >
-        {metric.value}
-      </span>
-    </div>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 11.5L12 4.5l8 7"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6 10v9.5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V10"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="M9.5 20.5V15a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v5.5" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
   )
 }
 
-function DemandSignalRow({ signal }: { signal: DemandSignal }) {
-  const styles = SIGNAL_STYLES[signal.tone]
-
+function TrendIcon() {
   return (
-    <div className="py-2.5">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-sm text-relaive-navy sm:text-[15px]">{signal.label}</span>
-        <span className={`text-sm font-semibold ${styles.label}`}>{signal.level}</span>
-      </div>
-      <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-        <div
-          className={`h-full rounded-full ${styles.bar}`}
-          style={{ width: `${signal.percent}%` }}
-        />
-      </div>
-    </div>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 16.5l5.5-5.5 3.5 3.5L20 7.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M15 7.5h5v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   )
 }
+
+function CalendarIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="4" y="5.5" width="16" height="15" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M4 9.5h16" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M8 3.5v4M16 3.5v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function PinIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 21s7-6.5 7-11.5A7 7 0 0 0 5 9.5C5 14.5 12 21 12 21z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="9.5" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  )
+}
+
+const STAT_ICONS = [<HomeIcon />, <TrendIcon />, <CalendarIcon />, <PinIcon />]
 
 type MarketIntelligencePanelProps = {
   onBack: () => void
@@ -56,42 +73,48 @@ type MarketIntelligencePanelProps = {
 }
 
 export function MarketIntelligencePanel({ onBack, onContinue }: MarketIntelligencePanelProps) {
-  const { data: suburbOverview } = useAsyncData(getSuburbOverview, [])
-  const { data: demandSignals } = useAsyncData(getDemandSignals, [])
+  const { data } = useAsyncData(getMarketIntelligenceOverview, [])
+  const context = getAppraisalInputContext()
+  const subjectLabel = context?.address || data?.suburbLabel
 
   return (
-    <Card>
-      <div className="flex items-center gap-3.5">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#8FD4D8] to-relaive-secondary-hover text-white shadow-md shadow-relaive-secondary/30">
-          <ChartTrendIcon />
-        </span>
-        <div>
-          <CardTitle>Market Intelligence</CardTitle>
-          <p className="mt-0.5 text-sm text-relaive-gray">Suburb analytics and trends</p>
-        </div>
+    <div className="flex flex-col gap-6">
+      <p className="text-sm text-relaive-gray">Current market data for {subjectLabel ?? '—'}</p>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {(data?.stats ?? []).map((stat, index) => (
+          <StatCard
+            key={stat.id}
+            icon={STAT_ICONS[index % STAT_ICONS.length]}
+            tone="blue"
+            label={stat.label.toUpperCase()}
+            value={stat.value}
+            trend={stat.trend}
+          />
+        ))}
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-8 sm:grid-cols-2">
-        <div>
-          <h4 className="text-sm font-semibold text-relaive-navy sm:text-base">Suburb Overview</h4>
-          <div className="mt-2">
-            {(suburbOverview ?? []).map((metric) => (
-              <SuburbOverviewRow key={metric.id} metric={metric} />
-            ))}
-          </div>
+      <Card>
+        <div className="flex items-center gap-2">
+          <span className="text-relaive-primary">
+            <TrendIcon />
+          </span>
+          <h3 className="text-lg font-semibold text-relaive-navy sm:text-xl">
+            Price Trend — Last 12 Months
+          </h3>
         </div>
 
-        <div>
-          <h4 className="text-sm font-semibold text-relaive-navy sm:text-base">Demand Signals</h4>
-          <div className="mt-2">
-            {(demandSignals ?? []).map((signal) => (
-              <DemandSignalRow key={signal.id} signal={signal} />
-            ))}
-          </div>
+        <div className="mt-4">
+          <PriceTrendChart
+            data={(data?.priceTrend ?? []).map((point) => ({
+              label: point.month,
+              value: point.priceIndex,
+            }))}
+          />
         </div>
-      </div>
+      </Card>
 
-      <StepActions onBack={onBack} onContinue={onContinue} />
-    </Card>
+      <StepActions onBack={onBack} onContinue={onContinue} continueLabel="Next: Report Type >" />
+    </div>
   )
 }

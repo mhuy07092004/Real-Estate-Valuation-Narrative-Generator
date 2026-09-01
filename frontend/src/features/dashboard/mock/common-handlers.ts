@@ -9,6 +9,7 @@ import type {
   CopilotSuggestion,
   DemandSignal,
   ExecutiveSummary,
+  MarketIntelligenceOverview,
   NarrativePreview,
   NotificationMock,
   PropertyInputMethodOption,
@@ -76,6 +77,24 @@ const APPRAISAL_STEPS_DATA: StepperStep[] = [
   { id: 'property-details', label: 'Property Details' },
   { id: 'comparable-sales', label: 'Comparable Sales' },
   { id: 'market-intelligence', label: 'Market Intelligence' },
+  { id: 'report-type', label: 'Report Type' },
+  { id: 'generated-report', label: 'Generated Report' },
+]
+
+const APPRAISAL_STEPS_WITH_ROI_ANALYSIS_DATA: StepperStep[] = [
+  { id: 'property-details', label: 'Property Details' },
+  { id: 'comparable-sales', label: 'Comparable Sales' },
+  { id: 'market-intelligence', label: 'Market Intelligence' },
+  { id: 'roi-analysis', label: 'ROI Analysis' },
+  { id: 'report-type', label: 'Report Type' },
+  { id: 'generated-report', label: 'Generated Report' },
+]
+
+const APPRAISAL_STEPS_WITH_AFFORDABILITY_DATA: StepperStep[] = [
+  { id: 'property-details', label: 'Property Details' },
+  { id: 'comparable-sales', label: 'Comparable Sales' },
+  { id: 'market-intelligence', label: 'Market Intelligence' },
+  { id: 'affordability', label: 'Affordability' },
   { id: 'report-type', label: 'Report Type' },
   { id: 'generated-report', label: 'Generated Report' },
 ]
@@ -161,30 +180,44 @@ const DEMAND_SIGNALS_DATA: DemandSignal[] = [
   { id: 'price-growth', label: 'Price Growth', level: 'Strong', percent: 85, tone: 'strong' },
 ]
 
+const MARKET_INTELLIGENCE_OVERVIEW_DATA: MarketIntelligenceOverview = {
+  suburbLabel: 'Bonnyrigg',
+  stats: [
+    { id: 'median-price', label: 'Median Price', value: '$1.45M', trend: '+6.2% YoY' },
+    { id: 'monthly-growth', label: 'Monthly Growth', value: '+0.52%', trend: '+0.08pp YoY' },
+    { id: 'days-on-market', label: 'Days on Market', value: '18 days', trend: '-4 days YoY' },
+    { id: 'rental-yield', label: 'Rental Yield', value: '3.2%', trend: '+0.1pp YoY' },
+  ],
+  priceTrend: [
+    { month: 'Oct', priceIndex: 100 },
+    { month: 'Nov', priceIndex: 103 },
+    { month: 'Dec', priceIndex: 106 },
+    { month: 'Jan', priceIndex: 108 },
+    { month: 'Feb', priceIndex: 109 },
+    { month: 'Mar', priceIndex: 111 },
+    { month: 'Apr', priceIndex: 112 },
+    { month: 'May', priceIndex: 114 },
+    { month: 'Jun', priceIndex: 116 },
+    { month: 'Jul', priceIndex: 118 },
+    { month: 'Aug', priceIndex: 121 },
+  ],
+}
+
 const REPORT_TEMPLATES_DATA: ReportTemplateOption[] = [
   {
     id: 'vendor-appraisal',
     title: 'Vendor Appraisal',
-    description: 'For sellers listing property',
+    description:
+      'A comprehensive market appraisal for property owners preparing to sell. Includes estimated value range, comparable sales evidence, and campaign strategy.',
     iconKey: 'vendor',
-  },
-  {
-    id: 'bank-valuation',
-    title: 'Bank Valuation',
-    description: 'Formal lending valuation',
-    iconKey: 'bank',
-  },
-  {
-    id: 'buyer-advisory',
-    title: 'Buyer Advisory',
-    description: 'Purchase decision support',
-    iconKey: 'buyer',
-  },
-  {
-    id: 'investment-report',
-    title: 'Investment Report',
-    description: 'ROI and yield analysis',
-    iconKey: 'investment',
+    includes: [
+      'Estimated Value Range',
+      'Market Analysis',
+      'Property Description',
+      'Comparable Sales Evidence',
+      'Campaign Strategy',
+      'Vendor Recommendation',
+    ],
   },
 ]
 
@@ -372,8 +405,12 @@ export const commonHandlers = [
     return HttpResponse.json(COPILOT_MESSAGES_DATA)
   }),
 
-  http.get('/api/appraisal/steps', async () => {
+  http.get('/api/appraisal/steps', async ({ request }) => {
     await simulateLatency()
+
+    const role = new URL(request.url).searchParams.get('role')
+    if (role === 'investor') return HttpResponse.json(APPRAISAL_STEPS_WITH_ROI_ANALYSIS_DATA)
+    if (role === 'buyer') return HttpResponse.json(APPRAISAL_STEPS_WITH_AFFORDABILITY_DATA)
     return HttpResponse.json(APPRAISAL_STEPS_DATA)
   }),
 
@@ -400,6 +437,11 @@ export const commonHandlers = [
   http.get('/api/appraisal/demand-signals', async () => {
     await simulateLatency()
     return HttpResponse.json(DEMAND_SIGNALS_DATA)
+  }),
+
+  http.get('/api/appraisal/market-intelligence-overview', async () => {
+    await simulateLatency()
+    return HttpResponse.json(MARKET_INTELLIGENCE_OVERVIEW_DATA)
   }),
 
   http.get('/api/appraisal/report-templates', async () => {
