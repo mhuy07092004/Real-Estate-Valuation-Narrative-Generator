@@ -11,6 +11,7 @@ A full-stack web application for AI-powered property appraisal (Relaive).
 - **Tailwind CSS:** ^4.2.4
 - **React Router DOM:** ^7.18.1
 - **GSAP:** ^3.15.0 (with `@gsap/react` ^2.1.2)
+- **Recharts:** ^3.10.1 (radar charts on the investor Market Comparison page)
 - **MSW (Mock Service Worker):** ^2.15.0
 
 ### Backend

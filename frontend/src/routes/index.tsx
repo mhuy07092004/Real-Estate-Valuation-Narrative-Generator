@@ -38,6 +38,7 @@ import { SavedProperties as InvestorSavedProperties } from '../pages/dashboard/i
 import { SavedEvidence } from '../pages/dashboard/property-valuer/saved-evidence'
 import { ComparableSales as InvestorComparableSales } from '../pages/dashboard/investor/comparable-sales'
 import { ComparableSales as BuyerComparableSales } from '../pages/dashboard/buyer/comparable-sales'
+import { MarketComparison } from '../pages/dashboard/investor/market-comparision'
 import { ProtectedRoute } from '../features/auth/components/protected-route'
 
 function DashboardReport() {
@@ -113,6 +114,7 @@ export function AppRoutes() {
           <Route path="notifications" element={<NotificationPage />} />
           <Route path="generate-report" element={<GenerateReport />} />
           <Route path="comparable-sales" element={<DashboardComparableSales />} />
+          <Route path="market-comparison" element={<MarketComparison />} />
           <Route path="mock" element={<MockPageRoute />} />
         </Route>
       </Route>

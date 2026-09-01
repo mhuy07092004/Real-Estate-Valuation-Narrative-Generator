@@ -212,3 +212,94 @@ export function getSuburbExplorerMockData(
   const key = query.suburb.trim().toLowerCase()
   return Promise.resolve(SUBURB_EXPLORER_MOCK[key] ?? null)
 }
+
+// ---------------------------------------------------------------------------
+// Market Comparison
+// ---------------------------------------------------------------------------
+// No backend endpoint yet — local mock, same convention as Suburb Explorer above.
+// Intended real endpoint (not wired yet): GET /api/investor/market-comparison
+
+export type MarketComparisonSuburb = {
+  id: string
+  suburb: string
+  postcode: string
+  medianHousePrice: number // dollars
+  medianUnitPrice: number // dollars
+  growth12m: number // %
+  rentalYield: number // %
+  vacancyRate: number // %, lower is better
+  clearanceRate: number // %
+  populationGrowth: number // % p.a.
+  supplyConstraint: number // 0-100 score, higher is better
+}
+
+export type MarketComparisonAxisKey =
+  | 'growth12m'
+  | 'rentalYield'
+  | 'vacancyRate'
+  | 'clearanceRate'
+  | 'populationGrowth'
+  | 'supplyConstraint'
+
+export type MarketComparisonAxis = {
+  key: MarketComparisonAxisKey
+  label: string
+  higherIsBetter: boolean
+}
+
+// Radar chart dimensions. `higherIsBetter: false` (vacancyRate) is inverted when
+// normalising scores so every axis reads "higher is better" on the chart.
+export const MARKET_COMPARISON_AXES: MarketComparisonAxis[] = [
+  { key: 'growth12m', label: 'Growth', higherIsBetter: true },
+  { key: 'rentalYield', label: 'Yield', higherIsBetter: true },
+  { key: 'vacancyRate', label: 'Low Vacancy', higherIsBetter: false },
+  { key: 'clearanceRate', label: 'Clearance', higherIsBetter: true },
+  { key: 'populationGrowth', label: 'Population', higherIsBetter: true },
+  { key: 'supplyConstraint', label: 'Supply', higherIsBetter: true },
+]
+
+const MARKET_COMPARISON_SUBURBS: MarketComparisonSuburb[] = [
+  {
+    id: 'richmond-vic-3121',
+    suburb: 'Richmond',
+    postcode: '3121',
+    medianHousePrice: 1290000,
+    medianUnitPrice: 680000,
+    growth12m: 8.1,
+    rentalYield: 3.8,
+    vacancyRate: 1.9,
+    clearanceRate: 82,
+    populationGrowth: 1.8,
+    supplyConstraint: 84,
+  },
+  {
+    id: 'footscray-vic-3011',
+    suburb: 'Footscray',
+    postcode: '3011',
+    medianHousePrice: 1180000,
+    medianUnitPrice: 648000,
+    growth12m: 7.1,
+    rentalYield: 4.5,
+    vacancyRate: 1.8,
+    clearanceRate: 76,
+    populationGrowth: 2.3,
+    supplyConstraint: 72,
+  },
+  {
+    id: 'brunswick-vic-3056',
+    suburb: 'Brunswick',
+    postcode: '3056',
+    medianHousePrice: 980000,
+    medianUnitPrice: 590000,
+    growth12m: 5.6,
+    rentalYield: 4.0,
+    vacancyRate: 2.4,
+    clearanceRate: 69,
+    populationGrowth: 1.5,
+    supplyConstraint: 65,
+  },
+]
+
+export function getMarketComparisonSuburbs(): Promise<MarketComparisonSuburb[]> {
+  return Promise.resolve(MARKET_COMPARISON_SUBURBS)
+}

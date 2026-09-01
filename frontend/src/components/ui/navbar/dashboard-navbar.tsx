@@ -174,6 +174,7 @@ function resolveActiveNavFromPath(pathname: string): string {
   if (pathname.endsWith('/clients')) return 'Clients'
   if (pathname.endsWith('/market-insights')) return 'Market Insights'
   if (pathname.endsWith('/suburb-explorer')) return 'Suburb Explorer'
+  if (pathname.endsWith('/market-comparison')) return 'Market Comparison'
   if (pathname.endsWith('/report')) return REPORT_PAGE_TITLE[extractRoleFromPathname(pathname)]
   if (pathname.endsWith('/evidence-centre')) return 'Evidence Centre'
   if (pathname.endsWith('/search-properties')) return 'Search Properties'
@@ -257,6 +258,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       setActiveNav('Market Insights')
     } else if (pathname.endsWith('/suburb-explorer')) {
       setActiveNav('Suburb Explorer')
+    } else if (pathname.endsWith('/market-comparison')) {
+      setActiveNav('Market Comparison')
     } else if (pathname.endsWith('/report')) {
       setActiveNav(REPORT_PAGE_TITLE[resolvedRole])
     } else if (pathname.endsWith('/evidence-centre')) {
@@ -350,6 +353,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       navigate(`/dashboard/${resolvedRole}/market-insights`)
     } else if (label === 'Suburb Explorer') {
       navigate(`/dashboard/${resolvedRole}/suburb-explorer`)
+    } else if (label === 'Market Comparison') {
+      navigate(`/dashboard/${resolvedRole}/market-comparison`)
     } else if (label === REPORT_PAGE_TITLE[resolvedRole]) {
       navigate(`/dashboard/${resolvedRole}/report`)
     } else if (label === 'Evidence Centre' && resolvedRole === 'valuer') {
