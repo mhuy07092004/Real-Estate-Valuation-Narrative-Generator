@@ -24,9 +24,8 @@ const STATUS_FILTERS: { id: 'all' | ClientStatus; label: string }[] = [
 ]
 
 const STATUS_OPTIONS: ClientStatus[] = [
-  'prospecting',
-  'active',
   'appraisal_sent',
+  'prospecting',
   'listing',
   'sold',
 ]
