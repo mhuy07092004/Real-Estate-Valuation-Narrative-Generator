@@ -15,6 +15,7 @@ import {
 import MockPageRoute from '../pages/mock'
 import { SearchProperty } from '../pages/dashboard/buyer/search-property'
 import { SavedProperty } from '../pages/dashboard/saved-property'
+import { Inspections } from '../pages/dashboard/buyer/inspections'
 import { ValuationCases } from '../pages/dashboard/property-valuer/valuation-cases'
 import { ClientAgent } from '../pages/dashboard/real-estate-agent/client-agent'
 import { MarketInsights as AgentMarketInsights } from '../pages/dashboard/real-estate-agent/market-insights'
@@ -91,6 +92,7 @@ export function AppRoutes() {
           />
           <Route path="search-properties" element={<SearchProperty />} />
           <Route path="saved" element={<SavedProperty />} />
+          <Route path="inspections" element={<Inspections />} />
           <Route path="saved-properties" element={<SavedProperty />} />
           <Route path="saved-evidence" element={<SavedProperty />} />
           <Route path="settings" element={<Settings />} />

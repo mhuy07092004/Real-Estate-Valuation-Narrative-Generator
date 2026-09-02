@@ -2,6 +2,7 @@ import { http, HttpResponse } from 'msw'
 import type { PropertyCardData } from '../../../components/ui/property-card/property-card'
 import type {
   AffordabilityCalculationMock,
+  BuyerInspection,
   BuyerReportListItem,
   BuyerSavedProperty,
 } from '../../../services/buyer'
@@ -265,6 +266,162 @@ const BUYER_REPORT_LIST: BuyerReportListItem[] = [
   },
 ]
 
+const BUYER_INSPECTIONS_DATA: BuyerInspection[] = [
+  {
+    id: 'insp-clarendon',
+    address: '45 Clarendon St',
+    suburb: 'South Melbourne VIC 3205',
+    inspectionDate: (() => {
+      const d = new Date()
+      d.setDate(d.getDate() + 3)
+      d.setHours(11, 30, 0, 0)
+      return d.toISOString()
+    })(),
+    agents: ['Sarah Chen'],
+    overallNotes: '',
+    checklist: [
+      {
+        id: 'exterior',
+        label: 'Exterior & Facade',
+        description: 'Rendered walls in good condition, minor hairline cracks near porch.',
+        status: 'ok',
+      },
+      {
+        id: 'roof',
+        label: 'Roof Condition',
+        description: 'Recently re-tiled, no visible wear.',
+        status: 'ok',
+      },
+      {
+        id: 'moisture',
+        label: 'Moisture & Damp',
+        description: 'No damp smell or staining detected.',
+        status: 'ok',
+      },
+      {
+        id: 'kitchen',
+        label: 'Kitchen',
+        description: 'Original but well maintained, appliances dated.',
+        status: 'concern',
+        estimatedCost: 650,
+      },
+      {
+        id: 'bathrooms',
+        label: 'Bathrooms',
+        description: 'Clean, regrouted recently.',
+        status: 'ok',
+      },
+      {
+        id: 'electrical',
+        label: 'Electrical',
+        description: 'Switchboard upgraded 2021, compliant.',
+        status: 'ok',
+      },
+      {
+        id: 'noise',
+        label: 'Noise & Soundproofing',
+        description: 'Quiet street, minimal traffic noise.',
+        status: 'ok',
+      },
+      {
+        id: 'light',
+        label: 'Natural Light',
+        description: 'East facing living area, good morning light.',
+        status: 'ok',
+      },
+      {
+        id: 'storage',
+        label: 'Storage',
+        description: 'Built-in robes in both bedrooms.',
+        status: 'ok',
+      },
+      {
+        id: 'renovation',
+        label: 'Renovation / Repair Needs',
+        description: 'No major works needed.',
+        status: 'ok',
+      },
+    ],
+  },
+  {
+    id: 'insp-grey',
+    address: '12 Grey St',
+    suburb: 'St Kilda VIC 3182',
+    inspectionDate: (() => {
+      const d = new Date()
+      d.setDate(d.getDate() + 3)
+      d.setHours(13, 30, 0, 0)
+      return d.toISOString()
+    })(),
+    agents: ['Mark Tran', 'Julia Cheng'],
+    overallNotes: '',
+    checklist: [
+      {
+        id: 'exterior',
+        label: 'Exterior & Facade',
+        description: 'Well-maintained, freshly painted.',
+        status: 'ok',
+      },
+      {
+        id: 'roof',
+        label: 'Roof Condition',
+        description: 'Minor rust on gutters — ask about age.',
+        status: 'concern',
+        estimatedCost: 800,
+      },
+      {
+        id: 'moisture',
+        label: 'Moisture & Damp',
+        description: 'Not checked yet.',
+        status: 'not_checked',
+      },
+      {
+        id: 'kitchen',
+        label: 'Kitchen',
+        description: 'Renovated 2022, good condition.',
+        status: 'ok',
+      },
+      {
+        id: 'bathrooms',
+        label: 'Bathrooms',
+        description: 'Single bathroom, well maintained.',
+        status: 'ok',
+      },
+      {
+        id: 'electrical',
+        label: 'Electrical',
+        description: 'Older switchboard — check compliance.',
+        status: 'concern',
+        estimatedCost: 1500,
+      },
+      {
+        id: 'noise',
+        label: 'Noise & Soundproofing',
+        description: 'Carpet & road noise clearly audible — high traffic issue.',
+        status: 'major_issue',
+      },
+      {
+        id: 'light',
+        label: 'Natural Light',
+        description: 'North facing living — excellent light.',
+        status: 'ok',
+      },
+      {
+        id: 'storage',
+        label: 'Storage',
+        description: 'Limited built-in storage for size.',
+        status: 'ok',
+      },
+      {
+        id: 'renovation',
+        label: 'Renovation / Repair Needs',
+        description: 'Not checked yet.',
+        status: 'not_checked',
+      },
+    ],
+  },
+]
+
 const BUYER_NOTIFICATIONS_DATA: InboxNotification[] = [
   {
     id: 'buyer-notif-1',
@@ -340,6 +497,19 @@ export const buyerHandlers = [
   http.get('/api/buyer/properties/saved', async () => {
     await simulateLatency()
     return HttpResponse.json(BUYER_SAVED_PROPERTIES)
+  }),
+
+  http.get('/api/buyer/inspections', async () => {
+    await simulateLatency()
+    return HttpResponse.json(BUYER_INSPECTIONS_DATA)
+  }),
+
+  http.put('/api/buyer/inspections/:id', async ({ params, request }) => {
+    await simulateLatency()
+    const updated = (await request.json()) as BuyerInspection
+    const index = BUYER_INSPECTIONS_DATA.findIndex((item) => item.id === params.id)
+    if (index !== -1) BUYER_INSPECTIONS_DATA[index] = updated
+    return HttpResponse.json(updated)
   }),
 
   http.get('/api/buyer/reports', async () => {

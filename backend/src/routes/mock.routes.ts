@@ -929,6 +929,161 @@ mockRouter.get('/buyer/notifications/unread-count', (_req, res) => {
   res.json(INBOX_NOTIFICATIONS.filter((item) => !item.isRead).length)
 })
 
+function daysFromNowAt(days: number, hours: number, minutes: number): string {
+  const date = new Date()
+  date.setDate(date.getDate() + days)
+  date.setHours(hours, minutes, 0, 0)
+  return date.toISOString()
+}
+
+mockRouter.get('/buyer/inspections', (_req, res) => {
+  res.json([
+    {
+      id: 'insp-clarendon',
+      address: '45 Clarendon St',
+      suburb: 'South Melbourne VIC 3205',
+      inspectionDate: daysFromNowAt(3, 11, 30),
+      agents: ['Sarah Chen'],
+      overallNotes: '',
+      checklist: [
+        {
+          id: 'exterior',
+          label: 'Exterior & Facade',
+          description: 'Rendered walls in good condition, minor hairline cracks near porch.',
+          status: 'ok',
+        },
+        {
+          id: 'roof',
+          label: 'Roof Condition',
+          description: 'Recently re-tiled, no visible wear.',
+          status: 'ok',
+        },
+        {
+          id: 'moisture',
+          label: 'Moisture & Damp',
+          description: 'No damp smell or staining detected.',
+          status: 'ok',
+        },
+        {
+          id: 'kitchen',
+          label: 'Kitchen',
+          description: 'Original but well maintained, appliances dated.',
+          status: 'concern',
+          estimatedCost: 650,
+        },
+        {
+          id: 'bathrooms',
+          label: 'Bathrooms',
+          description: 'Clean, regrouted recently.',
+          status: 'ok',
+        },
+        {
+          id: 'electrical',
+          label: 'Electrical',
+          description: 'Switchboard upgraded 2021, compliant.',
+          status: 'ok',
+        },
+        {
+          id: 'noise',
+          label: 'Noise & Soundproofing',
+          description: 'Quiet street, minimal traffic noise.',
+          status: 'ok',
+        },
+        {
+          id: 'light',
+          label: 'Natural Light',
+          description: 'East facing living area, good morning light.',
+          status: 'ok',
+        },
+        {
+          id: 'storage',
+          label: 'Storage',
+          description: 'Built-in robes in both bedrooms.',
+          status: 'ok',
+        },
+        {
+          id: 'renovation',
+          label: 'Renovation / Repair Needs',
+          description: 'No major works needed.',
+          status: 'ok',
+        },
+      ],
+    },
+    {
+      id: 'insp-grey',
+      address: '12 Grey St',
+      suburb: 'St Kilda VIC 3182',
+      inspectionDate: daysFromNowAt(3, 13, 30),
+      agents: ['Mark Tran', 'Julia Cheng'],
+      overallNotes: '',
+      checklist: [
+        {
+          id: 'exterior',
+          label: 'Exterior & Facade',
+          description: 'Well-maintained, freshly painted.',
+          status: 'ok',
+        },
+        {
+          id: 'roof',
+          label: 'Roof Condition',
+          description: 'Minor rust on gutters — ask about age.',
+          status: 'concern',
+          estimatedCost: 800,
+        },
+        {
+          id: 'moisture',
+          label: 'Moisture & Damp',
+          description: 'Not checked yet.',
+          status: 'not_checked',
+        },
+        {
+          id: 'kitchen',
+          label: 'Kitchen',
+          description: 'Renovated 2022, good condition.',
+          status: 'ok',
+        },
+        {
+          id: 'bathrooms',
+          label: 'Bathrooms',
+          description: 'Single bathroom, well maintained.',
+          status: 'ok',
+        },
+        {
+          id: 'electrical',
+          label: 'Electrical',
+          description: 'Older switchboard — check compliance.',
+          status: 'concern',
+          estimatedCost: 1500,
+        },
+        {
+          id: 'noise',
+          label: 'Noise & Soundproofing',
+          description: 'Carpet & road noise clearly audible — high traffic issue.',
+          status: 'major_issue',
+        },
+        {
+          id: 'light',
+          label: 'Natural Light',
+          description: 'North facing living — excellent light.',
+          status: 'ok',
+        },
+        {
+          id: 'storage',
+          label: 'Storage',
+          description: 'Limited built-in storage for size.',
+          status: 'ok',
+        },
+        {
+          id: 'renovation',
+          label: 'Renovation / Repair Needs',
+          description: 'Not checked yet.',
+          status: 'not_checked',
+        },
+      ],
+    },
+  ])
+})
+
 mockRouter.get('/valuer/evidence/saved', (_req, res) => {
   res.json([
     {

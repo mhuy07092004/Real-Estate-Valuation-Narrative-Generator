@@ -47,6 +47,41 @@ export function getSavedProperties(): Promise<BuyerSavedProperty[]> {
   return fetchJson('/api/buyer/properties/saved')
 }
 
+export type InspectionItemStatus = 'ok' | 'concern' | 'major_issue' | 'not_checked'
+
+export type InspectionChecklistItem = {
+  id: string
+  label: string
+  description: string
+  status: InspectionItemStatus
+  estimatedCost?: number
+}
+
+export type BuyerInspection = {
+  id: string
+  address: string
+  suburb: string
+  inspectionDate: string // ISO
+  agents: string[]
+  overallNotes: string
+  checklist: InspectionChecklistItem[]
+}
+
+export function getBuyerInspections(): Promise<BuyerInspection[]> {
+  return fetchJson('/api/buyer/inspections')
+}
+
+// Only called explicitly from the "Save Checklist" button — local edits
+// (status, description, cost, notes) stay in component state and never hit
+// the network until the user opts in to persist them.
+export function saveBuyerInspection(inspection: BuyerInspection): Promise<BuyerInspection> {
+  return fetchJson(`/api/buyer/inspections/${inspection.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(inspection),
+  })
+}
+
 export type BuyerReportListStatus = 'generated' | 'shared'
 
 export type BuyerReportListItem = {

@@ -149,7 +149,7 @@ const DECISION_TOOLS_NAV: Record<DashboardRole, SidebarNavSection[]> = {
           icon: CalculatorIcon,
           to: '/dashboard/buyer/affortability-calculation',
         },
-        { label: 'Inspections', icon: BuildingIcon },
+        { label: 'Inspections', icon: BuildingIcon, to: '/dashboard/buyer/inspections' },
       ],
     },
   ],
@@ -178,6 +178,7 @@ function resolveActiveNavFromPath(pathname: string): string {
   if (pathname.endsWith('/report')) return REPORT_PAGE_TITLE[extractRoleFromPathname(pathname)]
   if (pathname.endsWith('/evidence-centre')) return 'Evidence Centre'
   if (pathname.endsWith('/search-properties')) return 'Search Properties'
+  if (pathname.endsWith('/inspections')) return 'Inspections'
   if (pathname.endsWith('/saved-evidence')) return 'Saved Evidence'
   if (pathname.endsWith('/saved') || pathname.endsWith('/saved-properties')) {
     return 'Saved Properties'
