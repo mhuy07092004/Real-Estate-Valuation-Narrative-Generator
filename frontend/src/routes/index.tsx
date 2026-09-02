@@ -13,7 +13,6 @@ import {
   DashboardRoleRedirect,
 } from '../pages/dashboard'
 import MockPageRoute from '../pages/mock'
-import { EvidenceCentre } from '../pages/dashboard/property-valuer/evidence-centre'
 import { SearchProperty } from '../pages/dashboard/buyer/search-property'
 import { SavedProperty } from '../pages/dashboard/buyer/saved-property'
 import { ValuationCases } from '../pages/dashboard/property-valuer/valuation-cases'
@@ -32,12 +31,10 @@ import { RoiCalculation } from '../pages/dashboard/investor/ROI-calculation'
 import { AffordabilityCalculation } from '../pages/dashboard/buyer/affortability-calculation'
 import { NotificationPage } from '../pages/dashboard/notification'
 import { GenerateReport } from '../pages/dashboard/generate-report'
-import { ComparableSales as AgentComparableSales } from '../pages/dashboard/real-estate-agent/comparable-sales'
+import { ComparableSales } from '../pages/dashboard/comparable-sales'
 import { SavedProperties as AgentSavedProperties } from '../pages/dashboard/real-estate-agent/saved-properties'
 import { SavedProperties as InvestorSavedProperties } from '../pages/dashboard/investor/saved-properties'
 import { SavedEvidence } from '../pages/dashboard/property-valuer/saved-evidence'
-import { ComparableSales as InvestorComparableSales } from '../pages/dashboard/investor/comparable-sales'
-import { ComparableSales as BuyerComparableSales } from '../pages/dashboard/buyer/comparable-sales'
 import { MarketComparison } from '../pages/dashboard/investor/market-comparision'
 import { ProtectedRoute } from '../features/auth/components/protected-route'
 
@@ -47,13 +44,6 @@ function DashboardReport() {
   if (role === 'valuer') return <ValuerReport />
   if (role === 'buyer') return <BuyerReport />
   return <AgentReport />
-}
-
-function DashboardComparableSales() {
-  const { role } = useParams<{ role: string }>()
-  if (role === 'investor') return <InvestorComparableSales />
-  if (role === 'buyer') return <BuyerComparableSales />
-  return <AgentComparableSales />
 }
 
 function DashboardSavedProperties() {
@@ -102,7 +92,12 @@ export function AppRoutes() {
           <Route path="market-insights" element={<DashboardMarketInsights />} />
           <Route path="suburb-explorer" element={<DashboardSuburbExplorer />} />
           <Route path="report" element={<DashboardReport />} />
-          <Route path="evidence-centre" element={<EvidenceCentre />} />
+          <Route
+            path="evidence-centre"
+            element={
+              <ComparableSales emptyStateDescription="Search a property address to find comparable evidence" />
+            }
+          />
           <Route path="search-properties" element={<SearchProperty />} />
           <Route path="saved" element={<SavedProperty />} />
           <Route path="saved-properties" element={<DashboardSavedProperties />} />
@@ -113,7 +108,7 @@ export function AppRoutes() {
           <Route path="affortability-calculation" element={<AffordabilityCalculation />} />
           <Route path="notifications" element={<NotificationPage />} />
           <Route path="generate-report" element={<GenerateReport />} />
-          <Route path="comparable-sales" element={<DashboardComparableSales />} />
+          <Route path="comparable-sales" element={<ComparableSales />} />
           <Route path="market-comparison" element={<MarketComparison />} />
           <Route path="mock" element={<MockPageRoute />} />
         </Route>
