@@ -2,6 +2,7 @@ import { Suspense, useEffect } from 'react'
 import { Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '../../components/ui/button/button'
 import { DashboardNavbar } from '../../components/ui/navbar/dashboard-navbar'
+import { PageTransition } from '../../components/ui/page-transition/page-transition'
 import { useAuth } from '../../features/auth/hooks/use-auth'
 import { DashboardViewSkeleton } from './dashboard-view-skeleton.tsx'
 import {
@@ -51,7 +52,9 @@ export function DashboardLayout() {
   return (
     <DashboardNavbar>
       <DashboardWelcomeHeader />
-      <Outlet />
+      <PageTransition>
+        <Outlet />
+      </PageTransition>
     </DashboardNavbar>
   )
 }

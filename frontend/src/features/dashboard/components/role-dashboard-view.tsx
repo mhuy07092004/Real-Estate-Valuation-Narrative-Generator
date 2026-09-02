@@ -5,6 +5,7 @@ import { RecentReportsPanel } from './recent-reports-panel'
 import { ThisWeekPanel } from './this-week-panel'
 import { StatCard } from '../../../components/ui/stat-card/stat-card'
 import { useAsyncData } from '../../../hooks/use-async-data'
+import { DashboardViewSkeleton } from '../../../pages/dashboard/dashboard-view-skeleton'
 import type { DashboardRole } from '../utils/dashboard-role'
 import { DASHBOARD_COPY_BY_ROLE } from '../utils/dashboard-copy'
 import { getDashboardMockData, type AgentPipeline, type AgentThisWeek } from '../../../services/dashboard'
@@ -29,7 +30,7 @@ export function RoleDashboardView({ role }: RoleDashboardViewProps) {
   const { data } = useAsyncData(() => getDashboardMockData(role), [role])
 
   if (!data) {
-    return <div className="p-6 text-sm text-relaive-gray sm:p-8">Loading dashboard…</div>
+    return <DashboardViewSkeleton />
   }
 
   const actions = data.quickActions.map((action) => ({

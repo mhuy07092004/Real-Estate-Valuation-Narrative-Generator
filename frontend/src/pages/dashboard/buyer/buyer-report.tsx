@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { FilterButton } from '../../../components/ui/button/filter-button'
 import { ClientReportCard } from '../../../features/dashboard/components/client-report-card'
+import { ListSkeleton } from '../../../features/dashboard/components/list-row-skeleton'
 import { useAsyncData } from '../../../hooks/use-async-data'
 import {
   getBuyerReportListMockData,
@@ -69,7 +70,7 @@ export function BuyerReport() {
         </header>
 
         {isLoading && reports.length === 0 ? (
-          <p className="text-sm text-relaive-gray">Loading reports…</p>
+          <ListSkeleton rows={5} />
         ) : sortedReports.length === 0 ? (
           <p className="text-sm text-relaive-gray">No buyer reports yet.</p>
         ) : (

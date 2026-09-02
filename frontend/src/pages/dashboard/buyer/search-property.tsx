@@ -2,11 +2,12 @@ import { AddressSearch } from '../../../components/ui/search-bar/address-search'
 import { Button } from '../../../components/ui/button/button'
 import { FilterButton } from '../../../components/ui/button/filter-button'
 import { PropertyCard } from '../../../components/ui/property-card/property-card'
+import { PropertyGridSkeleton } from '../../../features/dashboard/components/property-grid-skeleton'
 import { useAsyncData } from '../../../hooks/use-async-data'
 import { getSearchProperties } from '../../../services/buyer'
 
 export function SearchProperty() {
-  const { data: properties } = useAsyncData(getSearchProperties, [])
+  const { data: properties, isLoading } = useAsyncData(getSearchProperties, [])
   const propertyList = properties ?? []
 
   return (
@@ -30,9 +31,11 @@ export function SearchProperty() {
         </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {propertyList.map((property) => (
-            <PropertyCard key={property.id} property={property} />
-          ))}
+          {isLoading && propertyList.length === 0 ? (
+            <PropertyGridSkeleton count={6} variant="full" />
+          ) : (
+            propertyList.map((property) => <PropertyCard key={property.id} property={property} />)
+          )}
         </div>
       </div>
     </div>

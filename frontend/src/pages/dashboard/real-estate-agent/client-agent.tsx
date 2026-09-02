@@ -9,6 +9,7 @@ import { AddressSearch } from '../../../components/ui/search-bar/address-search'
 import { ChevronIcon, reportLabel } from '../../../components/ui/table/client-table'
 import { ClientStatusBadge, getClientStatusLabel } from '../../../components/ui/table/status-badge'
 import { useAsyncData } from '../../../hooks/use-async-data'
+import { ListSkeleton } from '../../../features/dashboard/components/list-row-skeleton'
 import {
   getClientListPageMockData,
   type ClientItem,
@@ -475,7 +476,7 @@ export function ClientAgent() {
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
           <div className="min-w-0 lg:flex-[7]">
             {isLoading && clients.length === 0 ? (
-              <p className="text-sm text-relaive-gray">Loading clients…</p>
+              <ListSkeleton rows={5} avatarShape="circle" variant="divided" />
             ) : visibleClients.length === 0 ? (
               <p className="text-sm text-relaive-gray">No clients match your search.</p>
             ) : (

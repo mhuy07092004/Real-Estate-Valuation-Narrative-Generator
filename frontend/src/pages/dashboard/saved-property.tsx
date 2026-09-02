@@ -5,6 +5,7 @@ import {
   SavedPropertyCard,
   type SavedPropertyCardData,
 } from '../../features/dashboard/components/saved-property-card'
+import { PropertyGridSkeleton } from '../../features/dashboard/components/property-grid-skeleton'
 import { useAsyncData } from '../../hooks/use-async-data'
 import { getAgentSavedProperties } from '../../services/agent'
 import { getSavedProperties } from '../../services/buyer'
@@ -57,7 +58,7 @@ function resolveSavedRole(role: string | undefined): SavedRole {
 export function SavedProperty() {
   const { role } = useParams<{ role: string }>()
   const config = SAVED_ROLE_CONFIG[resolveSavedRole(role)]
-  const { data } = useAsyncData(config.fetcher, [role])
+  const { data, isLoading } = useAsyncData(config.fetcher, [role])
   const [items, setItems] = useState<SavedPropertyCardData[]>([])
 
   useEffect(() => {
@@ -80,7 +81,9 @@ export function SavedProperty() {
         </header>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {items.length === 0 ? (
+          {isLoading && items.length === 0 ? (
+            <PropertyGridSkeleton count={3} variant="compact" />
+          ) : items.length === 0 ? (
             <p className="text-sm text-relaive-gray">{config.emptyLabel}</p>
           ) : (
             items.map((item) => (

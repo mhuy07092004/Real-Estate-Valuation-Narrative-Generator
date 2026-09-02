@@ -7,6 +7,7 @@ import { Card } from '../../../components/ui/card/card'
 import { HomeIcon } from '../../../components/ui/navbar/dashboard-navbar-icons'
 import { getCaseStatusLabel } from '../../../components/ui/table/status-badge'
 import { useAsyncData } from '../../../hooks/use-async-data'
+import { ListSkeleton } from '../../../features/dashboard/components/list-row-skeleton'
 import type { CaseItem, CaseStatus } from '../../../services/dashboard'
 import { getValuerCaseListMockData } from '../../../services/valuer'
 
@@ -275,7 +276,7 @@ export function ValuationCases() {
         </header>
 
         {isLoading && cases.length === 0 ? (
-          <p className="text-sm text-relaive-gray">Loading cases…</p>
+          <ListSkeleton rows={5} />
         ) : sortedCases.length === 0 ? (
           <p className="text-sm text-relaive-gray">No valuation cases yet.</p>
         ) : (

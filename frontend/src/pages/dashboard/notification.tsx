@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
 import { ViewNotification } from '../../components/notification/view-notifcation'
 import { Button } from '../../components/ui/button/button'
+import { Skeleton } from '../../components/ui/skeleton/skeleton'
 import {
   isDashboardRole,
   type DashboardRole,
@@ -212,11 +213,29 @@ async function fetchNotificationsForRole(role: DashboardRole): Promise<{
   }
 }
 
+/** Matches ViewNotification's dot + icon-circle + title/description/timestamp layout. */
+function NotificationRowSkeleton() {
+  return (
+    <div
+      className="flex items-start gap-3 rounded-2xl border border-black/5 bg-white px-4 py-4 sm:gap-4 sm:px-5"
+      aria-hidden="true"
+    >
+      <Skeleton className="mt-3 h-2 w-2 shrink-0 rounded-full" />
+      <Skeleton className="h-11 w-11 shrink-0 rounded-full" />
+      <div className="min-w-0 flex-1">
+        <Skeleton className="h-4 w-48 rounded-full" />
+        <Skeleton className="mt-2 h-3 w-full max-w-md rounded-full opacity-70" />
+        <Skeleton className="mt-2 h-3 w-24 rounded-full opacity-70" />
+      </div>
+    </div>
+  )
+}
+
 export function NotificationPage() {
   const { role: roleParam } = useParams<{ role: string }>()
   const role: DashboardRole =
     roleParam && isDashboardRole(roleParam) ? roleParam : 'agent'
-  const { data } = useAsyncData(() => fetchNotificationsForRole(role), [role])
+  const { data, isLoading } = useAsyncData(() => fetchNotificationsForRole(role), [role])
   const items = data?.items ?? []
   const unreadCount = data?.unreadCount ?? 0
 
@@ -250,18 +269,20 @@ export function NotificationPage() {
         </Button>
       </header>
 
-      <div className="flex flex-col gap-3 p-4 sm:gap-4 sm:p-6 lg:p-8">
-        {items.map((item) => (
-          <ViewNotification
-            key={item.id}
-            title={item.title}
-            description={item.description}
-            priority={item.priority}
-            timestamp={item.timestamp}
-            isRead={item.isRead}
-            icon={ICON_MAP[item.icon]}
-          />
-        ))}
+      <div className="flex flex-col gap-3 p-4 sm:gap-4 sm:p-6 lg:p-8" aria-busy={isLoading} aria-live="polite">
+        {isLoading && items.length === 0
+          ? Array.from({ length: 5 }).map((_, index) => <NotificationRowSkeleton key={index} />)
+          : items.map((item) => (
+              <ViewNotification
+                key={item.id}
+                title={item.title}
+                description={item.description}
+                priority={item.priority}
+                timestamp={item.timestamp}
+                isRead={item.isRead}
+                icon={ICON_MAP[item.icon]}
+              />
+            ))}
       </div>
     </div>
   )

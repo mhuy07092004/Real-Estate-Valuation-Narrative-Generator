@@ -4,6 +4,7 @@ import { Card } from '../../../components/ui/card/card'
 import { ComparisonRadarChart } from '../../../components/ui/chart/comparison-radar-chart'
 import { RemovableChip } from '../../../components/ui/chip/removable-chip'
 import { AddItemDropdown } from '../../../components/ui/dropdown/add-item-dropdown'
+import { Skeleton } from '../../../components/ui/skeleton/skeleton'
 import { useAsyncData } from '../../../hooks/use-async-data'
 import {
   MARKET_COMPARISON_AXES,
@@ -155,6 +156,35 @@ function StarIcon({ className = '' }: { className?: string }) {
   )
 }
 
+function MarketComparisonSkeleton() {
+  return (
+    <div className="flex flex-col gap-6" aria-busy="true" aria-live="polite">
+      <Card>
+        <div>
+          <Skeleton className="h-5 w-44 rounded-full" />
+          <Skeleton className="mt-2 h-3 w-72 rounded-full" />
+        </div>
+        <Skeleton className="mt-4 h-80 w-full rounded-2xl" />
+      </Card>
+
+      <Card>
+        <Skeleton className="h-5 w-40 rounded-full" />
+        <div className="mt-4 flex flex-col gap-3">
+          {Array.from({ length: DETAILED_METRIC_ROWS.length }).map((_, index) => (
+            <div key={index} className="flex items-center gap-4 border-b border-black/5 pb-3 last:border-b-0 last:pb-0">
+              <Skeleton className="h-3 w-32 rounded-full" />
+              <Skeleton className="h-4 w-20 rounded-full" />
+              <Skeleton className="h-4 w-20 rounded-full" />
+              <Skeleton className="hidden h-4 w-20 rounded-full sm:block" />
+              <Skeleton className="hidden h-4 w-20 rounded-full sm:block" />
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  )
+}
+
 export function MarketComparison() {
   const { data, isLoading } = useAsyncData(getMarketComparisonSuburbs, [])
   const [selectedIds, setSelectedIds] = useState<string[]>([])
@@ -236,7 +266,7 @@ export function MarketComparison() {
         </div>
 
         {isLoading ? (
-          <p className="text-sm text-relaive-gray">Loading market comparison…</p>
+          <MarketComparisonSkeleton />
         ) : selectedSuburbs.length === 0 ? (
           <div className="flex flex-col items-start gap-3 rounded-3xl border border-black/5 bg-white p-6 shadow-[0_4px_24px_rgba(26,32,44,0.06)]">
             <p className="text-sm text-relaive-gray">

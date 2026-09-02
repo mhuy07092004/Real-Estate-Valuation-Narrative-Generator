@@ -4,6 +4,7 @@ import { PriceTrendChart } from '../../../components/ui/chart/price-trend-chart'
 import { AddressSearch } from '../../../components/ui/search-bar/address-search'
 import { StatCard } from '../../../components/ui/stat-card/stat-card'
 import { useAsyncData } from '../../../hooks/use-async-data'
+import { MarketInsightsSkeleton } from '../../../features/dashboard/components/market-insights-skeleton'
 import {
   SUBURB_EXPLORER_KNOWN_SUBURBS,
   getSuburbExplorerMockData,
@@ -118,7 +119,7 @@ export function SuburbExplorer() {
         </header>
 
         {isLoading ? (
-          <p className="text-sm text-relaive-gray">Loading market data…</p>
+          <MarketInsightsSkeleton />
         ) : !data ? (
           <div className="flex flex-col items-start gap-3 rounded-3xl border border-black/5 bg-white p-6 shadow-[0_4px_24px_rgba(26,32,44,0.06)]">
             <p className="text-sm text-relaive-gray">

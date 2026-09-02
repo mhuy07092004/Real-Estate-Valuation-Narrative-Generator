@@ -80,3 +80,25 @@ body {
     transform: translateX(250%) skewX(-15deg);
   }
 }
+
+@keyframes stagger-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-stagger-in {
+  animation: stagger-fade-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-stagger-in {
+    animation: none;
+  }
+}
