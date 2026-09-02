@@ -85,6 +85,7 @@ export type GeneratedReportPanelProps = {
   onSaveReport?: () => void
   isSaving?: boolean
   saveLabel?: string
+  sharePanel?: ReactNode
 }
 
 function ParagraphSegments({ segments }: { segments: ExecutiveSummarySegment[] }) {
@@ -154,6 +155,7 @@ export function GeneratedReportPanel({
   onSaveReport,
   isSaving = false,
   saveLabel = 'Save Report',
+  sharePanel,
 }: GeneratedReportPanelProps) {
   return (
     <div className="flex flex-col gap-6">
@@ -196,6 +198,8 @@ export function GeneratedReportPanel({
           ) : null}
         </div>
       </div>
+
+      {sharePanel}
 
       <ReportHeaderCard
         eyebrowIcon={eyebrowIcon}

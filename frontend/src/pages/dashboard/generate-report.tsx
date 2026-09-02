@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { Stepper } from '../../components/ui/Progress-Bar/Stepper'
+import { StepTransition } from '../../components/ui/step-transition/step-transition'
 import { useAsyncData } from '../../hooks/use-async-data'
 import {
   getAppraisalSteps,
@@ -97,6 +98,15 @@ export function GenerateReport() {
   )
 
   const [currentStep, setCurrentStep] = useState(initialStep)
+  const [direction, setDirection] = useState<1 | -1>(1)
+  const currentStepRef = useRef(initialStep)
+
+  const goToStep = (next: number) => {
+    setDirection(next >= currentStepRef.current ? 1 : -1)
+    currentStepRef.current = next
+    setCurrentStep(next)
+  }
+
   const { data: steps } = useAsyncData(() => getAppraisalSteps(role), [role])
   const header = stepHeaders[currentStep] ?? stepHeaders[0]
 
@@ -140,7 +150,7 @@ export function GenerateReport() {
     if (context) {
       setAppraisalInputContext(context)
     }
-    setCurrentStep(1)
+    goToStep(1)
   }
 
   return (
@@ -148,80 +158,86 @@ export function GenerateReport() {
       <div className="flex flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:p-8">
         <Stepper steps={steps ?? []} activeStep={currentStep} />
 
-        <header className="font-sans">
-          <h1 className="text-2xl font-semibold tracking-tight text-[#1C2A38] sm:text-[28px]">
-            {header.title}
-          </h1>
-          <p className="mt-1 text-sm text-[#1C2A3880] sm:text-base">
-            {header.subtitle}
-          </p>
-        </header>
+        <StepTransition
+          stepKey={currentStep}
+          direction={direction}
+          className="flex flex-col gap-5 sm:gap-6"
+        >
+          <header className="font-sans">
+            <h1 className="text-2xl font-semibold tracking-tight text-[#1C2A38] sm:text-[28px]">
+              {header.title}
+            </h1>
+            <p className="mt-1 text-sm text-[#1C2A3880] sm:text-base">
+              {header.subtitle}
+            </p>
+          </header>
 
-        {currentStep === 0 ? (
-          <PropertyInputPanel onContinue={handleStepOneContinue} />
-        ) : null}
+          {currentStep === 0 ? (
+            <PropertyInputPanel onContinue={handleStepOneContinue} />
+          ) : null}
 
-        {currentStep === 1 ? (
-          <ComparablesPanel
-            onBack={() => setCurrentStep(0)}
-            onContinue={() => setCurrentStep(2)}
-          />
-        ) : null}
-
-        {currentStep === 2 ? (
-          <MarketIntelligencePanel
-            onBack={() => setCurrentStep(1)}
-            onContinue={() => setCurrentStep(3)}
-          />
-        ) : null}
-
-        {extraStep && currentStep === 3 ? (
-          extraStep === 'roi' ? (
-            <RoiAnalysisPanel
-              onBack={() => setCurrentStep(2)}
-              onContinue={() => setCurrentStep(reportTypeIndex)}
+          {currentStep === 1 ? (
+            <ComparablesPanel
+              onBack={() => goToStep(0)}
+              onContinue={() => goToStep(2)}
             />
-          ) : (
-            <AffordabilityPanel
-              onBack={() => setCurrentStep(2)}
-              onContinue={() => setCurrentStep(reportTypeIndex)}
-            />
-          )
-        ) : null}
+          ) : null}
 
-        {currentStep === reportTypeIndex ? (
-          hasHydratedFromSavedReport ? (
-            <ReportConfigurationPanel
-              onBack={() => setCurrentStep(extraStep ? 3 : 2)}
-              onContinue={(templateId) => {
-                setSelectedTemplateId(templateId)
-                setCurrentStep(generatedIndex)
-              }}
-              initialSelectedTemplateId={selectedTemplateId}
+          {currentStep === 2 ? (
+            <MarketIntelligencePanel
+              onBack={() => goToStep(1)}
+              onContinue={() => goToStep(3)}
             />
-          ) : (
-            <div className="rounded-2xl border border-black/5 bg-white px-5 py-8 text-sm text-relaive-gray">
-              Loading saved report...
-            </div>
-          )
-        ) : null}
+          ) : null}
 
-        {currentStep === generatedIndex ? (
-          hasHydratedFromSavedReport ? (
-            <GeneratedReportContainer
-              selectedTemplateId={selectedTemplateId}
-              onBack={() => setCurrentStep(reportTypeIndex)}
-              onGenerateAnother={() => {
-                setSelectedTemplateId(undefined)
-                setCurrentStep(0)
-              }}
-            />
-          ) : (
-            <div className="rounded-2xl border border-black/5 bg-white px-5 py-8 text-sm text-relaive-gray">
-              Loading saved report...
-            </div>
-          )
-        ) : null}
+          {extraStep && currentStep === 3 ? (
+            extraStep === 'roi' ? (
+              <RoiAnalysisPanel
+                onBack={() => goToStep(2)}
+                onContinue={() => goToStep(reportTypeIndex)}
+              />
+            ) : (
+              <AffordabilityPanel
+                onBack={() => goToStep(2)}
+                onContinue={() => goToStep(reportTypeIndex)}
+              />
+            )
+          ) : null}
+
+          {currentStep === reportTypeIndex ? (
+            hasHydratedFromSavedReport ? (
+              <ReportConfigurationPanel
+                onBack={() => goToStep(extraStep ? 3 : 2)}
+                onContinue={(templateId) => {
+                  setSelectedTemplateId(templateId)
+                  goToStep(generatedIndex)
+                }}
+                initialSelectedTemplateId={selectedTemplateId}
+              />
+            ) : (
+              <div className="rounded-2xl border border-black/5 bg-white px-5 py-8 text-sm text-relaive-gray">
+                Loading saved report...
+              </div>
+            )
+          ) : null}
+
+          {currentStep === generatedIndex ? (
+            hasHydratedFromSavedReport ? (
+              <GeneratedReportContainer
+                selectedTemplateId={selectedTemplateId}
+                onBack={() => goToStep(reportTypeIndex)}
+                onGenerateAnother={() => {
+                  setSelectedTemplateId(undefined)
+                  goToStep(0)
+                }}
+              />
+            ) : (
+              <div className="rounded-2xl border border-black/5 bg-white px-5 py-8 text-sm text-relaive-gray">
+                Loading saved report...
+              </div>
+            )
+          ) : null}
+        </StepTransition>
       </div>
     </div>
   )

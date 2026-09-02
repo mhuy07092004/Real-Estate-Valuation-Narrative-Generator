@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../../auth/hooks/use-auth'
 import { SendReportCard } from '../../../../components/ui/send-report-card/send-report-card'
@@ -89,6 +89,12 @@ export function GeneratedReportContainer({
   const [shareOpen, setShareOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [savedJustNow, setSavedJustNow] = useState(false)
+  const sharePanelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!shareOpen) return
+    sharePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [shareOpen])
 
   const buildNarrative = (): string => {
     if (!narrativePreview) return 'Generated appraisal narrative unavailable.'
@@ -268,23 +274,26 @@ export function GeneratedReportContainer({
         onSaveReport={handleSave}
         isSaving={isSaving}
         saveLabel={savedJustNow ? 'Saved!' : 'Save Report'}
+        sharePanel={
+          shareOpen ? (
+            <div ref={sharePanelRef}>
+              <SendReportCard
+                onClose={() => setShareOpen(false)}
+                onSend={(payload) =>
+                  persistGeneratedReport({
+                    reportTemplateId: selectedTemplate.id,
+                    narrativeText: buildNarrative(),
+                    estimatedValue: parseCurrency(appraisalSummary.midpointEstimate),
+                    clientName: payload.clientName,
+                    clientEmail: payload.clientEmail,
+                  })
+                }
+                onSuccess={handleSendSuccess}
+              />
+            </div>
+          ) : null
+        }
       />
-
-      {shareOpen ? (
-        <SendReportCard
-          onClose={() => setShareOpen(false)}
-          onSend={(payload) =>
-            persistGeneratedReport({
-              reportTemplateId: selectedTemplate.id,
-              narrativeText: buildNarrative(),
-              estimatedValue: parseCurrency(appraisalSummary.midpointEstimate),
-              clientName: payload.clientName,
-              clientEmail: payload.clientEmail,
-            })
-          }
-          onSuccess={handleSendSuccess}
-        />
-      ) : null}
     </div>
   )
 }

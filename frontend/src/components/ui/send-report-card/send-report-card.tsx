@@ -2,8 +2,6 @@ import { useId, useState } from 'react'
 import { Input } from '../input/input'
 import { BUTTON_FONT_CLASS } from '../button/button'
 
-type SendReportTab = 'search' | 'email'
-
 export type SendReportPayload = {
   clientName: string
   clientEmail: string
@@ -46,15 +44,6 @@ function UserIcon() {
   )
 }
 
-function SearchIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.75" />
-      <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-    </svg>
-  )
-}
-
 function SendIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -87,13 +76,10 @@ function SuccessTickIcon() {
 export function SendReportCard({ onClose, onSend, onSuccess }: SendReportCardProps) {
   const emailId = useId()
   const nameId = useId()
-  const searchId = useId()
   const noteId = useId()
-  const [tab, setTab] = useState<SendReportTab>('email')
   const [includeNote, setIncludeNote] = useState(true)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [search, setSearch] = useState('')
   const [sentTo, setSentTo] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -107,9 +93,8 @@ export function SendReportCard({ onClose, onSend, onSuccess }: SendReportCardPro
     setIsSubmitting(true)
     setErrorMessage(null)
 
-    const fallbackName = search.trim()
     const payload: SendReportPayload = {
-      clientName: name.trim() || fallbackName,
+      clientName: name.trim(),
       clientEmail: trimmedEmail,
     }
 
@@ -176,85 +161,38 @@ export function SendReportCard({ onClose, onSend, onSuccess }: SendReportCardPro
             </button>
           </div>
 
-          <div className="mt-5 grid grid-cols-2 rounded-full bg-[#F3F4F6] p-1">
-            <button
-              type="button"
-              onClick={() => setTab('search')}
-              className={`rounded-full px-3 py-2 text-sm font-medium transition-all ${
-                tab === 'search'
-                  ? 'bg-white text-relaive-navy shadow-sm'
-                  : 'text-relaive-gray hover:text-relaive-navy'
-              }`}
+          <div className="mt-5 flex flex-col gap-2">
+            <label
+              htmlFor={nameId}
+              className="text-[11px] font-semibold tracking-[0.08em] text-relaive-gray uppercase"
             >
-              Search Client
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab('email')}
-              className={`rounded-full px-3 py-2 text-sm font-medium transition-all ${
-                tab === 'email'
-                  ? 'bg-white text-relaive-navy shadow-sm'
-                  : 'text-relaive-gray hover:text-relaive-navy'
-              }`}
+              Enter Client Name
+            </label>
+            <Input
+              id={nameId}
+              type="text"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="Client full name"
+              startIcon={<UserIcon />}
+              className="rounded-xl border-0 bg-[#F3F4F6] focus-visible:ring-relaive-secondary"
+            />
+
+            <label
+              htmlFor={emailId}
+              className="text-[11px] font-semibold tracking-[0.08em] text-relaive-gray uppercase"
             >
-              Enter Email
-            </button>
-          </div>
-
-          <div className="mt-5">
-            {tab === 'email' ? (
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor={nameId}
-                  className="text-[11px] font-semibold tracking-[0.08em] text-relaive-gray uppercase"
-                >
-                  Enter Client Name
-                </label>
-                <Input
-                  id={nameId}
-                  type="text"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  placeholder="Client full name"
-                  startIcon={<UserIcon />}
-                  className="rounded-xl border-0 bg-[#F3F4F6] focus-visible:ring-relaive-secondary"
-                />
-
-                <label
-                  htmlFor={emailId}
-                  className="text-[11px] font-semibold tracking-[0.08em] text-relaive-gray uppercase"
-                >
-                  Enter Client Email
-                </label>
-                <Input
-                  id={emailId}
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="client@email.com"
-                  startIcon={<UserIcon />}
-                  className="rounded-xl border-0 bg-[#F3F4F6] focus-visible:ring-relaive-secondary"
-                />
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor={searchId}
-                  className="text-[11px] font-semibold tracking-[0.08em] text-relaive-gray uppercase"
-                >
-                  Search Client
-                </label>
-                <Input
-                  id={searchId}
-                  type="search"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Search by name or email"
-                  startIcon={<SearchIcon />}
-                  className="rounded-xl border-0 bg-[#F3F4F6] focus-visible:ring-relaive-secondary"
-                />
-              </div>
-            )}
+              Enter Client Email
+            </label>
+            <Input
+              id={emailId}
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="client@email.com"
+              startIcon={<UserIcon />}
+              className="rounded-xl border-0 bg-[#F3F4F6] focus-visible:ring-relaive-secondary"
+            />
           </div>
 
           {errorMessage ? (
