@@ -128,6 +128,12 @@ const PROPERTY_TYPE_OPTIONS_DATA = [
   'Villa',
 ] as const
 
+const KNOWN_PROPERTY_ADDRESSES = [
+  '125 Smith Street, Melbourne VIC',
+  '89 Collins Avenue, Melbourne VIC',
+  '234 Park Street, Melbourne VIC',
+] as const
+
 const COMPARABLE_SALES_DATA: ComparableSale[] = [
   {
     id: 'comp-smith-st',
@@ -427,6 +433,23 @@ export const commonHandlers = [
   http.get('/api/appraisal/comparable-sales', async () => {
     await simulateLatency()
     return HttpResponse.json(COMPARABLE_SALES_DATA)
+  }),
+
+  http.get('/api/appraisal/comparable-sales/search', async ({ request }) => {
+    await simulateLatency()
+
+    const address = new URL(request.url).searchParams.get('address')?.trim() ?? ''
+    const isMatch = KNOWN_PROPERTY_ADDRESSES.some(
+      (known) => known.toLowerCase() === address.toLowerCase(),
+    )
+
+    return HttpResponse.json({
+      isMatch,
+      subjectProperty: isMatch
+        ? null
+        : { address, propertyType: 'House', beds: 3, baths: 2, areaSqm: 430 },
+      sales: COMPARABLE_SALES_DATA,
+    })
   }),
 
   http.get('/api/appraisal/suburb-overview', async () => {

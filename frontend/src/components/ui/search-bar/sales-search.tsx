@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { BUTTON_FONT_CLASS } from '../button/button'
 import { AddressSearch, SearchIcon } from './address-search'
 
@@ -25,6 +25,7 @@ export type SalesSearchQuery = {
 
 type SalesSearchProps = {
   className?: string
+  initialAddress?: string
   onSearch?: (query: SalesSearchQuery) => void
 }
 
@@ -88,10 +89,14 @@ function ChevronIcon() {
 const selectClassName =
   'appearance-none rounded-full bg-[#E8EDF1] py-2 pl-4 pr-9 text-sm font-medium text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary'
 
-export function SalesSearch({ className = '', onSearch }: SalesSearchProps) {
-  const [address, setAddress] = useState('')
+export function SalesSearch({ className = '', initialAddress = '', onSearch }: SalesSearchProps) {
+  const [address, setAddress] = useState(initialAddress)
   const [dateRange, setDateRange] = useState<string>('12m')
   const [propertyType, setPropertyType] = useState<string>('all')
+
+  useEffect(() => {
+    if (initialAddress) setAddress(initialAddress)
+  }, [initialAddress])
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()

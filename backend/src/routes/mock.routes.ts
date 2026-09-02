@@ -1124,6 +1124,38 @@ mockRouter.get('/appraisal/comparable-sales', (req, res) => {
   res.json(snapshot.comparables)
 })
 
+const KNOWN_PROPERTY_ADDRESSES = [
+  '125 Smith Street, Melbourne VIC',
+  '89 Collins Avenue, Melbourne VIC',
+  '234 Park Street, Melbourne VIC',
+]
+
+mockRouter.get('/appraisal/comparable-sales/search', (req, res) => {
+  const addressRaw = typeof req.query.address === 'string' ? req.query.address.trim() : ''
+  const propertyTypeRaw =
+    typeof req.query.propertyType === 'string' ? req.query.propertyType.trim().toLowerCase() : ''
+  const context = createAppraisalContext(req.query as Record<string, unknown>)
+  const snapshot = buildAppraisalSnapshot(context)
+  const isMatch = KNOWN_PROPERTY_ADDRESSES.some(
+    (known) => known.toLowerCase() === addressRaw.toLowerCase(),
+  )
+
+  res.json({
+    isMatch,
+    subjectProperty: isMatch
+      ? null
+      : {
+          address: addressRaw,
+          propertyType:
+            propertyTypeRaw && propertyTypeRaw !== 'all' ? toTitleCase(propertyTypeRaw) : 'House',
+          beds: 3,
+          baths: 2,
+          areaSqm: 430,
+        },
+    sales: snapshot.comparables,
+  })
+})
+
 mockRouter.get('/appraisal/suburb-overview', (_req, res) => {
   res.json([
     { id: 'median-price', label: 'Median House Price', value: '$845,000' },

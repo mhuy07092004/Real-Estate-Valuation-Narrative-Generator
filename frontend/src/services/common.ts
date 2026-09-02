@@ -300,6 +300,33 @@ export function getComparableSales(): Promise<ComparableSale[]> {
   return fetchJson(withAppraisalContext('/api/appraisal/comparable-sales'))
 }
 
+export type SubjectProperty = {
+  address: string
+  propertyType: string
+  beds: number
+  baths: number
+  areaSqm: number
+}
+
+export type ComparableSalesSearchQuery = {
+  address: string
+  dateRange: string
+  propertyType: string
+}
+
+export type ComparableSalesSearchResult = {
+  isMatch: boolean
+  subjectProperty: SubjectProperty | null
+  sales: ComparableSale[]
+}
+
+export function searchComparableSales(
+  query: ComparableSalesSearchQuery,
+): Promise<ComparableSalesSearchResult> {
+  const params = new URLSearchParams(query)
+  return fetchJson(`/api/appraisal/comparable-sales/search?${params.toString()}`)
+}
+
 // ---------------------------------------------------------------------------
 // Market Intelligence (Generate Appraisal — step 3)
 // ---------------------------------------------------------------------------
