@@ -1,6 +1,6 @@
 // Agent types + HTTP service — CRM client list, reports, notifications.
 
-import { fetchJson } from './api-client'
+import { API_BASE_URL, fetchJson } from './api-client'
 import type { InboxNotification } from './common'
 
 export type ClientStatus =
@@ -165,14 +165,23 @@ export function getClientListPageMockData(): Promise<ClientItem[]> {
 }
 
 export function getClientListMockData(): Promise<ClientItem[]> {
-  return Promise.all([
+  // /api/reports doesn't exist until the Report feature is built (Level 2,
+  // depends on Client/ComparableSale). Using allSettled so a missing/failed
+  // reports endpoint only degrades reportCount to its fallback instead of
+  // wiping out otherwise-successful client data via Promise.all's fail-fast
+  // behavior.
+  return Promise.allSettled([
     fetchJson<ApiSuccess<StoredClientRow[]>>('/api/clients'),
     fetchJson<StoredReportResponse>('/api/reports'),
-  ]).then(([clientsResponse, reportsResponse]) => {
+  ]).then(([clientsResult, reportsResult]) => {
+    if (clientsResult.status === 'rejected') throw clientsResult.reason
+
     const countByClientId = new Map<string, number>()
     const countByClientEmail = new Map<string, number>()
 
-    for (const report of reportsResponse.data ?? []) {
+    const reports = reportsResult.status === 'fulfilled' ? reportsResult.value.data ?? [] : []
+
+    for (const report of reports) {
       if (report.clientId) {
         countByClientId.set(report.clientId, (countByClientId.get(report.clientId) ?? 0) + 1)
       }
@@ -186,7 +195,7 @@ export function getClientListMockData(): Promise<ClientItem[]> {
       }
     }
 
-    return clientsResponse.data.map((row) => {
+    return clientsResult.value.data.map((row) => {
       const emailKey = row.email.trim().toLowerCase()
       const reportCount =
         countByClientId.get(row.clientId) ?? countByClientEmail.get(emailKey) ?? row.reportCount ?? 0
@@ -218,6 +227,62 @@ export function updateClientNotes(id: string, notes: string): Promise<ClientItem
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ notes }),
   }).then((response) => toClientItem(response.data, response.data.reportCount ?? 0))
+}
+
+export class CreateClientError extends Error {
+  constructor(
+    message: string,
+    public errors?: Record<string, string>,
+  ) {
+    super(message)
+  }
+}
+
+export type CreateClientInput = {
+  fullName: string
+  email: string
+  phone: string
+  status: ClientStatus
+  notes: string
+  addressLine: string
+  suburb: string
+  state: string
+  postcode: string
+}
+
+// Bypasses fetchJson so a failed request's real message/errors body can be
+// read (fetchJson only throws a generic "failed with status N") — but unlike
+// auth.ts, this call is authenticated, so the bearer token is attached here.
+export async function createClient(input: CreateClientInput): Promise<ClientItem> {
+  const headers = new Headers({ 'Content-Type': 'application/json' })
+  const rawSession = window.localStorage.getItem('relaive_auth')
+  if (rawSession) {
+    try {
+      const parsed = JSON.parse(rawSession) as { accessToken?: string }
+      if (parsed.accessToken) headers.set('Authorization', `Bearer ${parsed.accessToken}`)
+    } catch {
+      // Ignore malformed session values; the request proceeds unauthenticated
+      // and the backend will reject it with 401.
+    }
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/clients`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(input),
+  })
+
+  const body = (await response.json()) as ApiSuccess<StoredClientRow> | {
+    success: false
+    message: string
+    errors?: Record<string, string>
+  }
+
+  if (!body.success) {
+    throw new CreateClientError(body.message, body.errors)
+  }
+
+  return toClientItem(body.data, body.data.reportCount ?? 0)
 }
 
 export type AgentClientReportStatus = 'generated' | 'shared'

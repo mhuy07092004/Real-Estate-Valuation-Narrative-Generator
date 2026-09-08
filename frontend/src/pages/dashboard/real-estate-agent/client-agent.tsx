@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { gsap, useGSAP } from '../../../lib/gsap'
@@ -11,7 +12,9 @@ import { ClientStatusBadge, getClientStatusLabel } from '../../../components/ui/
 import { useAsyncData } from '../../../hooks/use-async-data'
 import { ListSkeleton } from '../../../features/dashboard/components/list-row-skeleton'
 import {
-  getClientListPageMockData,
+  createClient,
+  CreateClientError,
+  getClientListMockData,
   type ClientItem,
   type ClientStatus,
 } from '../../../services/agent'
@@ -56,6 +59,27 @@ const EMPTY_NEW_CLIENT_FORM: NewClientForm = {
   stage: 'prospecting',
   address: '',
   notes: '',
+}
+
+// Splits the single free-text address field into the structured fields the
+// backend requires. Returns null on no match rather than falling back to
+// fake suburb/state/postcode values — the caller must show a validation
+// error and ask the user to re-enter it, per the known address-parsing issue.
+function parseClientAddress(
+  address: string,
+): { addressLine: string; suburb: string; state: string; postcode: string } | null {
+  const match = address
+    .trim()
+    .match(/^(\d+\s+[^,]+),\s*([^,]+)\s+([A-Za-z]{2,3})\s+(\d{4})$/)
+
+  if (!match) return null
+
+  return {
+    addressLine: match[1].trim(),
+    suburb: match[2].trim(),
+    state: match[3].trim().toUpperCase(),
+    postcode: match[4].trim(),
+  }
 }
 
 function PlusIcon() {
@@ -141,22 +165,32 @@ function lastContactLabel(iso: string): string {
 type AddClientModalProps = {
   form: NewClientForm
   isValid: boolean
+  isSubmitting: boolean
+  errorMessage: string | null
   onChange: (patch: Partial<NewClientForm>) => void
   onCancel: () => void
   onSubmit: () => void
 }
 
-function AddClientModal({ form, isValid, onChange, onCancel, onSubmit }: AddClientModalProps) {
+function AddClientModal({
+  form,
+  isValid,
+  isSubmitting,
+  errorMessage,
+  onChange,
+  onCancel,
+  onSubmit,
+}: AddClientModalProps) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+        className="flex max-h-[90vh] w-full max-w-md flex-col rounded-2xl bg-white p-6 shadow-xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex shrink-0 items-center justify-between">
           <h2 className="text-base font-semibold tracking-tight text-[#1C2A38]">New Client</h2>
           <button
             type="button"
@@ -168,7 +202,7 @@ function AddClientModal({ form, isValid, onChange, onCancel, onSubmit }: AddClie
           </button>
         </div>
 
-        <div className="mt-5 flex flex-col gap-4">
+        <div className="mt-5 flex flex-col gap-4 overflow-y-auto">
           <Input
             label="Full Name *"
             placeholder="e.g. Sarah Mitchell"
@@ -222,6 +256,13 @@ function AddClientModal({ form, isValid, onChange, onCancel, onSubmit }: AddClie
             value={form.address}
             onChange={(event) => onChange({ address: event.target.value })}
           />
+          <p className="-mt-2.5 text-xs text-relaive-gray">
+            Must be in the format: street, suburb STATE postcode
+          </p>
+
+          {errorMessage ? (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{errorMessage}</p>
+          ) : null}
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="new-client-notes" className="text-sm font-medium text-relaive-navy">
@@ -238,18 +279,18 @@ function AddClientModal({ form, isValid, onChange, onCancel, onSubmit }: AddClie
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-end gap-3">
+        <div className="mt-6 flex shrink-0 items-center justify-end gap-3">
           <Button variant="outline" size="sm" onClick={onCancel}>
             Cancel
           </Button>
           <Button
             size="sm"
             className="gap-1.5 rounded-full bg-[#5DA7AC] px-4 hover:bg-[#4E969B]"
-            disabled={!isValid}
+            disabled={!isValid || isSubmitting}
             onClick={onSubmit}
           >
             <PlusIcon />
-            Add Client
+            {isSubmitting ? 'Adding…' : 'Add Client'}
           </Button>
         </div>
       </div>
@@ -342,12 +383,14 @@ function ClientDetailPanel({ client }: ClientDetailPanelProps) {
 }
 
 export function ClientAgent() {
-  const { data, isLoading } = useAsyncData(getClientListPageMockData, [])
+  const { data, isLoading } = useAsyncData(getClientListMockData, [])
   const [clients, setClients] = useState<ClientItem[]>([])
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | ClientStatus>('all')
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [newClientForm, setNewClientForm] = useState<NewClientForm>(EMPTY_NEW_CLIENT_FORM)
+  const [isSubmittingClient, setIsSubmittingClient] = useState(false)
+  const [addClientError, setAddClientError] = useState<string | null>(null)
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -366,34 +409,44 @@ export function ClientAgent() {
   function closeAddClientModal() {
     setIsAddOpen(false)
     setNewClientForm(EMPTY_NEW_CLIENT_FORM)
+    setAddClientError(null)
   }
 
-  function toInitials(name: string): string {
-    const parts = name.trim().split(/\s+/).filter(Boolean)
-    if (parts.length === 0) return 'CL'
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-    return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase()
-  }
+  async function handleAddClient() {
+    if (!isNewClientValid || isSubmittingClient) return
 
-  function handleAddClient() {
-    if (!isNewClientValid) return
-
-    const newClient: ClientItem = {
-      id: `CL-${Date.now()}`,
-      name: newClientForm.fullName.trim(),
-      initials: toInitials(newClientForm.fullName),
-      isStarred: false,
-      address: newClientForm.address.trim(),
-      email: newClientForm.email.trim(),
-      phone: newClientForm.phone.trim(),
-      notes: newClientForm.notes.trim(),
-      reportCount: 0,
-      status: newClientForm.stage,
-      followUpAt: new Date().toISOString(),
+    const parsedAddress = parseClientAddress(newClientForm.address)
+    if (!parsedAddress) {
+      setAddClientError(
+        'Address must be in the format: street, suburb STATE postcode (e.g. 45 Park Ave, Richmond VIC 3121).',
+      )
+      return
     }
 
-    setClients((current) => [newClient, ...current])
-    closeAddClientModal()
+    setIsSubmittingClient(true)
+    setAddClientError(null)
+
+    try {
+      const created = await createClient({
+        fullName: newClientForm.fullName.trim(),
+        email: newClientForm.email.trim(),
+        phone: newClientForm.phone.trim(),
+        status: newClientForm.stage,
+        notes: newClientForm.notes.trim(),
+        ...parsedAddress,
+      })
+
+      setClients((current) => [created, ...current])
+      closeAddClientModal()
+    } catch (error) {
+      if (error instanceof CreateClientError) {
+        setAddClientError(error.errors?.email ?? error.message)
+      } else {
+        setAddClientError('Something went wrong adding this client. Please try again.')
+      }
+    } finally {
+      setIsSubmittingClient(false)
+    }
   }
 
   const visibleClients = useMemo(() => {
@@ -557,15 +610,25 @@ export function ClientAgent() {
         </div>
       </div>
 
-      {isAddOpen ? (
-        <AddClientModal
-          form={newClientForm}
-          isValid={isNewClientValid}
-          onChange={handleNewClientChange}
-          onCancel={closeAddClientModal}
-          onSubmit={handleAddClient}
-        />
-      ) : null}
+      {isAddOpen
+        ? createPortal(
+            // Portalled straight to <body> so the overlay's `fixed inset-0`
+            // is guaranteed relative to the real viewport — rendering it
+            // in-tree left it clipped by the Lenis smooth-scroll wrapper
+            // around the app, which affects how descendant fixed elements
+            // are positioned.
+            <AddClientModal
+              form={newClientForm}
+              isValid={isNewClientValid}
+              isSubmitting={isSubmittingClient}
+              errorMessage={addClientError}
+              onChange={handleNewClientChange}
+              onCancel={closeAddClientModal}
+              onSubmit={handleAddClient}
+            />,
+            document.body,
+          )
+        : null}
     </div>
   )
 }
