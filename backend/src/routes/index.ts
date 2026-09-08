@@ -1,14 +1,13 @@
 import { Router } from 'express'
-import { contentRouter } from './content.routes.js'
-import { navigationRouter } from './navigation.routes.js'
 import { registrationRouter } from './registration.routes.js'
-import { mockRouter } from './mock.routes.js'
-import { reportRouter } from './report.routes.js'
-import { clientsRouter } from './clients.routes.js'
-import { savedPropertiesRouter } from './saved-properties.routes.js'
-import { marketDataRouter } from './market-data.routes.js'
+import { clientRouter } from './client.routes.js'
+import { comparableSaleRouter } from './comparable-sale.routes.js'
+import { marketInsightsRouter } from './market-insights.routes.js'
+import { marketIntelligenceOverviewRouter } from './market-intelligence-overview.routes.js'
 
-// Central /api router: mixes DB-backed auth/content routes and mock feature routes.
+// Central /api router: auth, clients, comparable sales, and market
+// intelligence are wired so far — other domains are being rebuilt one at
+// a time on top of them.
 export const apiRouter = Router()
 
 // Unauthenticated liveness check — used as Render's health check path.
@@ -16,11 +15,13 @@ apiRouter.get('/health', (_req, res) => {
   res.json({ status: 'ok' })
 })
 
-apiRouter.use('/content', contentRouter)
-apiRouter.use('/navigation', navigationRouter)
 apiRouter.use('/auth', registrationRouter)
-apiRouter.use('/reports', reportRouter)
-apiRouter.use('/clients', clientsRouter)
-apiRouter.use('/saved-properties', savedPropertiesRouter)
-apiRouter.use('/market', marketDataRouter)
-apiRouter.use('/', mockRouter)
+apiRouter.use('/clients', clientRouter)
+apiRouter.use('/appraisal', comparableSaleRouter)
+apiRouter.use('/appraisal', marketIntelligenceOverviewRouter)
+
+// One shared handler, mounted at each role's exact expected path.
+apiRouter.use('/agent/market-insights', marketInsightsRouter)
+apiRouter.use('/valuer/market-insights', marketInsightsRouter)
+apiRouter.use('/buyer/suburb-explorer', marketInsightsRouter)
+apiRouter.use('/investor/suburb-explorer', marketInsightsRouter)
