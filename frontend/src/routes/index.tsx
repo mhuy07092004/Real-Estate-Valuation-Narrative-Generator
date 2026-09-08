@@ -3,9 +3,6 @@ import Landing from '../pages/Landing'
 import SignInPageRoute from '../pages/signin'
 import SignUpPageRoute from '../pages/signup'
 import ForgotPasswordPageRoute from '../pages/forgot-password'
-import PlansPageRoute from '../pages/plans'
-import AboutPageRoute from '../pages/about'
-import FeaturesPageRoute from '../pages/features'
 import {
   DashboardLayout,
   DashboardRoleGuard,
@@ -62,9 +59,9 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
-      <Route path="/plans" element={<PlansPageRoute />} />
-      <Route path="/about" element={<AboutPageRoute />} />
-      <Route path="/features" element={<FeaturesPageRoute />} />
+      <Route path="/about" element={<Navigate to="/" replace />} />
+      <Route path="/features" element={<Navigate to="/" replace />} />
+      <Route path="/plans" element={<Navigate to="/" replace />} />
       <Route path="/signin" element={<SignInPageRoute />} />
       <Route path="/signup" element={<SignUpPageRoute />} />
       <Route path="/forgot-password" element={<ForgotPasswordPageRoute />} />

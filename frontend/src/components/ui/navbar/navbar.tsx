@@ -1,14 +1,22 @@
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import logoIcon from '../../../assets/icon.svg'
+import { usePlansMenuListener } from '../../../hooks/use-open-plans-menu'
+import { useLenis } from '../../../lib/smooth-scroll'
 import { Button } from '../button/button'
+import { FeaturesDropdown } from './features-dropdown'
+import { PlatformDropdown } from './platform-dropdown'
+import { AboutDropdown } from './about-dropdown'
+import { PlansDropdown } from './plans-dropdown'
 
 const NAV_ORDER = [
-  { type: 'scroll', label: 'Platform', sectionId: 'platform' },
-  { type: 'route', label: 'Features', href: '/features' },
-  { type: 'route', label: 'About', href: '/about' },
-  { type: 'scroll', label: 'Resources', sectionId: 'resources' },
-  { type: 'route', label: 'Plans', href: '/plans' },
+  { type: 'dropdown', label: 'Platform', key: 'platform' },
+  { type: 'dropdown', label: 'Features', key: 'features' },
+  { type: 'dropdown', label: 'About', key: 'about' },
+  { type: 'dropdown', label: 'Plans', key: 'plans' },
 ] as const
+
+type OpenMenu = 'platform' | 'features' | 'about' | 'plans' | null
 
 function NavChevron({ pointUp = false }: { pointUp?: boolean }) {
   return (
@@ -32,43 +40,50 @@ function NavChevron({ pointUp = false }: { pointUp?: boolean }) {
 }
 
 export function Navbar() {
-  const navigate = useNavigate()
   const location = useLocation()
+  const headerRef = useRef<HTMLElement>(null)
+  const [openMenu, setOpenMenu] = useState<OpenMenu>(null)
+  const lenis = useLenis()
+  const openPlansMenu = useCallback(() => setOpenMenu('plans'), [])
 
-  function scrollToSection(sectionId: string) {
-    if (location.pathname === '/') {
-      // Try to find the element directly first
-      const el = document.getElementById(sectionId)
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        return
+  usePlansMenuListener(openPlansMenu)
+
+  useEffect(() => {
+    setOpenMenu(null)
+  }, [location.pathname])
+
+  useEffect(() => {
+    if (!openMenu) return
+
+    lenis?.stop()
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    function handlePointerDown(event: MouseEvent) {
+      if (headerRef.current && !headerRef.current.contains(event.target as Node)) {
+        setOpenMenu(null)
       }
-
-      // Element not in DOM yet — LazyMount hasn't rendered it.
-      // Scroll to the very bottom to force all lazy sections to mount,
-      // then scroll to the target after they appear.
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
-
-      let attempts = 0
-      const maxAttempts = 10
-      const poll = setInterval(() => {
-        attempts++
-        const target = document.getElementById(sectionId)
-        if (target) {
-          clearInterval(poll)
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        } else if (attempts >= maxAttempts) {
-          clearInterval(poll)
-        }
-      }, 150)
-    } else {
-      // Navigate to landing then scroll after render
-      navigate(`/#${sectionId}`)
     }
-  }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setOpenMenu(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      lenis?.start()
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [openMenu, lenis])
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-black/5 bg-white">
+    <header ref={headerRef} className="relative sticky top-0 z-50 w-full border-b border-black/5 bg-white">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         {/* Logo */}
         <a href="/" className="flex items-center gap-3 shrink-0">
@@ -86,33 +101,23 @@ export function Navbar() {
         {/* Nav links — hidden on small screens */}
         <ul className="hidden md:flex items-center gap-6">
           {NAV_ORDER.map((item) => {
-            if (item.type === 'scroll') {
-              return (
-                <li key={item.label}>
-                  <button
-                    type="button"
-                    onClick={() => scrollToSection(item.sectionId)}
-                    className="flex items-center text-sm font-medium text-relaive-navy/80 hover:text-relaive-primary transition-colors cursor-pointer bg-transparent border-none p-0"
-                  >
-                    {item.label}
-                    <NavChevron />
-                  </button>
-                </li>
-              )
-            }
-
-            const isActive = location.pathname === item.href
+            const isOpen = openMenu === item.key
             return (
               <li key={item.label}>
-                <a
-                  href={item.href}
-                  className={`font-button flex items-center text-sm font-medium transition-colors hover:text-relaive-primary ${
-                    isActive ? 'text-relaive-primary' : 'text-relaive-navy/80'
+                <button
+                  type="button"
+                  aria-expanded={isOpen}
+                  aria-haspopup="true"
+                  onClick={() => setOpenMenu((current) => (current === item.key ? null : item.key))}
+                  className={`flex items-center text-sm font-medium transition-colors cursor-pointer bg-transparent border-none p-0 ${
+                    isOpen
+                      ? 'text-relaive-primary'
+                      : 'text-relaive-navy/80 hover:text-relaive-primary'
                   }`}
                 >
                   {item.label}
-                  <NavChevron pointUp={isActive} />
-                </a>
+                  <NavChevron pointUp={isOpen} />
+                </button>
               </li>
             )
           })}
@@ -128,6 +133,11 @@ export function Navbar() {
           </Button>
         </div>
       </nav>
+
+      <PlatformDropdown open={openMenu === 'platform'} />
+      <FeaturesDropdown open={openMenu === 'features'} />
+      <AboutDropdown open={openMenu === 'about'} />
+      <PlansDropdown open={openMenu === 'plans'} />
     </header>
   )
 }

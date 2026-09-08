@@ -1,3 +1,4 @@
+import { useOpenPlansMenu } from '../../hooks/use-open-plans-menu'
 import { Button } from '../ui/button/button'
 
 const METRICS = [
@@ -7,6 +8,8 @@ const METRICS = [
 ] as const
 
 export function MainSection() {
+  const openPlansMenu = useOpenPlansMenu()
+
   return (
     <section
       id="main"
@@ -28,7 +31,7 @@ export function MainSection() {
         <Button variant="primary" size="md" href="/signin">
           Start Demo Valuation
         </Button>
-        <Button variant="secondary" size="md" href="/plans">
+        <Button variant="secondary" size="md" onClick={openPlansMenu}>
           Explore Plans
         </Button>
       </div>

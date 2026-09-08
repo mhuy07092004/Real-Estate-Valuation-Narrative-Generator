@@ -62,51 +62,10 @@ function ChartIcon() {
   )
 }
 
-function BuildingIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M4 21V5C4 4.44772 4.44772 4 5 4H14C14.5523 4 15 4.44772 15 5V21"
-        stroke="currentColor"
-        strokeWidth="1.75"
-      />
-      <path d="M8 8H11M8 12H11M8 16H11" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-      <path
-        d="M15 10H19C19.5523 10 20 10.4477 20 11V21"
-        stroke="currentColor"
-        strokeWidth="1.75"
-      />
-      <path d="M18 14H18.01M18 18H18.01" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function ShieldIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 3L20 7V12C20 16.5 16.8 19.7 12 21C7.2 19.7 4 16.5 4 12V7L12 3Z"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M9 12L11 14L15 10"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
 const ICON_BY_KEY: Record<PlanIconKey, ReactNode> = {
   lightning: <LightningIcon />,
   users: <UsersIcon />,
   chart: <ChartIcon />,
-  building: <BuildingIcon />,
-  shield: <ShieldIcon />,
 }
 
 const PLANS: SubscriptionCardProps[] = PLAN_TIERS.map(({ iconKey, ...tier }) => ({
@@ -155,8 +114,6 @@ function BillingToggle({
 
 export function PlanPrice() {
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly')
-  const topRowPlans = PLANS.slice(0, 3)
-  const bottomRowPlans = PLANS.slice(3)
 
   return (
     <div id="plan-pricing" className="scroll-mt-20">
@@ -185,13 +142,7 @@ export function PlanPrice() {
 
       <section className="mx-auto max-w-7xl px-6 pb-16" aria-label={`${billingPeriod} plans`}>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {topRowPlans.map((plan) => (
-            <SubscriptionCard key={plan.title} {...plan} billingPeriod={billingPeriod} />
-          ))}
-        </div>
-
-        <div className="mx-auto mt-6 grid max-w-3xl grid-cols-1 gap-6 md:grid-cols-2">
-          {bottomRowPlans.map((plan) => (
+          {PLANS.map((plan) => (
             <SubscriptionCard key={plan.title} {...plan} billingPeriod={billingPeriod} />
           ))}
         </div>

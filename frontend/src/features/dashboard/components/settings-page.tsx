@@ -68,7 +68,7 @@ const HELP_FAQ_ITEMS: DropCardItem[] = [
   },
 ]
 
-const SUBSCRIPTION_PICKS = ['starter', 'professional', 'investor-pro'] as const
+const SUBSCRIPTION_PICKS = ['free', 'plus', 'pro'] as const
 
 const THEME_OPTIONS = [
   { id: 'light', label: 'Light' },

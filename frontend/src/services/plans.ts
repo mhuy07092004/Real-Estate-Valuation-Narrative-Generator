@@ -1,11 +1,11 @@
 // Shared subscription plan pricing/data — single source of truth for the
-// landing Plans page (`components/landing/plans-page/plan-price.tsx`) and the
+// landing Plans section (`components/landing/plans-page/plan-price.tsx`) and the
 // dashboard Settings > Subscription section (`features/dashboard/components/settings-page.tsx`).
 // Update pricing/features here only; both surfaces stay in sync automatically.
 
-export type PlanId = 'starter' | 'professional' | 'investor-pro' | 'team-workspace' | 'enterprise'
+export type PlanId = 'free' | 'plus' | 'pro'
 export type PlanBadgeTone = 'default' | 'popular' | 'enterprise'
-export type PlanIconKey = 'lightning' | 'users' | 'chart' | 'building' | 'shield'
+export type PlanIconKey = 'lightning' | 'users' | 'chart'
 
 export type PlanCta = {
   label: string
@@ -31,10 +31,10 @@ export type PlanTier = {
 
 export const PLAN_TIERS: PlanTier[] = [
   {
-    id: 'starter',
+    id: 'free',
     iconKey: 'lightning',
     badge: 'Best for Beginners',
-    title: 'Starter',
+    title: 'Free',
     description:
       'Get started with AI-powered real estate reporting and property valuation workflows.',
     price: 'Free',
@@ -49,11 +49,11 @@ export const PLAN_TIERS: PlanTier[] = [
     primaryCtaStyle: 'primary',
   },
   {
-    id: 'professional',
+    id: 'plus',
     iconKey: 'users',
     badge: 'Most Popular',
     badgeTone: 'popular',
-    title: 'Professional',
+    title: 'Plus',
     description:
       'Unlock deeper market intelligence with advanced analytics, branded reports, and customizable AI insights.',
     price: '$79',
@@ -65,16 +65,16 @@ export const PLAN_TIERS: PlanTier[] = [
       'Flexible report templates',
       'AI confidence insights',
     ],
-    primaryCta: { label: 'Upgrade to Professional', href: '#' },
+    primaryCta: { label: 'Upgrade to Plus', href: '#' },
     secondaryCta: { label: 'Start Free Trial', href: '#' },
     primaryCtaStyle: 'primary',
     highlighted: true,
   },
   {
-    id: 'investor-pro',
+    id: 'pro',
     iconKey: 'chart',
     badge: 'Predictive Analytics',
-    title: 'Investor Pro',
+    title: 'Pro',
     description: 'Predictive market intelligence and investment-focused analytics powered by AI.',
     price: '$129',
     priceSuffix: '/month',
@@ -84,53 +84,11 @@ export const PLAN_TIERS: PlanTier[] = [
       'Investment opportunity scoring',
       'Suburb growth prediction insights',
       'Risk & market trend analysis',
-      'All features in Professional Plan',
+      'All features in Plus Plan',
     ],
-    primaryCta: { label: 'Upgrade to Investor Pro', href: '#' },
+    primaryCta: { label: 'Upgrade to Pro', href: '#' },
     secondaryCta: { label: 'Start Free Trial', href: '#' },
     primaryCtaStyle: 'primary',
-  },
-  {
-    id: 'team-workspace',
-    iconKey: 'building',
-    badge: 'Agency Ready',
-    title: 'Team Workspace',
-    description: 'Collaborative AI valuation workflows designed for teams and agency operations.',
-    price: '$299',
-    priceSuffix: '/month',
-    features: [
-      'Unlimited appraisal reports/ month',
-      'Unlimited shared team workspace',
-      'Team collaboration & report reviews',
-      'Internal comments & review',
-      'Multi-user access controls',
-      'Shared report management system',
-      'All features in Investor Pro plan',
-    ],
-    primaryCta: { label: 'Upgrade to Team Workspace', href: '#' },
-    secondaryCta: { label: 'Start Free Trial', href: '#' },
-    primaryCtaStyle: 'primary',
-  },
-  {
-    id: 'enterprise',
-    iconKey: 'shield',
-    badge: 'Enterprise Ready',
-    badgeTone: 'enterprise',
-    title: 'Enterprise Intelligence',
-    description:
-      'Enterprise-scale AI property intelligence with advanced monitoring, security, and infrastructure support.',
-    price: 'Contact Us',
-    features: [
-      'Unlimited AI-generated reports',
-      'Enterprise analytics dashboard',
-      'AI model monitoring',
-      'Dataset management system',
-      'Audit logs & compliance tools',
-    ],
-    primaryCta: { label: 'Request Enterprise Demo', href: '#' },
-    secondaryCta: { label: 'Contact Sales', href: '#' },
-    primaryCtaStyle: 'gold',
-    variant: 'dark',
   },
 ]
 
@@ -143,4 +101,4 @@ export function getPlanById(id: PlanId): PlanTier {
 }
 
 /** Mock "current subscription" — swap for the real user's plan once billing is wired. */
-export const CURRENT_PLAN_ID: PlanId = 'professional'
+export const CURRENT_PLAN_ID: PlanId = 'plus'

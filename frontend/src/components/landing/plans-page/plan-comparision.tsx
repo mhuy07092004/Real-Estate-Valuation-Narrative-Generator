@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { Button } from '../../ui/button/button'
 
-const PLAN_NAMES = ['Starter', 'Professional', 'Investor Pro', 'Team Workspace'] as const
+const PLAN_NAMES = ['Free', 'Plus', 'Pro'] as const
 
 type CellValue =
   | { type: 'text'; value: ReactNode }
@@ -155,15 +155,6 @@ const getComparisonRows = (billingPeriod: 'monthly' | 'annually'): ComparisonRow
             </div>
           </div>
         ) : '$129/month' },
-      { type: 'text', value: billingPeriod === 'annually' ? (
-          <div className="flex flex-col items-center gap-0.5">
-            <span className="text-xs text-relaive-gray line-through">$299/month</span>
-            <div className="flex items-center gap-1">
-              <span>$239.2/month</span>
-              <span className="rounded bg-green-100 px-1 py-0.5 text-[10px] font-semibold text-green-700 whitespace-nowrap">Save 20%</span>
-            </div>
-          </div>
-        ) : '$299/month' },
     ],
   },
   {
@@ -172,18 +163,16 @@ const getComparisonRows = (billingPeriod: 'monthly' | 'annually'): ComparisonRow
       { type: 'text', value: '5 reports/ month' },
       { type: 'text', value: '50 reports/ month' },
       { type: 'text', value: '100 reports/ month' },
-      { type: 'text', value: 'Unlimited reports/ month' },
     ],
   },
   {
     feature: 'Property Valuation Summary',
-    values: [{ type: 'check' }, { type: 'check' }, { type: 'check' }, { type: 'check' }],
+    values: [{ type: 'check' }, { type: 'check' }, { type: 'check' }],
   },
   {
     feature: 'Comparable Sales Analysis',
     values: [
       { type: 'text', value: 'Basic' },
-      { type: 'text', value: 'Advanced' },
       { type: 'text', value: 'Advanced' },
       { type: 'text', value: 'Advanced' },
     ],
@@ -194,12 +183,11 @@ const getComparisonRows = (billingPeriod: 'monthly' | 'annually'): ComparisonRow
       { type: 'dash' },
       { type: 'text', value: 'Basic' },
       { type: 'text', value: 'Advanced' },
-      { type: 'text', value: 'Advanced' },
     ],
   },
   {
     feature: 'Customize report templates',
-    values: [{ type: 'dash' }, { type: 'check' }, { type: 'check' }, { type: 'check' }],
+    values: [{ type: 'dash' }, { type: 'check' }, { type: 'check' }],
   },
   {
     feature: 'Export PDF / Word report',
@@ -207,24 +195,15 @@ const getComparisonRows = (billingPeriod: 'monthly' | 'annually'): ComparisonRow
       { type: 'text', value: 'Limited' },
       { type: 'text', value: 'Unlimited' },
       { type: 'text', value: 'Unlimited' },
-      { type: 'text', value: 'Unlimited' },
     ],
   },
   {
     feature: 'Investment Analytics',
-    values: [{ type: 'dash' }, { type: 'dash' }, { type: 'check' }, { type: 'check' }],
+    values: [{ type: 'dash' }, { type: 'dash' }, { type: 'check' }],
   },
   {
     feature: 'ROI & Cash Flow Forecasting',
-    values: [{ type: 'dash' }, { type: 'dash' }, { type: 'check' }, { type: 'check' }],
-  },
-  {
-    feature: 'Team collaboration',
-    values: [{ type: 'dash' }, { type: 'dash' }, { type: 'dash' }, { type: 'check' }],
-  },
-  {
-    feature: 'Shared Workspace',
-    values: [{ type: 'dash' }, { type: 'dash' }, { type: 'dash' }, { type: 'check' }],
+    values: [{ type: 'dash' }, { type: 'dash' }, { type: 'check' }],
   },
   {
     feature: 'Best for',
@@ -232,16 +211,14 @@ const getComparisonRows = (billingPeriod: 'monthly' | 'annually'): ComparisonRow
       { type: 'text', value: 'Beginners' },
       { type: 'text', value: 'Valuers, agents & consultants' },
       { type: 'text', value: 'Property investors & analysts' },
-      { type: 'text', value: 'Agencies & collaborative teams' },
     ],
   },
 ]
 
 const PLAN_CTAS: PlanCta[] = [
   { label: 'Start Free', href: '#' },
-  { label: 'Upgrade to Pro', href: '#', },
-  { label: 'Start Investor Pro', href: '#' },
-  { label: 'Start Team Workspace', href: '#',},
+  { label: 'Upgrade to Plus', href: '#' },
+  { label: 'Upgrade to Pro', href: '#' },
 ]
 
 const VALUE_PROPS = [

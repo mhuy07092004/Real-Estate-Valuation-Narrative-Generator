@@ -1,6 +1,5 @@
-import { useState, type ReactNode } from 'react'
-import { Footer } from '../../ui/footer/footer'
-import { Navbar } from '../../ui/navbar/navbar'
+import { useEffect, useState, type ReactNode } from 'react'
+import { NavDropdownPanel } from './nav-dropdown-panel'
 
 function BrainIcon({ size = 20 }: { size?: number }) {
   return (
@@ -209,31 +208,17 @@ function ShareIcon({ size = 20 }: { size?: number }) {
   )
 }
 
-function ChevronRightIcon({ open }: { open: boolean }) {
+function CheckIcon() {
   return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-      className={`shrink-0 text-relaive-accent transition-transform duration-200 ${open ? 'rotate-90' : ''}`}
-    >
+    <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true" className="shrink-0">
+      <circle cx="9" cy="9" r="8" fill="white" stroke="currentColor" strokeWidth="1.5" />
       <path
-        d="M9 6L15 12L9 18"
+        d="M5.5 9L7.5 11L12.5 6.5"
         stroke="currentColor"
-        strokeWidth="1.75"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-    </svg>
-  )
-}
-
-function BadgeSparkleIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M12 2L13.8 8.2L20 10L13.8 11.8L12 18L10.2 11.8L4 10L10.2 8.2L12 2Z" />
     </svg>
   )
 }
@@ -243,16 +228,13 @@ type FeatureItem = {
   icon: ReactNode
   title: string
   summary: string
-  details: string
+  features: string[]
 }
 
 type FeatureCategory = {
   id: string
   label: string
   tabIcon: ReactNode
-  badge: string
-  title: string
-  description: string
   items: FeatureItem[]
 }
 
@@ -261,10 +243,6 @@ const CATEGORIES: FeatureCategory[] = [
     id: 'ai-valuation',
     label: 'AI Valuation',
     tabIcon: <BrainIcon size={16} />,
-    badge: 'AI Valuation',
-    title: 'AI-Powered Property Intelligence',
-    description:
-      'Generate explainable, evidence-based property appraisal narratives using advanced AI and market intelligence.',
     items: [
       {
         id: 'ai-appraisal',
@@ -272,8 +250,14 @@ const CATEGORIES: FeatureCategory[] = [
         title: 'AI Property Appraisal',
         summary:
           'Generate professional property appraisal narratives in seconds using AI-powered valuation intelligence.',
-        details:
-          'Our AI analyses millions of Australian property transactions to produce clear, professional appraisal narratives in seconds. Outputs include market interpretation, comparable context, and investor-ready language you can edit before export.',
+        features: [
+          'Automated appraisal generation',
+          'Editable report sections',
+          'Comparable sales integration',
+          'Professional narrative writing',
+          'Suburb-aware valuation',
+          'Export-ready reports',
+        ],
       },
       {
         id: 'confidence-scoring',
@@ -281,16 +265,28 @@ const CATEGORIES: FeatureCategory[] = [
         title: 'Explainable AI Reasoning',
         summary:
           'Understand exactly why the valuation was generated and which factors influenced the final estimate.',
-        details:
-          'Every valuation includes transparent reasoning. See which data points, comparables, and market signals contributed most so you can trust — and explain — the result.',
+        features: [
+          'AI reasoning breakdown',
+          'Evidence transparency',
+          'Confidence explanation',
+          'Comparable sales explanation',
+          'Market factor analysis',
+          'Risk indicators',
+        ],
       },
       {
         id: 'evidence-narrative',
         icon: <TargetIcon />,
         title: 'Confidence Radar',
         summary: 'View valuation confidence, evidence strength, and risk signals in real time.',
-        details:
-          'Narratives are grounded in comparable sales, suburb trends, and property attributes. Each claim links back to evidence so reports stay audit-ready and easy to defend with clients or lenders.',
+        features: [
+          'Confidence scoring',
+          'Data completeness',
+          'Risk detection',
+          'Evidence strength analysis',
+          'Market stability assessment',
+          'Valuation reliability indicators',
+        ],
       },
       {
         id: 'instant-report',
@@ -298,8 +294,14 @@ const CATEGORIES: FeatureCategory[] = [
         title: 'AI Narrative Timeline',
         summary:
           'See how the valuation report is built step by step using property data, market insights, and comparable sales.',
-        details:
-          'From address input to a polished draft report in under 30 seconds. Export to PDF or DOCX, apply templates, and hand off to clients without rebuilding the same narrative from scratch.',
+        features: [
+          'Live AI workflow visualisation',
+          'Market analysis stages',
+          'Narrative assembly tracking',
+          'Valuation generation timeline',
+          'Comparable retrieval progress',
+          'Template and export handoff',
+        ],
       },
     ],
   },
@@ -307,42 +309,62 @@ const CATEGORIES: FeatureCategory[] = [
     id: 'property-intelligence',
     label: 'Property Intelligence',
     tabIcon: <FoldedMapIcon />,
-    badge: 'Property Intelligence',
-    title: 'Deep Property & Suburb Insights',
-    description:
-      'Explore comparable sales, property attributes, and suburb intelligence to support confident appraisal decisions.',
     items: [
       {
         id: 'comparable-sales',
         icon: <MapPinIcon />,
         title: 'Comparable Sales Intelligence',
         summary: 'AI-powered similarity scoring and property clustering with map overlays.',
-        details:
-          'Surface nearby sales ranked by similarity, not just distance. Cluster properties by attributes and visualise them on the map to build stronger evidence packages.',
+        features: [
+          'Nearby sales ranked by similarity',
+          'Attribute-based property clustering',
+          'Interactive map overlays',
+          'Evidence package builder',
+          'Distance vs similarity scoring',
+          'Comparable shortlist export',
+        ],
       },
       {
         id: 'property-profiles',
         icon: <DocumentIcon />,
         title: 'Property Profile Enrichment',
         summary: 'Pull together beds, baths, land, zoning, and amenity context in one view.',
-        details:
-          'Dummy detail: enriched property cards combine listing attributes, historical sales, and neighbourhood amenity scores so you spend less time hunting across portals.',
+        features: [
+          'Beds, baths and land attributes',
+          'Zoning and planning context',
+          'Neighbourhood amenity scores',
+          'Historical sales on one card',
+          'Listing attribute enrichment',
+          'Less portal hopping',
+        ],
       },
       {
         id: 'suburb-analytics',
         icon: <BarChartIcon />,
         title: 'Suburb Analytics',
         summary: 'Demographic, demand, and yield signals at the suburb level.',
-        details:
-          'Dummy detail: review median prices, days on market, rental yields, and demographic shifts to frame every appraisal with the right local market story.',
+        features: [
+          'Median price trends',
+          'Days on market signals',
+          'Rental yield snapshots',
+          'Demographic shift tracking',
+          'Local demand indicators',
+          'Appraisal market framing',
+        ],
       },
       {
         id: 'evidence-centre',
         icon: <LayersIcon />,
         title: 'Evidence Centre',
         summary: 'Organise valuation evidence in a structured, reusable workspace.',
-        details:
-          'Dummy detail: pin comparables, notes, and attachments to a case so your evidence trail stays consistent across team members and report versions.',
+        features: [
+          'Pinned comparable sales',
+          'Case notes and attachments',
+          'Consistent evidence trails',
+          'Team-ready case workspace',
+          'Report version tracking',
+          'Reusable evidence packages',
+        ],
       },
     ],
   },
@@ -350,42 +372,62 @@ const CATEGORIES: FeatureCategory[] = [
     id: 'market-investment',
     label: 'Market & Investment',
     tabIcon: <ChartIcon />,
-    badge: 'Market & Investment',
-    title: 'Market Trends & Investment Signals',
-    description:
-      'Track suburb growth, yield opportunities, and forecast indicators tailored for investors and advisors.',
     items: [
       {
         id: 'trend-forecasting',
         icon: <ChartIcon size={20} />,
         title: 'Trend Forecasting',
         summary: 'Predictive analytics for suburb growth and investment opportunity.',
-        details:
-          'Dummy detail: forecast models highlight suburbs with momentum so investors can prioritise deals before the market fully prices them in.',
+        features: [
+          'Suburb growth forecasts',
+          'Momentum suburb highlighting',
+          'Investment opportunity scoring',
+          'Pre-market pricing signals',
+          'Predictive analytics models',
+          'Advisor-ready growth briefs',
+        ],
       },
       {
         id: 'yield-insights',
         icon: <BarChartIcon />,
         title: 'Yield & Cashflow Insights',
         summary: 'Estimate rental yield and cashflow scenarios for target properties.',
-        details:
-          'Dummy detail: model rent bands, vacancy assumptions, and holding costs to compare investment options side by side.',
+        features: [
+          'Rental yield estimates',
+          'Cashflow scenario modelling',
+          'Rent band assumptions',
+          'Vacancy and holding costs',
+          'Side-by-side option compare',
+          'Investor briefing outputs',
+        ],
       },
       {
         id: 'demand-indicators',
         icon: <TargetIcon />,
         title: 'Demand Indicators',
         summary: 'Monitor buyer and renter demand signals across key markets.',
-        details:
-          'Dummy detail: track enquiry volume, listing competition, and absorption rates to time acquisitions and pricing advice.',
+        features: [
+          'Enquiry volume tracking',
+          'Listing competition signals',
+          'Absorption rate monitoring',
+          'Buyer vs renter demand',
+          'Acquisition timing cues',
+          'Pricing advice context',
+        ],
       },
       {
         id: 'portfolio-view',
         icon: <LayersIcon />,
         title: 'Portfolio Snapshot',
         summary: 'Summarise exposure and performance across saved investment assets.',
-        details:
-          'Dummy detail: a lightweight portfolio view groups saved properties by suburb, yield, and risk so advisors can brief clients quickly.',
+        features: [
+          'Saved asset grouping',
+          'Suburb exposure summary',
+          'Yield and risk overview',
+          'Client briefing snapshot',
+          'Performance at a glance',
+          'Lightweight portfolio view',
+        ],
       },
     ],
   },
@@ -393,198 +435,147 @@ const CATEGORIES: FeatureCategory[] = [
     id: 'workflow-collaboration',
     label: 'Workflow & Collaboration',
     tabIcon: <UsersIcon />,
-    badge: 'Workflow & Collaboration',
-    title: 'Smarter Team Workflows',
-    description:
-      'Collaborate on appraisals, share client-ready reports, and keep valuation workflows moving without friction.',
     items: [
       {
         id: 'team-workspace',
         icon: <UsersIcon size={20} />,
         title: 'Team Workspace',
         summary: 'Share cases, notes, and drafts across agents, valuers, and advisors.',
-        details:
-          'Dummy detail: assign ownership, leave comments on draft narratives, and keep everyone aligned on the latest evidence package.',
+        features: [
+          'Shared cases and drafts',
+          'Ownership assignment',
+          'Comments on narratives',
+          'Aligned evidence packages',
+          'Cross-role collaboration',
+          'Latest-version visibility',
+        ],
       },
       {
         id: 'client-reports',
         icon: <DocumentIcon />,
         title: 'Client-Ready Reports',
         summary: 'Export polished appraisal packages your clients can actually use.',
-        details:
-          'Dummy detail: apply brand templates, lock approved sections, and deliver PDFs that look professional without extra design work.',
+        features: [
+          'Brand report templates',
+          'Locked approved sections',
+          'Professional PDF delivery',
+          'Client-ready packages',
+          'No extra design work',
+          'Polished export layouts',
+        ],
       },
       {
         id: 'shared-evidence',
         icon: <ShareIcon />,
         title: 'Shared Evidence Trails',
         summary: 'Keep comparables and rationale attached to every shared report.',
-        details:
-          'Dummy detail: when you share a valuation, the supporting sales and confidence notes travel with it so reviewers never lose context.',
+        features: [
+          'Comparables travel with share',
+          'Confidence notes attached',
+          'Reviewer context preserved',
+          'Linked supporting sales',
+          'Rationale on every report',
+          'No lost evidence trail',
+        ],
       },
       {
         id: 'workflow-automation',
         icon: <ClockIcon />,
         title: 'Workflow Shortcuts',
         summary: 'Reuse templates and automations to cut repetitive appraisal steps.',
-        details:
-          'Dummy detail: save preferred report structures, auto-fill common fields, and kick off generation with a single click from the dashboard.',
+        features: [
+          'Saved report structures',
+          'Auto-fill common fields',
+          'One-click generation',
+          'Dashboard workflow shortcuts',
+          'Reusable automations',
+          'Fewer repetitive steps',
+        ],
       },
     ],
   },
 ]
 
-function FeatureAccordionItem({
-  item,
-  open,
-  onToggle,
-}: {
-  item: FeatureItem
-  open: boolean
-  onToggle: () => void
-}) {
-  const contentId = `${item.id}-content`
-
+function FeatureBlock({ item }: { item: FeatureItem }) {
   return (
-    <article
-      className={`rounded-2xl border border-slate-100/80 bg-white shadow-[0_4px_18px_rgba(26,32,44,0.06)] transition-shadow duration-200 ${
-        open ? 'shadow-[0_8px_28px_rgba(26,32,44,0.1)]' : 'hover:shadow-[0_6px_22px_rgba(26,32,44,0.08)]'
-      }`}
-    >
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={open}
-        aria-controls={contentId}
-        className="flex w-full items-start gap-4 rounded-2xl p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary focus-visible:ring-offset-2 sm:items-center sm:p-6"
-      >
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#E8F4F8] text-relaive-primary">
+    <article className="flex flex-col gap-3 py-5">
+      <div className="flex items-start gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#E8F4F8] text-relaive-primary">
           {item.icon}
         </div>
-
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0">
           <h3 className="text-base font-semibold text-relaive-navy sm:text-lg">{item.title}</h3>
           <p className="mt-1 text-sm leading-relaxed text-relaive-gray">{item.summary}</p>
         </div>
-
-        <span className="mt-1 sm:mt-0">
-          <ChevronRightIcon open={open} />
-        </span>
-      </button>
-
-      <div
-        id={contentId}
-        className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-          open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-        }`}
-      >
-        <div className="overflow-hidden">
-          <div
-            className={`border-t border-slate-100 px-5 pb-5 pt-0 transition-opacity duration-200 sm:px-6 sm:pb-6 ${
-              open ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
-            <p className="pl-[3.75rem] text-sm leading-relaxed text-relaive-gray sm:pl-16">
-              {item.details}
-            </p>
-          </div>
-        </div>
       </div>
+
+      <ul className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 sm:pl-[3.75rem]">
+        {item.features.map((feature) => (
+          <li
+            key={feature}
+            className="flex items-start gap-2 text-sm leading-snug text-relaive-gray"
+          >
+            <span className="mt-0.5 text-relaive-secondary">
+              <CheckIcon />
+            </span>
+            {feature}
+          </li>
+        ))}
+      </ul>
     </article>
   )
 }
 
-export function FeaturesPage() {
+export function FeaturesDropdown({ open }: { open: boolean }) {
   const [activeCategoryId, setActiveCategoryId] = useState(CATEGORIES[0].id)
-  const [openItemId, setOpenItemId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!open) {
+      setActiveCategoryId(CATEGORIES[0].id)
+    }
+  }, [open])
 
   const activeCategory =
     CATEGORIES.find((category) => category.id === activeCategoryId) ?? CATEGORIES[0]
 
-  function handleCategoryChange(categoryId: string) {
-    setActiveCategoryId(categoryId)
-    setOpenItemId(null)
-  }
-
-  function handleToggle(itemId: string) {
-    setOpenItemId((current) => (current === itemId ? null : itemId))
-  }
-
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-b from-[#f5f7fa] via-white to-relaive-surface">
-      <Navbar />
-
-      <main className="relative flex-1 overflow-hidden">
+    <NavDropdownPanel open={open}>
+      <div className="mx-auto flex max-w-5xl flex-col gap-8 px-6 py-10">
         <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-24 top-16 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,rgba(123,178,196,0.22)_0%,transparent_70%)] blur-2xl"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -left-20 bottom-10 h-[320px] w-[320px] rounded-full bg-[radial-gradient(circle,rgba(251,242,232,0.7)_0%,transparent_70%)] blur-2xl"
-        />
+          role="tablist"
+          aria-label="Feature categories"
+          className="mx-auto flex w-fit max-w-full flex-wrap items-center justify-center gap-1 rounded-full bg-slate-100/90 p-1.5"
+        >
+          {CATEGORIES.map((category) => {
+            const active = category.id === activeCategoryId
+            return (
+              <button
+                key={category.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setActiveCategoryId(category.id)}
+                className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary focus-visible:ring-offset-2 sm:px-5 ${
+                  active
+                    ? 'bg-white text-relaive-navy shadow-sm'
+                    : 'text-relaive-gray hover:text-relaive-navy'
+                }`}
+              >
+                <span className={active ? 'text-relaive-primary' : 'text-relaive-gray'}>
+                  {category.tabIcon}
+                </span>
+                {category.label}
+              </button>
+            )
+          })}
+        </div>
 
-        <section id="features-page" className="relative scroll-mt-20 px-6 pt-10 pb-24 lg:px-10">
-          <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 sm:gap-10">
-            <div
-              role="tablist"
-              aria-label="Feature categories"
-              className="flex flex-wrap items-center justify-start gap-2 sm:gap-3"
-            >
-              {CATEGORIES.map((category) => {
-                const active = category.id === activeCategoryId
-                return (
-                  <button
-                    key={category.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={active}
-                    onClick={() => handleCategoryChange(category.id)}
-                    className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary focus-visible:ring-offset-2 sm:px-5 ${
-                      active
-                        ? 'bg-gradient-to-r from-relaive-secondary to-relaive-primary text-white shadow-md shadow-relaive-primary/25'
-                        : 'border border-slate-200/80 bg-white text-relaive-navy shadow-sm hover:border-relaive-primary/30 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span className={active ? 'text-white' : 'text-relaive-primary'}>
-                      {category.tabIcon}
-                    </span>
-                    {category.label}
-                  </button>
-                )
-              })}
-            </div>
-
-            <div className="flex max-w-3xl flex-col items-start gap-2.5 text-left sm:gap-3">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-relaive-primary/20 bg-relaive-primary/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-relaive-primary">
-                <BadgeSparkleIcon />
-                {activeCategory.badge}
-              </span>
-
-              <h1 className="text-[22px] font-semibold leading-tight text-relaive-navy sm:text-[28px] lg:text-[32px]">
-                {activeCategory.title}
-              </h1>
-
-              <p className="max-w-2xl text-sm leading-relaxed text-relaive-gray sm:text-[15px]">
-                {activeCategory.description}
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3.5 sm:gap-4" role="tabpanel">
-              {activeCategory.items.map((item) => (
-                <FeatureAccordionItem
-                  key={item.id}
-                  item={item}
-                  open={openItemId === item.id}
-                  onToggle={() => handleToggle(item.id)}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <Footer />
-    </div>
+        <div className="flex flex-col divide-y divide-black/5" role="tabpanel">
+          {activeCategory.items.map((item) => (
+            <FeatureBlock key={item.id} item={item} />
+          ))}
+        </div>
+      </div>
+    </NavDropdownPanel>
   )
 }
