@@ -60,6 +60,75 @@ export function getAppraisalInputContext(): AppraisalInputContext | null {
   return getAppraisalContext()
 }
 
+// Last-computed ROI result from the investor's Step 3 calculator — carried
+// across to the Generated Report step the same way the appraisal context
+// crosses steps, so it can be saved onto the report without re-running the
+// calculation. Investor-only; never set for other roles.
+export type RoiPersistResult = {
+  grossYieldPct: number
+  netYieldPct: number
+  monthlyCashFlow: number
+  cashOnCashReturnPct: number | null
+}
+
+const ROI_RESULT_STORAGE_KEY = 'relaive_roi_result'
+
+let roiResult: RoiPersistResult | null = null
+
+export function setRoiResult(result: RoiPersistResult): void {
+  roiResult = result
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(ROI_RESULT_STORAGE_KEY, JSON.stringify(result))
+}
+
+export function getRoiResult(): RoiPersistResult | null {
+  if (roiResult) return roiResult
+  if (typeof window === 'undefined') return null
+
+  const raw = window.localStorage.getItem(ROI_RESULT_STORAGE_KEY)
+  if (!raw) return null
+
+  try {
+    roiResult = JSON.parse(raw) as RoiPersistResult
+    return roiResult
+  } catch {
+    return null
+  }
+}
+
+// Last-computed affordability result from the buyer's Step 3 calculator —
+// same pattern as RoiPersistResult. Buyer-only; never set for other roles.
+export type AffordabilityPersistResult = {
+  estimatedBorrowingCapacity: number
+  maxLoanAmount: number
+  repaymentToIncomePct: number
+}
+
+const AFFORDABILITY_RESULT_STORAGE_KEY = 'relaive_affordability_result'
+
+let affordabilityResult: AffordabilityPersistResult | null = null
+
+export function setAffordabilityResult(result: AffordabilityPersistResult): void {
+  affordabilityResult = result
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(AFFORDABILITY_RESULT_STORAGE_KEY, JSON.stringify(result))
+}
+
+export function getAffordabilityResult(): AffordabilityPersistResult | null {
+  if (affordabilityResult) return affordabilityResult
+  if (typeof window === 'undefined') return null
+
+  const raw = window.localStorage.getItem(AFFORDABILITY_RESULT_STORAGE_KEY)
+  if (!raw) return null
+
+  try {
+    affordabilityResult = JSON.parse(raw) as AffordabilityPersistResult
+    return affordabilityResult
+  } catch {
+    return null
+  }
+}
+
 function parseAddressContext(address: string): {
   streetLine: string
   suburb: string
@@ -112,9 +181,17 @@ export type PersistedReport = {
   bathrooms: number
   parking: number
   landSizeSqm: number
+  reportTemplateId: string
   estimatedValue: number
   narrativeText: string
   pdfStoragePath: string | null
+  roiGrossYieldPct: number | null
+  roiNetYieldPct: number | null
+  roiMonthlyCashFlow: number | null
+  roiCashOnCashReturnPct: number | null
+  affordabilityEstimatedBorrowingCapacity: number | null
+  affordabilityMaxLoanAmount: number | null
+  affordabilityRepaymentToIncomePct: number | null
 }
 
 export async function getPersistedReport(reportId: string): Promise<PersistedReport> {
@@ -125,13 +202,22 @@ export async function getPersistedReport(reportId: string): Promise<PersistedRep
   return response.data
 }
 
+export type ReportRole = 'agent' | 'valuer' | 'buyer' | 'investor'
+
 export type PersistGeneratedReportInput = {
+  role: ReportRole
   reportTemplateId: string
   narrativeText: string
   estimatedValue: number
   clientName?: string
   clientEmail?: string
   markAsExported?: boolean
+  // Investor-only. Defaults to the last-computed Step 3 result if omitted;
+  // pass explicitly (e.g. a reopened report's own saved values) to avoid
+  // picking up stale/empty local storage from an unrelated session.
+  roi?: RoiPersistResult | null
+  // Buyer-only, same override semantics as `roi`.
+  affordability?: AffordabilityPersistResult | null
 }
 
 export async function persistGeneratedReport(input: PersistGeneratedReportInput): Promise<void> {
@@ -141,7 +227,11 @@ export async function persistGeneratedReport(input: PersistGeneratedReportInput)
   }
 
   const address = parseAddressContext(context.address)
+  const roi = input.role === 'investor' ? (input.roi !== undefined ? input.roi : getRoiResult()) : null
+  const affordability =
+    input.role === 'buyer' ? (input.affordability !== undefined ? input.affordability : getAffordabilityResult()) : null
   const body = {
+    role: input.role,
     clientName: input.clientName?.trim() || undefined,
     clientEmail: input.clientEmail?.trim() || undefined,
     propertyAddressLine: address.streetLine,
@@ -153,19 +243,17 @@ export async function persistGeneratedReport(input: PersistGeneratedReportInput)
     bathrooms: context.bathrooms ?? 2,
     parking: context.parking ?? 2,
     landSizeSqm: context.landSizeSqm ?? 430,
+    reportTemplateId: input.reportTemplateId,
     estimatedValue: input.estimatedValue,
-    selectedComparableAddress: undefined,
-    selectedComparableSoldPrice: undefined,
-    selectedComparableSoldDate: undefined,
-    marketSuburb: address.suburb,
-    marketMeanHousePrice: undefined,
-    marketMonthGrowthPct: undefined,
-    marketRentalYieldPct: undefined,
-    marketBuyerInterestLevel: undefined,
-    marketSupplyLevel: undefined,
-    marketPriceGrowthLevel: undefined,
-    narrativeText: `[${input.reportTemplateId}] ${input.narrativeText}`,
+    narrativeText: input.narrativeText,
     pdfStoragePath: input.markAsExported ? `exports/${Date.now()}.pdf` : undefined,
+    roiGrossYieldPct: roi?.grossYieldPct,
+    roiNetYieldPct: roi?.netYieldPct,
+    roiMonthlyCashFlow: roi?.monthlyCashFlow,
+    roiCashOnCashReturnPct: roi ? roi.cashOnCashReturnPct : undefined,
+    affordabilityEstimatedBorrowingCapacity: affordability?.estimatedBorrowingCapacity,
+    affordabilityMaxLoanAmount: affordability?.maxLoanAmount,
+    affordabilityRepaymentToIncomePct: affordability?.repaymentToIncomePct,
   }
 
   const response = await fetchJson<ApiResponse<{ reportId: string }>>('/api/reports', {
@@ -200,12 +288,23 @@ export type NotificationMock = {
   message: string
 }
 
+// Static compliance disclaimers — not user-specific/stateful, so no backend
+// round-trip (the Notifications domain itself is still unbuilt, BACKEND-106,
+// deferred). Previously fetched non-existent `/api/notifications/*`
+// endpoints that always 404'd, silently stalling both calculator panels on
+// "Loading…" forever since the panels gate rendering on this resolving.
 export function getRoiDisclaimerNotification(): Promise<NotificationMock> {
-  return fetchJson('/api/notifications/roi-disclaimer')
+  return Promise.resolve({
+    message:
+      'These calculations are estimates for indicative purposes only. They do not constitute financial advice. Consult a qualified financial adviser before making investment decisions.',
+  })
 }
 
 export function getAffordabilityDisclaimerNotification(): Promise<NotificationMock> {
-  return fetchJson('/api/notifications/affordability-disclaimer')
+  return Promise.resolve({
+    message:
+      'These affordability figures are estimates for indicative purposes only. They do not constitute financial or lending advice. Confirm borrowing capacity with your lender before making purchase decisions.',
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -328,6 +427,41 @@ export function searchComparableSales(
 }
 
 // ---------------------------------------------------------------------------
+// Saved Properties (shared by the Comparable Sales page and, per role,
+// Search Properties / Saved Properties / Saved Evidence pages)
+// ---------------------------------------------------------------------------
+
+export type SavedPropertyItem = {
+  id: string
+  address: string
+  savedAgo: string
+  propertyType: string
+  beds: number
+  baths: number
+  areaSqm: number
+}
+
+export type SavePropertyInput = {
+  addressLine: string
+  propertyType: string
+  bedrooms: number
+  bathrooms: number
+  areaSqm: number
+}
+
+export function saveProperty(input: SavePropertyInput): Promise<SavedPropertyItem> {
+  return fetchJson('/api/properties/saved', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+}
+
+export function deleteSavedProperty(id: string): Promise<void> {
+  return fetchJson(`/api/properties/saved/${id}`, { method: 'DELETE' })
+}
+
+// ---------------------------------------------------------------------------
 // Market Intelligence (Generate Appraisal — step 3)
 // ---------------------------------------------------------------------------
 
@@ -338,22 +472,8 @@ export type SuburbOverviewMetric = {
   tone?: 'positive' | 'default'
 }
 
-export type DemandSignalTone = 'high' | 'medium' | 'strong'
-
-export type DemandSignal = {
-  id: string
-  label: string
-  level: string
-  percent: number
-  tone: DemandSignalTone
-}
-
 export function getSuburbOverview(): Promise<SuburbOverviewMetric[]> {
   return fetchJson(withAppraisalContext('/api/appraisal/suburb-overview'))
-}
-
-export function getDemandSignals(): Promise<DemandSignal[]> {
-  return fetchJson(withAppraisalContext('/api/appraisal/demand-signals'))
 }
 
 export type MarketIntelligenceStat = {
@@ -392,8 +512,10 @@ export type ReportTemplateOption = {
   includes: string[]
 }
 
-export function getReportTemplates(): Promise<ReportTemplateOption[]> {
-  return fetchJson(withAppraisalContext('/api/appraisal/report-templates'))
+// Templates are locked one-per-role, not freely chosen — this returns the
+// single template for the caller's dashboard role, not a list.
+export function getReportTemplate(role: ReportRole): Promise<ReportTemplateOption> {
+  return fetchJson(`/api/appraisal/report-templates?role=${role}`)
 }
 
 export type NarrativePreviewSection = {
@@ -453,24 +575,6 @@ export function getExecutiveSummary(): Promise<ExecutiveSummary> {
   return fetchJson(withAppraisalContext('/api/appraisal/executive-summary'))
 }
 
-export type PropertyFactorItem = {
-  id: string
-  title: string
-  description: string
-}
-
-export type PropertySpecificFactors = {
-  title: string
-  valueAddingTitle: string
-  valueAdding: PropertyFactorItem[]
-  riskTitle: string
-  risk: PropertyFactorItem[]
-}
-
-export function getPropertySpecificFactors(): Promise<PropertySpecificFactors> {
-  return fetchJson(withAppraisalContext('/api/appraisal/property-specific-factors'))
-}
-
 export type AgentRecommendationIconKey = 'campaign' | 'presentation' | 'marketing'
 
 export type AgentRecommendationItem = {
@@ -488,6 +592,49 @@ export type AgentRecommendations = {
 
 export function getAgentRecommendations(): Promise<AgentRecommendations> {
   return fetchJson(withAppraisalContext('/api/appraisal/agent-recommendations'))
+}
+
+export type GrowthOutlook = {
+  title: string
+  paragraphs: ExecutiveSummarySegment[][]
+}
+
+// Investor-only — quotes the real ROI numbers from Step 3 (or a reopened
+// report's saved values). Pass null when no ROI calculation exists yet
+// (never run, or a non-investor report); the backend returns an honest
+// "run the ROI step" message rather than a fabricated figure.
+export function getGrowthOutlook(roi: RoiPersistResult | null): Promise<GrowthOutlook> {
+  const query = new URLSearchParams()
+  if (roi) {
+    query.set('roiGrossYieldPct', String(roi.grossYieldPct))
+    query.set('roiNetYieldPct', String(roi.netYieldPct))
+    query.set('roiMonthlyCashFlow', String(roi.monthlyCashFlow))
+    if (roi.cashOnCashReturnPct !== null) {
+      query.set('roiCashOnCashReturnPct', String(roi.cashOnCashReturnPct))
+    }
+  }
+  const suffix = query.toString()
+  return fetchJson(`/api/appraisal/growth-outlook${suffix ? `?${suffix}` : ''}`)
+}
+
+export type AffordabilityOutlook = {
+  title: string
+  paragraphs: ExecutiveSummarySegment[][]
+}
+
+// Buyer-only — quotes the real affordability numbers from Step 3 (or a
+// reopened report's saved values). Pass null when no calculation exists yet.
+export function getAffordabilityOutlook(
+  affordability: AffordabilityPersistResult | null,
+): Promise<AffordabilityOutlook> {
+  const query = new URLSearchParams()
+  if (affordability) {
+    query.set('affordabilityEstimatedBorrowingCapacity', String(affordability.estimatedBorrowingCapacity))
+    query.set('affordabilityMaxLoanAmount', String(affordability.maxLoanAmount))
+    query.set('affordabilityRepaymentToIncomePct', String(affordability.repaymentToIncomePct))
+  }
+  const suffix = query.toString()
+  return fetchJson(`/api/appraisal/affordability-outlook${suffix ? `?${suffix}` : ''}`)
 }
 
 export type AppraisalDisclaimer = {

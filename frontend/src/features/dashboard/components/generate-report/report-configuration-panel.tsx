@@ -1,59 +1,37 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { Card, CardTitle } from '../../../../components/ui/card/card'
-import { OptionCardGroup, type OptionCardItem } from '../../../../components/ui/option-card/option-card'
 import { useAsyncData } from '../../../../hooks/use-async-data'
-import { getNarrativePreview, getReportTemplates } from '../../../../services/common'
-import { ChartTrendIcon, CheckCircleIcon, getReportTemplateIcon, ReportDocumentIcon } from './generate-report-icons'
+import { getNarrativePreview, getReportTemplate, type ReportRole } from '../../../../services/common'
+import { CheckCircleIcon, ReportDocumentIcon } from './generate-report-icons'
 import { StepActions } from './step-actions'
+
+const REPORT_ROLES: ReportRole[] = ['agent', 'valuer', 'buyer', 'investor']
+
+function toReportRole(role: string | undefined): ReportRole {
+  return REPORT_ROLES.includes(role as ReportRole) ? (role as ReportRole) : 'agent'
+}
 
 type ReportConfigurationPanelProps = {
   onBack: () => void
-  onContinue?: (templateId: string) => void
-  initialSelectedTemplateId?: string
+  onContinue?: () => void
 }
 
-export function ReportConfigurationPanel({
-  onBack,
-  onContinue,
-  initialSelectedTemplateId,
-}: ReportConfigurationPanelProps) {
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const { data: templates } = useAsyncData(getReportTemplates, [])
+// The report template is locked to the current dashboard role — there is
+// nothing to choose between anymore, this is a read-only confirmation of
+// which template will be used, plus a live preview of the real narrative.
+export function ReportConfigurationPanel({ onBack, onContinue }: ReportConfigurationPanelProps) {
+  const { role: roleParam } = useParams<{ role?: string }>()
+  const role = toReportRole(roleParam)
+
+  const { data: template } = useAsyncData(() => getReportTemplate(role), [role])
   const { data: narrativePreview, isLoading: isNarrativeLoading } = useAsyncData(
-    () => getNarrativePreview(selectedId ?? undefined),
-    [selectedId],
+    () => getNarrativePreview(template?.id),
+    [template?.id],
   )
-
-  const optionItems = useMemo<OptionCardItem[]>(
-    () =>
-      (templates ?? []).map((template) => ({
-        id: template.id,
-        title: template.title,
-        description: template.description,
-        icon: getReportTemplateIcon(template.iconKey),
-      })),
-    [templates],
-  )
-  const selectedTemplate = (templates ?? []).find((template) => template.id === selectedId)
-
-  useEffect(() => {
-    if (!templates?.length) return
-    if (selectedId) return
-
-    const matchedTemplate = initialSelectedTemplateId
-      ? templates.find((template) => template.id === initialSelectedTemplateId)
-      : null
-
-    setSelectedId(matchedTemplate?.id ?? templates[0].id)
-  }, [initialSelectedTemplateId, templates, selectedId])
-
-  const handleSelect = (id: string) => {
-    setSelectedId(id)
-  }
 
   const handleContinue = () => {
-    if (!selectedId) return
-    onContinue?.(selectedId)
+    if (!template) return
+    onContinue?.()
   }
 
   return (
@@ -64,24 +42,21 @@ export function ReportConfigurationPanel({
         </span>
         <div>
           <CardTitle>Report Configuration</CardTitle>
-          <p className="mt-0.5 text-sm text-relaive-gray">Select template and customize</p>
+          <p className="mt-0.5 text-sm text-relaive-gray">
+            {template ? template.title : 'Loading report type…'}
+          </p>
         </div>
       </div>
 
-      <div className="mt-6">
-        <OptionCardGroup
-          items={optionItems}
-          selectedId={selectedId}
-          onSelect={handleSelect}
-          layout="list"
-        />
-      </div>
+      {template ? (
+        <p className="mt-4 text-sm text-relaive-navy/80">{template.description}</p>
+      ) : null}
 
-      {selectedTemplate && selectedTemplate.includes?.length ? (
+      {template && template.includes.length > 0 ? (
         <div className="mt-6 rounded-xl bg-slate-50 p-5 sm:p-6">
           <h3 className="text-sm font-semibold text-relaive-navy">Report will include</h3>
           <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-            {selectedTemplate.includes.map((item) => (
+            {template.includes.map((item) => (
               <li key={item} className="flex items-center gap-2.5 text-sm text-relaive-navy">
                 <span className="shrink-0 text-emerald-600">
                   <CheckCircleIcon size={16} />
@@ -124,13 +99,8 @@ export function ReportConfigurationPanel({
       <StepActions
         onBack={onBack}
         onContinue={handleContinue}
-        continueLabel={
-          <span className="inline-flex items-center gap-2">
-            Generate Report
-            <ChartTrendIcon size={16} />
-          </span>
-        }
-        continueDisabled={!selectedId}
+        continueLabel="Generate Report"
+        continueDisabled={!template}
       />
     </Card>
   )

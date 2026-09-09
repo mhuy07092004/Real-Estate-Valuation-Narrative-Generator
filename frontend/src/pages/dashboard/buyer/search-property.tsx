@@ -1,14 +1,32 @@
+import { useState } from 'react'
 import { AddressSearch } from '../../../components/ui/search-bar/address-search'
 import { Button } from '../../../components/ui/button/button'
 import { FilterButton } from '../../../components/ui/button/filter-button'
-import { PropertyCard } from '../../../components/ui/property-card/property-card'
+import { PropertyCard, type PropertyCardData } from '../../../components/ui/property-card/property-card'
 import { PropertyGridSkeleton } from '../../../features/dashboard/components/property-grid-skeleton'
 import { useAsyncData } from '../../../hooks/use-async-data'
 import { getSearchProperties } from '../../../services/buyer'
+import { saveProperty } from '../../../services/common'
+
+function toAddressLine(address: PropertyCardData['address']): string {
+  return `${address.street}, ${address.suburb} ${address.state} ${address.postcode}`
+}
 
 export function SearchProperty() {
   const { data: properties, isLoading } = useAsyncData(getSearchProperties, [])
   const propertyList = properties ?? []
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
+
+  async function handleSave(property: PropertyCardData) {
+    await saveProperty({
+      addressLine: toAddressLine(property.address),
+      propertyType: property.propertyType,
+      bedrooms: property.features.beds,
+      bathrooms: property.features.baths,
+      areaSqm: property.features.areaSqm,
+    })
+    setSavedIds((current) => new Set(current).add(property.id))
+  }
 
   return (
     <div className="flex flex-col">
@@ -34,7 +52,14 @@ export function SearchProperty() {
           {isLoading && propertyList.length === 0 ? (
             <PropertyGridSkeleton count={6} variant="full" />
           ) : (
-            propertyList.map((property) => <PropertyCard key={property.id} property={property} />)
+            propertyList.map((property) => (
+              <PropertyCard
+                key={property.id}
+                property={property}
+                saved={savedIds.has(property.id)}
+                onSave={() => handleSave(property)}
+              />
+            ))
           )}
         </div>
       </div>

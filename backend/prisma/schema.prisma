@@ -34,6 +34,9 @@ model User {
 
   role Role @relation(fields: [roleId], references: [roleId])
   clients Client[]
+  savedProperties SavedProperty[]
+  inspections Inspection[]
+  reports Report[]
 
   @@map("users")
 }
@@ -54,13 +57,18 @@ model Client {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   owner User @relation(fields: [ownerUserId], references: [userId], onDelete: Cascade)
+  reports Report[]
 
   @@unique([ownerUserId, email])
   @@map("clients")
 }
 
-model ComparableSale {
-  comparableId String   @id @default(uuid()) @map("comparable_id")
+// Durable facts about a physical property (address, type, size) that stay
+// constant no matter how many times it changes hands. Referenced by
+// ComparableSale; kept separate from SavedProperty, whose data is often a
+// lower-confidence placeholder rather than a verified record.
+model Property {
+  propertyId   String   @id @default(uuid()) @map("property_id")
   addressLine  String   @map("address_line")
   suburb       String
   state        String
@@ -70,11 +78,66 @@ model ComparableSale {
   bathrooms    Int
   parking      Int
   areaSqm      Float    @map("area_sqm")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  comparableSales ComparableSale[]
+
+  @@map("properties")
+}
+
+// One sale event for a Property. soldPrice/soldDate live here, not on
+// Property, since the same property can be sold more than once over time.
+model ComparableSale {
+  comparableId String   @id @default(uuid()) @map("comparable_id")
+  propertyId   String   @map("property_id")
   soldPrice    Float    @map("sold_price")
   soldDate     DateTime @map("sold_date")
   createdAt    DateTime @default(now()) @map("created_at")
 
+  property Property @relation(fields: [propertyId], references: [propertyId])
+
   @@map("comparable_sales")
+}
+
+// A user's personal bookmark of a property. Flat and standalone, not linked
+// to Property — this data is mixed-confidence (a verified subject address,
+// an honest-zero placeholder, or eventually a real search-listing), unlike
+// Property's durable, always-verified facts.
+model SavedProperty {
+  savedPropertyId String   @id @default(uuid()) @map("saved_property_id")
+  ownerUserId     String   @map("owner_user_id")
+  addressLine     String   @map("address_line")
+  propertyType    String   @map("property_type")
+  bedrooms        Int
+  bathrooms       Int
+  areaSqm         Float    @map("area_sqm")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  owner User @relation(fields: [ownerUserId], references: [userId], onDelete: Cascade)
+
+  @@unique([ownerUserId, addressLine])
+  @@map("saved_properties")
+}
+
+// A buyer's inspection record for a property. agents/checklist are stored
+// as JSON, same precedent as MarketIntelligence.priceTrendJson — nothing
+// needs to query into individual checklist items, only read/write the
+// whole thing per inspection (matches saveBuyerInspection's whole-object PUT).
+model Inspection {
+  inspectionId   String   @id @default(uuid()) @map("inspection_id")
+  ownerUserId    String   @map("owner_user_id")
+  addressLine    String   @map("address_line")
+  suburb         String
+  inspectionDate DateTime @map("inspection_date")
+  agentsJson     String   @map("agents_json")
+  overallNotes   String   @default("") @map("overall_notes")
+  checklistJson  String   @map("checklist_json")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  owner User @relation(fields: [ownerUserId], references: [userId], onDelete: Cascade)
+
+  @@map("inspections")
 }
 
 model MarketIntelligence {
@@ -85,14 +148,61 @@ model MarketIntelligence {
   medianPriceGrowthPct  Float    @map("median_price_growth_pct")
   monthlyGrowthPct      Float    @map("monthly_growth_pct")
   monthlyGrowthTrendPp  Float    @map("monthly_growth_trend_pp")
-  daysOnMarket          Int      @map("days_on_market")
-  daysOnMarketTrendDays Int      @map("days_on_market_trend_days")
-  rentalYieldPct        Float    @map("rental_yield_pct")
-  rentalYieldTrendPct   Float    @map("rental_yield_trend_pct")
+  // Nullable — not derivable from bulk-imported sold-listing data (no
+  // original listing date to compute time-on-market from, no rental data
+  // at all). null means honestly unknown for this suburb, not zero.
+  daysOnMarket          Int?     @map("days_on_market")
+  daysOnMarketTrendDays Int?     @map("days_on_market_trend_days")
+  rentalYieldPct        Float?   @map("rental_yield_pct")
+  rentalYieldTrendPct   Float?   @map("rental_yield_trend_pct")
   priceTrendJson        String   @map("price_trend_json")
   asOfMonth             DateTime @map("as_of_month")
   createdAt             DateTime @default(now()) @map("created_at")
 
   @@unique([suburb, state])
   @@map("market_intelligence")
+}
+
+// The central appraisal object — one report per generated appraisal,
+// optionally linked to a Client. role is the dashboard role that created
+// it (agent/valuer/buyer/investor) — the backend has no auth-level concept
+// of these roles (see report.validator.ts), so this is the only record of
+// which role a report belongs to; the per-role list endpoints filter on
+// it. caseStatus/confidence only ever get set when role is valuer.
+model Report {
+  reportId            String   @id @default(uuid()) @map("report_id")
+  ownerUserId         String   @map("owner_user_id")
+  role                String
+  clientId            String?  @map("client_id")
+  clientName          String?  @map("client_name")
+  clientEmail         String?  @map("client_email")
+  propertyAddressLine String   @map("property_address_line")
+  propertySuburb      String   @map("property_suburb")
+  propertyState       String   @map("property_state")
+  propertyPostcode    String   @map("property_postcode")
+  propertyType        String   @map("property_type")
+  bedrooms            Int
+  bathrooms           Int
+  parking             Int
+  landSizeSqm         Float    @map("land_size_sqm")
+  reportTemplateId    String   @map("report_template_id")
+  estimatedValue      Float    @map("estimated_value")
+  narrativeText       String   @map("narrative_text")
+  pdfStoragePath      String?  @map("pdf_storage_path")
+  caseStatus          String?  @map("case_status")
+  confidence          Float?
+  roiGrossYieldPct       Float? @map("roi_gross_yield_pct")
+  roiNetYieldPct         Float? @map("roi_net_yield_pct")
+  roiMonthlyCashFlow     Float? @map("roi_monthly_cash_flow")
+  roiCashOnCashReturnPct Float? @map("roi_cash_on_cash_return_pct")
+  affordabilityEstimatedBorrowingCapacity Float? @map("affordability_estimated_borrowing_capacity")
+  affordabilityMaxLoanAmount              Float? @map("affordability_max_loan_amount")
+  affordabilityRepaymentToIncomePct       Float? @map("affordability_repayment_to_income_pct")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  owner  User    @relation(fields: [ownerUserId], references: [userId], onDelete: Cascade)
+  client Client? @relation(fields: [clientId], references: [clientId])
+
+  @@map("reports")
 }

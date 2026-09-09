@@ -6,34 +6,82 @@ import type { ReportHeaderStat } from '../../../../components/ui/report-header-c
 import { useAsyncData } from '../../../../hooks/use-async-data'
 import { getInitials } from '../../utils/dashboard-user'
 import {
+  getAffordabilityOutlook,
+  getAffordabilityResult,
   getAgentRecommendations,
   getAppraisalDisclaimer,
   getAppraisalInputContext,
   getAppraisalSummary,
   getComparableSales,
-  getDemandSignals,
   getExecutiveSummary,
+  getGrowthOutlook,
   getNarrativePreview,
-  getPropertySpecificFactors,
-  getReportTemplates,
+  getReportTemplate,
+  getRoiResult,
   persistGeneratedReport,
+  type AffordabilityPersistResult,
+  type PersistedReport,
+  type ReportRole,
+  type RoiPersistResult,
 } from '../../../../services/common'
 import { getAgentRecommendationIcon, ReportDocumentIcon } from './generate-report-icons'
 import {
   GeneratedReportPanel,
   type GeneratedReportCertification,
-  type GeneratedReportMetricCard,
   type GeneratedReportSection,
   type GeneratedReportStrategyCard,
   type GeneratedReportSummaryResult,
   type GeneratedReportTable,
-  type GeneratedReportTwoColumnSection,
 } from './generated-report-panel'
 
+const REPORT_ROLES: ReportRole[] = ['agent', 'valuer', 'buyer', 'investor']
+
+function toReportRole(role: string | undefined): ReportRole {
+  return REPORT_ROLES.includes(role as ReportRole) ? (role as ReportRole) : 'agent'
+}
+
 type GeneratedReportContainerProps = {
-  selectedTemplateId?: string
   onBack: () => void
   onGenerateAnother: () => void
+  savedReport: PersistedReport | null
+}
+
+// A reopened report uses its own persisted ROI values (the wizard's Step 3
+// is skipped entirely when jumping straight to this step via `ready=1`, so
+// the local ROI store would be stale or empty); a freshly-generated report
+// uses whatever Step 3 just computed in this session.
+function resolveRoiForDisplay(savedReport: PersistedReport | null): RoiPersistResult | null {
+  if (savedReport) {
+    if (savedReport.roiGrossYieldPct === null || savedReport.roiNetYieldPct === null || savedReport.roiMonthlyCashFlow === null) {
+      return null
+    }
+    return {
+      grossYieldPct: savedReport.roiGrossYieldPct,
+      netYieldPct: savedReport.roiNetYieldPct,
+      monthlyCashFlow: savedReport.roiMonthlyCashFlow,
+      cashOnCashReturnPct: savedReport.roiCashOnCashReturnPct,
+    }
+  }
+  return getRoiResult()
+}
+
+// Same pattern as resolveRoiForDisplay, for the buyer role.
+function resolveAffordabilityForDisplay(savedReport: PersistedReport | null): AffordabilityPersistResult | null {
+  if (savedReport) {
+    if (
+      savedReport.affordabilityEstimatedBorrowingCapacity === null ||
+      savedReport.affordabilityMaxLoanAmount === null ||
+      savedReport.affordabilityRepaymentToIncomePct === null
+    ) {
+      return null
+    }
+    return {
+      estimatedBorrowingCapacity: savedReport.affordabilityEstimatedBorrowingCapacity,
+      maxLoanAmount: savedReport.affordabilityMaxLoanAmount,
+      repaymentToIncomePct: savedReport.affordabilityRepaymentToIncomePct,
+    }
+  }
+  return getAffordabilityResult()
 }
 
 const ROLE_TITLE: Record<string, string> = {
@@ -62,17 +110,18 @@ function formatCurrency(value: number): string {
 }
 
 export function GeneratedReportContainer({
-  selectedTemplateId,
   onBack,
   onGenerateAnother,
+  savedReport,
 }: GeneratedReportContainerProps) {
   const { role } = useParams<{ role?: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const reportRole = toReportRole(role)
+  const roiForDisplay = reportRole === 'investor' ? resolveRoiForDisplay(savedReport) : null
+  const affordabilityForDisplay = reportRole === 'buyer' ? resolveAffordabilityForDisplay(savedReport) : null
 
-  const { data: templates } = useAsyncData(getReportTemplates, [])
-  const selectedTemplate =
-    (templates ?? []).find((template) => template.id === selectedTemplateId) ?? templates?.[0]
+  const { data: selectedTemplate } = useAsyncData(() => getReportTemplate(reportRole), [reportRole])
 
   const { data: narrativePreview } = useAsyncData(
     () => getNarrativePreview(selectedTemplate?.id),
@@ -80,11 +129,22 @@ export function GeneratedReportContainer({
   )
   const { data: appraisalSummary } = useAsyncData(getAppraisalSummary, [])
   const { data: executiveSummary } = useAsyncData(getExecutiveSummary, [])
-  const { data: propertyFactors } = useAsyncData(getPropertySpecificFactors, [])
   const { data: agentRecommendations } = useAsyncData(getAgentRecommendations, [])
   const { data: appraisalDisclaimer } = useAsyncData(getAppraisalDisclaimer, [])
   const { data: comparableSales } = useAsyncData(getComparableSales, [])
-  const { data: demandSignals } = useAsyncData(getDemandSignals, [])
+  const { data: growthOutlook } = useAsyncData(
+    () => (reportRole === 'investor' ? getGrowthOutlook(roiForDisplay) : Promise.resolve(null)),
+    [reportRole, roiForDisplay?.grossYieldPct, roiForDisplay?.netYieldPct, roiForDisplay?.monthlyCashFlow, roiForDisplay?.cashOnCashReturnPct],
+  )
+  const { data: affordabilityOutlook } = useAsyncData(
+    () => (reportRole === 'buyer' ? getAffordabilityOutlook(affordabilityForDisplay) : Promise.resolve(null)),
+    [
+      reportRole,
+      affordabilityForDisplay?.estimatedBorrowingCapacity,
+      affordabilityForDisplay?.maxLoanAmount,
+      affordabilityForDisplay?.repaymentToIncomePct,
+    ],
+  )
 
   const [shareOpen, setShareOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -108,9 +168,12 @@ export function GeneratedReportContainer({
     setIsSaving(true)
     try {
       await persistGeneratedReport({
+        role: reportRole,
         reportTemplateId: selectedTemplate.id,
         narrativeText: buildNarrative(),
         estimatedValue: parseCurrency(appraisalSummary.midpointEstimate),
+        roi: roiForDisplay,
+        affordability: affordabilityForDisplay,
       })
       setSavedJustNow(true)
       setTimeout(() => setSavedJustNow(false), 2500)
@@ -129,11 +192,11 @@ export function GeneratedReportContainer({
     !narrativePreview ||
     !appraisalSummary ||
     !executiveSummary ||
-    !propertyFactors ||
     !agentRecommendations ||
     !appraisalDisclaimer ||
     !comparableSales ||
-    !demandSignals
+    (reportRole === 'investor' && !growthOutlook) ||
+    (reportRole === 'buyer' && !affordabilityOutlook)
   ) {
     return (
       <div className="rounded-2xl border border-black/5 bg-white px-5 py-8 text-sm text-relaive-gray">
@@ -165,33 +228,25 @@ export function GeneratedReportContainer({
       title: executiveSummary.title.replace(/^\d+\.\s*/, ''),
       paragraphs: executiveSummary.paragraphs,
     },
+    ...(reportRole === 'investor' && growthOutlook
+      ? [
+          {
+            id: 'growth-outlook',
+            title: growthOutlook.title.replace(/^\d+\.\s*/, ''),
+            paragraphs: growthOutlook.paragraphs,
+          },
+        ]
+      : []),
+    ...(reportRole === 'buyer' && affordabilityOutlook
+      ? [
+          {
+            id: 'affordability-outlook',
+            title: affordabilityOutlook.title.replace(/^\d+\.\s*/, ''),
+            paragraphs: affordabilityOutlook.paragraphs,
+          },
+        ]
+      : []),
   ]
-
-  const propertyAnalysisBody =
-    narrativePreview.sections.find((section) => section.heading.toLowerCase().includes('property'))
-      ?.body ?? narrativePreview.sections[narrativePreview.sections.length - 1]?.body
-
-  const twoColumnSection: GeneratedReportTwoColumnSection = {
-    title: 'Property Description',
-    paragraphs: propertyAnalysisBody ? [propertyAnalysisBody] : [],
-    highlightsTitle: 'Property Highlights',
-    highlights: propertyFactors.valueAdding.map((item) => item.title),
-  }
-
-  const metricCards: GeneratedReportMetricCard[] = demandSignals.map((signal) => ({
-    id: signal.id,
-    trend: signal.tone === 'medium' ? 'flat' : 'up',
-    value: `${signal.percent}%`,
-    label: `${signal.label} · ${signal.level}`,
-  }))
-
-  const metricCardsIntro = `${appraisalSummary.suburbLine} continues to show healthy buyer demand, underpinned by ${
-    demandSignals.find((signal) => signal.id === 'buyer-interest')?.level.toLowerCase() ?? 'strong'
-  } buyer interest and ${
-    demandSignals.find((signal) => signal.id === 'price-growth')?.level.toLowerCase() ?? 'steady'
-  } price growth. Supply remains ${
-    demandSignals.find((signal) => signal.id === 'supply-level')?.level.toLowerCase() ?? 'balanced'
-  } relative to demand, which is helping to sustain competitive tension among buyers. The signals below summarise the current market conditions used to inform this appraisal.`
 
   const averagePrice = comparableSales.length
     ? Math.round(comparableSales.reduce((sum, comp) => sum + comp.price, 0) / comparableSales.length)
@@ -261,9 +316,6 @@ export function GeneratedReportContainer({
         reportSubtitle={`${appraisalSummary.suburbLine} · ${appraisalSummary.featuresLine}`}
         headerStats={headerStats}
         sections={sections}
-        twoColumnSection={twoColumnSection}
-        metricCards={metricCards}
-        metricCardsIntro={metricCardsIntro}
         table={table}
         summaryResult={summaryResult}
         strategyCards={strategyCards}
@@ -281,11 +333,14 @@ export function GeneratedReportContainer({
                 onClose={() => setShareOpen(false)}
                 onSend={(payload) =>
                   persistGeneratedReport({
+                    role: reportRole,
                     reportTemplateId: selectedTemplate.id,
                     narrativeText: buildNarrative(),
                     estimatedValue: parseCurrency(appraisalSummary.midpointEstimate),
                     clientName: payload.clientName,
                     clientEmail: payload.clientEmail,
+                    roi: roiForDisplay,
+                    affordability: affordabilityForDisplay,
                   })
                 }
                 onSuccess={handleSendSuccess}

@@ -5,8 +5,10 @@ import { SalesSearch, type SalesSearchQuery } from '../../components/ui/search-b
 import { ComparableSaleRow } from '../../features/dashboard/components/comparable-sale-row'
 import { SubjectPropertyCard } from '../../features/dashboard/components/subject-property-card'
 import {
+  saveProperty,
   searchComparableSales,
   type ComparableSalesSearchResult,
+  type SubjectProperty,
 } from '../../services/common'
 
 type ComparableSalesProps = {
@@ -115,6 +117,17 @@ export function ComparableSales({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addressFromQuery])
 
+  async function handleSave(subjectProperty: SubjectProperty) {
+    await saveProperty({
+      addressLine: subjectProperty.address,
+      propertyType: subjectProperty.propertyType,
+      bedrooms: subjectProperty.beds,
+      bathrooms: subjectProperty.baths,
+      areaSqm: subjectProperty.areaSqm,
+    })
+    setSaved(true)
+  }
+
   return (
     <div className="flex min-h-full flex-col">
       <div className="flex flex-1 flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:p-8">
@@ -143,7 +156,7 @@ export function ComparableSales({
                 <SubjectPropertyCard
                   property={result.subjectProperty}
                   saved={saved}
-                  onSave={() => setSaved(true)}
+                  onSave={() => handleSave(result.subjectProperty!)}
                 />
               </div>
             ) : null}

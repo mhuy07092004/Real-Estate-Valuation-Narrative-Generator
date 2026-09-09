@@ -67,8 +67,33 @@ export type InvestorReportSummary = {
   sharedCount: number
 }
 
-export function getRoiCalculationMockData(): Promise<RoiCalculationMock> {
-  return fetchJson('/api/investor/roi-calculation')
+export type RoiCalculationInput = {
+  purchasePrice: number
+  deposit: number
+  interestRate: number
+  loanTermYears: number
+  weeklyRent: number
+  vacancyAllowance: number
+  managementFee: number
+  councilRates: number
+  landlordInsurance: number
+  maintenance: number
+  landTax: number
+}
+
+export type RoiCalculationResponse = RoiCalculationMock & {
+  grossYieldPct: number
+  netYieldPct: number
+  monthlyCashFlow: number
+  cashOnCashReturnPct: number | null
+}
+
+export function calculateRoi(input: RoiCalculationInput): Promise<RoiCalculationResponse> {
+  return fetchJson('/api/investor/roi-calculation', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
 }
 
 export function getInvestorReportListMockData(): Promise<InvestorReportListItem[]> {

@@ -1,10 +1,13 @@
+import { useEffect, useState } from 'react'
 import { Card, CardTitle } from '../../../../components/ui/card/card'
 import { Input } from '../../../../components/ui/input/input'
 import { Notification } from '../../../../components/notification/notification'
 import { useAsyncData } from '../../../../hooks/use-async-data'
-import { getAffordabilityDisclaimerNotification } from '../../../../services/common'
+import { getAffordabilityDisclaimerNotification, setAffordabilityResult } from '../../../../services/common'
 import {
-  getAffordabilityCalculationMockData,
+  calculateAffordability,
+  type AffordabilityCalculationInput,
+  type AffordabilityCalculationResponse,
   type AffordabilitySummaryValueTone,
 } from '../../../../services/buyer'
 import { HouseOutlineIcon } from './generate-report-icons'
@@ -14,8 +17,6 @@ const INPUT_CLASS =
   '!border-relaive-primary/25 !bg-relaive-primary/[0.06] !text-relaive-navy [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
 
 const DollarIcon = <span className="text-sm font-medium">$</span>
-const PercentIcon = <span className="text-sm font-medium">%</span>
-const YearsIcon = <span className="text-xs font-medium">Yrs</span>
 
 function levelTextClass(tone?: AffordabilitySummaryValueTone): string {
   if (tone === 'orange') return 'text-orange-500'
@@ -41,9 +42,63 @@ type AffordabilityPanelProps = {
   onContinue: () => void
 }
 
+type AffordabilityFormState = AffordabilityCalculationInput
+
+const EMPTY_FORM: AffordabilityFormState = {
+  yourAnnualIncome: 0,
+  partnerAnnualIncome: 0,
+  availableDeposit: 0,
+  existingMonthlyDebt: 0,
+  monthlyLivingExpenses: 0,
+  councilRates: 0,
+  landlordInsurance: 0,
+}
+
+function numberField(value: number): number | '' {
+  return value === 0 ? '' : value
+}
+
 export function AffordabilityPanel({ onBack, onContinue }: AffordabilityPanelProps) {
-  const { data } = useAsyncData(getAffordabilityCalculationMockData, [])
   const { data: disclaimer } = useAsyncData(getAffordabilityDisclaimerNotification, [])
+  const [form, setForm] = useState<AffordabilityFormState>(EMPTY_FORM)
+  const [data, setData] = useState<AffordabilityCalculationResponse | null>(null)
+  const [calculationError, setCalculationError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    calculateAffordability(form)
+      .then((response) => {
+        if (cancelled) return
+        setData(response)
+        setCalculationError(null)
+        setAffordabilityResult({
+          estimatedBorrowingCapacity: response.estimatedBorrowingCapacity,
+          maxLoanAmount: response.maxLoanAmount,
+          repaymentToIncomePct: response.repaymentToIncomePct,
+        })
+      })
+      .catch((error: Error) => {
+        if (!cancelled) setCalculationError(error.message || 'Failed to calculate affordability.')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [form])
+
+  function handleChange(field: keyof AffordabilityFormState) {
+    return (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = Number(event.target.value)
+      setForm((current) => ({ ...current, [field]: Number.isFinite(value) ? value : 0 }))
+    }
+  }
+
+  if (calculationError) {
+    return (
+      <Card>
+        <p className="text-sm text-red-600">Unable to calculate affordability: {calculationError}</p>
+      </Card>
+    )
+  }
 
   if (!data || !disclaimer) {
     return (
@@ -67,9 +122,7 @@ export function AffordabilityPanel({ onBack, onContinue }: AffordabilityPanelPro
         </span>
         <div>
           <CardTitle>Affordability</CardTitle>
-          <p className="mt-0.5 text-sm text-relaive-gray">
-            Model your borrowing capacity — results will be included in your report
-          </p>
+          <p className="mt-0.5 text-sm text-relaive-gray">Model your borrowing capacity</p>
         </div>
       </div>
 
@@ -84,6 +137,8 @@ export function AffordabilityPanel({ onBack, onContinue }: AffordabilityPanelPro
                 type="number"
                 min={0}
                 step="any"
+                value={numberField(form.yourAnnualIncome)}
+                onChange={handleChange('yourAnnualIncome')}
                 startIcon={DollarIcon}
                 className={INPUT_CLASS}
               />
@@ -93,6 +148,8 @@ export function AffordabilityPanel({ onBack, onContinue }: AffordabilityPanelPro
                 type="number"
                 min={0}
                 step="any"
+                value={numberField(form.partnerAnnualIncome)}
+                onChange={handleChange('partnerAnnualIncome')}
                 startIcon={DollarIcon}
                 className={INPUT_CLASS}
               />
@@ -108,6 +165,8 @@ export function AffordabilityPanel({ onBack, onContinue }: AffordabilityPanelPro
                 type="number"
                 min={0}
                 step="any"
+                value={numberField(form.availableDeposit)}
+                onChange={handleChange('availableDeposit')}
                 startIcon={DollarIcon}
                 className={INPUT_CLASS}
               />
@@ -117,6 +176,8 @@ export function AffordabilityPanel({ onBack, onContinue }: AffordabilityPanelPro
                 type="number"
                 min={0}
                 step="any"
+                value={numberField(form.existingMonthlyDebt)}
+                onChange={handleChange('existingMonthlyDebt')}
                 startIcon={DollarIcon}
                 className={INPUT_CLASS}
               />
@@ -126,6 +187,8 @@ export function AffordabilityPanel({ onBack, onContinue }: AffordabilityPanelPro
                 type="number"
                 min={0}
                 step="any"
+                value={numberField(form.monthlyLivingExpenses)}
+                onChange={handleChange('monthlyLivingExpenses')}
                 startIcon={DollarIcon}
                 className={INPUT_CLASS}
               />
@@ -136,21 +199,25 @@ export function AffordabilityPanel({ onBack, onContinue }: AffordabilityPanelPro
             <h4 className="text-sm font-semibold text-relaive-navy sm:text-base">Loan Details</h4>
             <div className="mt-4 flex flex-col gap-4">
               <Input
-                id="affordability-interest-rate"
-                label="Interest Rate"
+                id="affordability-council-rates"
+                label="Council Rates"
                 type="number"
                 min={0}
                 step="any"
-                endIcon={PercentIcon}
+                value={numberField(form.councilRates)}
+                onChange={handleChange('councilRates')}
+                startIcon={DollarIcon}
                 className={INPUT_CLASS}
               />
               <Input
-                id="affordability-loan-term"
-                label="Loan Term"
+                id="affordability-landlord-insurance"
+                label="Landlord Insurance"
                 type="number"
                 min={0}
                 step="any"
-                endIcon={YearsIcon}
+                value={numberField(form.landlordInsurance)}
+                onChange={handleChange('landlordInsurance')}
+                startIcon={DollarIcon}
                 className={INPUT_CLASS}
               />
             </div>
@@ -164,7 +231,7 @@ export function AffordabilityPanel({ onBack, onContinue }: AffordabilityPanelPro
               {borrowingCapacity?.value}
             </p>
             <p className="mt-1 text-xs text-white/70 sm:text-sm">
-              Based on your income and a 30% debt service ratio
+              Based on your income and expenses, assuming a 6.5% p.a. rate over 30 years
             </p>
 
             <div className="mt-5 grid grid-cols-2 gap-3">

@@ -38,49 +38,73 @@ async function main() {
   })
 
   await prisma.comparableSale.deleteMany()
-  await prisma.comparableSale.createMany({
-    data: [
-      {
-        addressLine: '12 Seaview Street',
-        suburb: 'Richmond',
-        state: 'VIC',
-        postcode: '3121',
-        propertyType: 'House',
-        bedrooms: 3,
-        bathrooms: 2,
-        parking: 1,
-        areaSqm: 420,
-        soldPrice: 1250000,
-        soldDate: new Date('2026-06-10'),
+  await prisma.property.deleteMany()
+
+  const comparableSeeds = [
+    {
+      addressLine: '12 Seaview Street',
+      suburb: 'Richmond',
+      state: 'VIC',
+      postcode: '3121',
+      propertyType: 'House',
+      bedrooms: 3,
+      bathrooms: 2,
+      parking: 1,
+      areaSqm: 420,
+      soldPrice: 1250000,
+      soldDate: new Date('2026-06-10'),
+    },
+    {
+      addressLine: '44 Garden Avenue',
+      suburb: 'Richmond',
+      state: 'VIC',
+      postcode: '3121',
+      propertyType: 'House',
+      bedrooms: 4,
+      bathrooms: 2,
+      parking: 2,
+      areaSqm: 480,
+      soldPrice: 1420000,
+      soldDate: new Date('2026-07-02'),
+    },
+    {
+      addressLine: '9 Church Street',
+      suburb: 'Richmond',
+      state: 'VIC',
+      postcode: '3121',
+      propertyType: 'Unit',
+      bedrooms: 2,
+      bathrooms: 1,
+      parking: 1,
+      areaSqm: 95,
+      soldPrice: 620000,
+      soldDate: new Date('2026-05-18'),
+    },
+  ]
+
+  for (const seed of comparableSeeds) {
+    const property = await prisma.property.create({
+      data: {
+        addressLine: seed.addressLine,
+        suburb: seed.suburb,
+        state: seed.state,
+        postcode: seed.postcode,
+        propertyType: seed.propertyType,
+        bedrooms: seed.bedrooms,
+        bathrooms: seed.bathrooms,
+        parking: seed.parking,
+        areaSqm: seed.areaSqm,
       },
-      {
-        addressLine: '44 Garden Avenue',
-        suburb: 'Richmond',
-        state: 'VIC',
-        postcode: '3121',
-        propertyType: 'House',
-        bedrooms: 4,
-        bathrooms: 2,
-        parking: 2,
-        areaSqm: 480,
-        soldPrice: 1420000,
-        soldDate: new Date('2026-07-02'),
+    })
+
+    await prisma.comparableSale.create({
+      data: {
+        propertyId: property.propertyId,
+        soldPrice: seed.soldPrice,
+        soldDate: seed.soldDate,
       },
-      {
-        addressLine: '9 Church Street',
-        suburb: 'Richmond',
-        state: 'VIC',
-        postcode: '3121',
-        propertyType: 'Unit',
-        bedrooms: 2,
-        bathrooms: 1,
-        parking: 1,
-        areaSqm: 95,
-        soldPrice: 620000,
-        soldDate: new Date('2026-05-18'),
-      },
-    ],
-  })
+    })
+  }
 
   await prisma.marketIntelligence.deleteMany()
   await prisma.marketIntelligence.create({

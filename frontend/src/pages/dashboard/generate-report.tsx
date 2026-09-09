@@ -134,18 +134,6 @@ export function GenerateReport() {
     setHasHydratedFromSavedReport(true)
   }, [selectedReportId, selectedReport])
 
-  const initialTemplateId = useMemo(() => {
-    if (!selectedReport?.narrativeText) return undefined
-    const match = selectedReport.narrativeText.match(/^\[([^\]]+)\]\s*/)
-    return match?.[1]
-  }, [selectedReport])
-
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>(undefined)
-
-  useEffect(() => {
-    if (initialTemplateId) setSelectedTemplateId(initialTemplateId)
-  }, [initialTemplateId])
-
   const handleStepOneContinue = (context?: AppraisalInputContext) => {
     if (context) {
       setAppraisalInputContext(context)
@@ -208,11 +196,7 @@ export function GenerateReport() {
             hasHydratedFromSavedReport ? (
               <ReportConfigurationPanel
                 onBack={() => goToStep(extraStep ? 3 : 2)}
-                onContinue={(templateId) => {
-                  setSelectedTemplateId(templateId)
-                  goToStep(generatedIndex)
-                }}
-                initialSelectedTemplateId={selectedTemplateId}
+                onContinue={() => goToStep(generatedIndex)}
               />
             ) : (
               <div className="rounded-2xl border border-black/5 bg-white px-5 py-8 text-sm text-relaive-gray">
@@ -224,12 +208,9 @@ export function GenerateReport() {
           {currentStep === generatedIndex ? (
             hasHydratedFromSavedReport ? (
               <GeneratedReportContainer
-                selectedTemplateId={selectedTemplateId}
                 onBack={() => goToStep(reportTypeIndex)}
-                onGenerateAnother={() => {
-                  setSelectedTemplateId(undefined)
-                  goToStep(0)
-                }}
+                onGenerateAnother={() => goToStep(0)}
+                savedReport={selectedReport ?? null}
               />
             ) : (
               <div className="rounded-2xl border border-black/5 bg-white px-5 py-8 text-sm text-relaive-gray">

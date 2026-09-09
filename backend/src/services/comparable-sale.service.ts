@@ -21,16 +21,16 @@ function monthsAgo(months: number): Date {
 }
 
 function similarityScore(
-    row: { propertyType: string; bedrooms: number; bathrooms: number; parking: number },
+    row: { property: { propertyType: string; bedrooms: number; bathrooms: number; parking: number } },
     subject: ComparableSubject,
 ): number {
     let score = 0
-    if (subject.propertyType && row.propertyType.toLowerCase() === subject.propertyType.toLowerCase()) {
+    if (subject.propertyType && row.property.propertyType.toLowerCase() === subject.propertyType.toLowerCase()) {
         score += 3
     }
-    if (typeof subject.bedrooms === 'number') score -= Math.abs(row.bedrooms - subject.bedrooms)
-    if (typeof subject.bathrooms === 'number') score -= Math.abs(row.bathrooms - subject.bathrooms)
-    if (typeof subject.parking === 'number') score -= Math.abs(row.parking - subject.parking)
+    if (typeof subject.bedrooms === 'number') score -= Math.abs(row.property.bedrooms - subject.bedrooms)
+    if (typeof subject.bathrooms === 'number') score -= Math.abs(row.property.bathrooms - subject.bathrooms)
+    if (typeof subject.parking === 'number') score -= Math.abs(row.property.parking - subject.parking)
     return score
 }
 
@@ -38,10 +38,13 @@ export async function findComparablesInSuburb(
     subject: ComparableSubject,
     options: { dateRangeMonths?: number } = {},
 ) {
-    const all = await prisma.comparableSale.findMany({ orderBy: { soldDate: 'desc' } })
+    const all = await prisma.comparableSale.findMany({
+        orderBy: { soldDate: 'desc' },
+        include: { property: true },
+    })
 
     const sameSuburb = all.filter(
-        (row) => row.suburb.trim().toLowerCase() === subject.suburb.trim().toLowerCase(),
+        (row) => row.property.suburb.trim().toLowerCase() === subject.suburb.trim().toLowerCase(),
     )
 
     const withinRange = options.dateRangeMonths

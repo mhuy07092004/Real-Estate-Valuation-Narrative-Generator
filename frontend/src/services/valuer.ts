@@ -44,6 +44,19 @@ export function getValuerCaseListMockData(): Promise<CaseItem[]> {
   return fetchJson('/api/valuer/cases')
 }
 
+export type UpdateCaseInput = {
+  addressLine?: string
+  status?: CaseItem['status']
+}
+
+export function updateValuerCase(id: string, input: UpdateCaseInput): Promise<CaseItem> {
+  return fetchJson(`/api/valuer/cases/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+}
+
 export function getValuerNotifications(): Promise<InboxNotification[]> {
   return fetchJson('/api/valuer/notifications')
 }

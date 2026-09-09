@@ -27,6 +27,17 @@ function formatSignedDays(value: number): string {
   return `${sign}${value} day${Math.abs(value) === 1 ? '' : 's'}`
 }
 
+// null means genuinely unknown for this suburb (e.g. bulk-imported sold
+// listings with no rental data or original listing date) — shown as an
+// honest "N/A", never a fabricated number.
+function formatSignedPctOrNA(value: number | null, decimals = 1): string {
+  return value === null ? 'N/A' : formatSignedPct(value, decimals)
+}
+
+function formatSignedDaysOrNA(value: number | null): string {
+  return value === null ? 'N/A' : formatSignedDays(value)
+}
+
 // Splits a combined query like "Richmond VIC" into suburb + state — the
 // last whitespace-separated token is treated as the state.
 function splitSuburbState(suburbQuery: string): { suburb: string; state?: string } {
@@ -63,10 +74,14 @@ export async function getMarketInsightsForSuburb(suburbQuery: string) {
       medianPriceTrend: formatSignedPct(row.medianPriceGrowthPct),
       monthlyGrowth: formatSignedPct(row.monthlyGrowthPct, 2),
       monthlyGrowthTrend: formatSignedPp(row.monthlyGrowthTrendPp),
+      // null (not derivable from bulk sold-listing data — no time-on-market
+      // or rental data to compute from) — the frontend must render this
+      // honestly as "N/A" once it's wired to real data, not as the literal
+      // string "null".
       daysOnMarket: row.daysOnMarket,
-      daysOnMarketTrend: formatSignedDays(row.daysOnMarketTrendDays),
-      rentalYield: `${row.rentalYieldPct.toFixed(1)}%`,
-      rentalYieldTrend: formatSignedPct(row.rentalYieldTrendPct),
+      daysOnMarketTrend: formatSignedDaysOrNA(row.daysOnMarketTrendDays),
+      rentalYield: row.rentalYieldPct === null ? 'N/A' : `${row.rentalYieldPct.toFixed(1)}%`,
+      rentalYieldTrend: formatSignedPctOrNA(row.rentalYieldTrendPct),
     },
     priceTrend,
   }
@@ -87,8 +102,8 @@ export async function getMarketIntelligenceOverviewForSuburb(suburb: string, sta
     stats: [
       { id: 'median-price', label: 'Median Price', value: formatCompactCurrency(row.medianPrice), trend: formatSignedPct(row.medianPriceGrowthPct) },
       { id: 'monthly-growth', label: 'Monthly Growth', value: formatSignedPct(row.monthlyGrowthPct, 2), trend: formatSignedPp(row.monthlyGrowthTrendPp) },
-      { id: 'days-on-market', label: 'Days on Market', value: String(row.daysOnMarket), trend: formatSignedDays(row.daysOnMarketTrendDays) },
-      { id: 'rental-yield', label: 'Rental Yield', value: `${row.rentalYieldPct.toFixed(1)}%`, trend: formatSignedPct(row.rentalYieldTrendPct) },
+      { id: 'days-on-market', label: 'Days on Market', value: row.daysOnMarket === null ? 'N/A' : String(row.daysOnMarket), trend: formatSignedDaysOrNA(row.daysOnMarketTrendDays) },
+      { id: 'rental-yield', label: 'Rental Yield', value: row.rentalYieldPct === null ? 'N/A' : `${row.rentalYieldPct.toFixed(1)}%`, trend: formatSignedPctOrNA(row.rentalYieldTrendPct) },
     ],
     priceTrend,
   }

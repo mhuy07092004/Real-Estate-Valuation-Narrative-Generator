@@ -1,11 +1,14 @@
+import { useEffect, useState } from 'react'
 import { Card, CardTitle } from '../../../../components/ui/card/card'
 import { Input } from '../../../../components/ui/input/input'
 import { StatCard } from '../../../../components/ui/stat-card/stat-card'
 import { Notification } from '../../../../components/notification/notification'
 import { useAsyncData } from '../../../../hooks/use-async-data'
-import { getRoiDisclaimerNotification } from '../../../../services/common'
+import { getAppraisalSummary, getRoiDisclaimerNotification, setRoiResult } from '../../../../services/common'
 import {
-  getRoiCalculationMockData,
+  calculateRoi,
+  type RoiCalculationInput,
+  type RoiCalculationResponse,
   type RoiReturnTone,
   type RoiSummaryTone,
 } from '../../../../services/investor'
@@ -26,6 +29,12 @@ const numberFormatter = new Intl.NumberFormat('en-AU', {
 function formatSignedCurrency(amount: number): string {
   const formatted = `$${numberFormatter.format(Math.abs(amount))}`
   return amount < 0 ? `-${formatted}` : formatted
+}
+
+function parseCurrency(value: string): number {
+  const digits = value.replace(/[^\d]/g, '')
+  const parsed = Number(digits)
+  return Number.isFinite(parsed) ? parsed : 0
 }
 
 function summaryAmountClass(tone: RoiSummaryTone, amount: number): string {
@@ -67,11 +76,83 @@ type RoiAnalysisPanelProps = {
   onContinue: () => void
 }
 
-export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) {
-  const { data } = useAsyncData(getRoiCalculationMockData, [])
-  const { data: disclaimer } = useAsyncData(getRoiDisclaimerNotification, [])
+type RoiFormState = RoiCalculationInput
 
-  if (!data || !disclaimer) {
+const EMPTY_FORM: RoiFormState = {
+  purchasePrice: 0,
+  deposit: 0,
+  interestRate: 0,
+  loanTermYears: 0,
+  weeklyRent: 0,
+  vacancyAllowance: 0,
+  managementFee: 0,
+  councilRates: 0,
+  landlordInsurance: 0,
+  maintenance: 0,
+  landTax: 0,
+}
+
+function numberField(value: number): number | '' {
+  return value === 0 ? '' : value
+}
+
+export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) {
+  const { data: disclaimer } = useAsyncData(getRoiDisclaimerNotification, [])
+  const { data: appraisalSummary } = useAsyncData(getAppraisalSummary, [])
+
+  const [form, setForm] = useState<RoiFormState>(EMPTY_FORM)
+  const [hasPrefilledPrice, setHasPrefilledPrice] = useState(false)
+  const [result, setResult] = useState<RoiCalculationResponse | null>(null)
+  const [calculationError, setCalculationError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (hasPrefilledPrice || !appraisalSummary) return
+    const estimated = parseCurrency(appraisalSummary.midpointEstimate)
+    if (estimated > 0) {
+      setForm((current) => ({ ...current, purchasePrice: estimated }))
+    }
+    setHasPrefilledPrice(true)
+  }, [appraisalSummary, hasPrefilledPrice])
+
+  useEffect(() => {
+    let cancelled = false
+    calculateRoi(form)
+      .then((response) => {
+        if (cancelled) return
+        setResult(response)
+        setCalculationError(null)
+        setRoiResult({
+          grossYieldPct: response.grossYieldPct,
+          netYieldPct: response.netYieldPct,
+          monthlyCashFlow: response.monthlyCashFlow,
+          cashOnCashReturnPct: response.cashOnCashReturnPct,
+        })
+      })
+      .catch((error: Error) => {
+        if (cancelled) return
+        setCalculationError(error.message || 'Failed to calculate ROI.')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [form])
+
+  function handleChange(field: keyof RoiFormState) {
+    return (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = Number(event.target.value)
+      setForm((current) => ({ ...current, [field]: Number.isFinite(value) ? value : 0 }))
+    }
+  }
+
+  if (calculationError) {
+    return (
+      <Card>
+        <p className="text-sm text-red-600">Unable to calculate ROI: {calculationError}</p>
+      </Card>
+    )
+  }
+
+  if (!disclaimer || !result) {
     return (
       <Card>
         <p className="text-sm text-relaive-gray">Loading ROI analysis…</p>
@@ -87,9 +168,7 @@ export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) 
         </span>
         <div>
           <CardTitle>ROI Analysis</CardTitle>
-          <p className="mt-0.5 text-sm text-relaive-gray">
-            Estimate rental return and cash flow — results will be included in your report
-          </p>
+          <p className="mt-0.5 text-sm text-relaive-gray">Estimate rental return and cash flow</p>
         </div>
       </div>
 
@@ -108,6 +187,8 @@ export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) 
                 type="number"
                 min={0}
                 step="any"
+                value={numberField(form.purchasePrice)}
+                onChange={handleChange('purchasePrice')}
                 startIcon={DollarIcon}
                 className={INPUT_CLASS}
               />
@@ -117,6 +198,8 @@ export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) 
                 type="number"
                 min={0}
                 step="any"
+                value={numberField(form.deposit)}
+                onChange={handleChange('deposit')}
                 startIcon={DollarIcon}
                 className={INPUT_CLASS}
               />
@@ -126,6 +209,8 @@ export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) 
                 type="number"
                 min={0}
                 step="any"
+                value={numberField(form.interestRate)}
+                onChange={handleChange('interestRate')}
                 endIcon={PercentIcon}
                 className={INPUT_CLASS}
               />
@@ -135,6 +220,8 @@ export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) 
                 type="number"
                 min={0}
                 step="any"
+                value={numberField(form.loanTermYears)}
+                onChange={handleChange('loanTermYears')}
                 endIcon={YearsIcon}
                 className={INPUT_CLASS}
               />
@@ -150,6 +237,8 @@ export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) 
                 type="number"
                 min={0}
                 step="any"
+                value={numberField(form.weeklyRent)}
+                onChange={handleChange('weeklyRent')}
                 startIcon={DollarIcon}
                 className={INPUT_CLASS}
               />
@@ -159,6 +248,8 @@ export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) 
                 type="number"
                 min={0}
                 step="any"
+                value={numberField(form.vacancyAllowance)}
+                onChange={handleChange('vacancyAllowance')}
                 endIcon={PercentIcon}
                 className={INPUT_CLASS}
               />
@@ -168,6 +259,8 @@ export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) 
                 type="number"
                 min={0}
                 step="any"
+                value={numberField(form.managementFee)}
+                onChange={handleChange('managementFee')}
                 endIcon={PercentIcon}
                 className={INPUT_CLASS}
               />
@@ -183,6 +276,8 @@ export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) 
                 type="number"
                 min={0}
                 step="any"
+                value={numberField(form.councilRates)}
+                onChange={handleChange('councilRates')}
                 startIcon={DollarIcon}
                 className={INPUT_CLASS}
               />
@@ -192,6 +287,8 @@ export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) 
                 type="number"
                 min={0}
                 step="any"
+                value={numberField(form.landlordInsurance)}
+                onChange={handleChange('landlordInsurance')}
                 startIcon={DollarIcon}
                 className={INPUT_CLASS}
               />
@@ -201,6 +298,8 @@ export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) 
                 type="number"
                 min={0}
                 step="any"
+                value={numberField(form.maintenance)}
+                onChange={handleChange('maintenance')}
                 startIcon={DollarIcon}
                 className={INPUT_CLASS}
               />
@@ -210,6 +309,8 @@ export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) 
                 type="number"
                 min={0}
                 step="any"
+                value={numberField(form.landTax)}
+                onChange={handleChange('landTax')}
                 startIcon={DollarIcon}
                 className={INPUT_CLASS}
               />
@@ -221,8 +322,8 @@ export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) 
           <div className="rounded-2xl border border-black/5 p-4 sm:p-5">
             <h4 className="text-sm font-semibold text-relaive-navy sm:text-base">Annual Summary</h4>
             <div className="mt-2">
-              {data.annualSummary.map((row, index) => {
-                const isLast = index === data.annualSummary.length - 1
+              {result.annualSummary.map((row, index) => {
+                const isLast = index === result.annualSummary.length - 1
                 const isNet = row.tone === 'net'
                 return (
                   <SummaryRow
@@ -239,7 +340,7 @@ export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) 
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {data.metrics.map((metric) => (
+            {result.metrics.map((metric) => (
               <StatCard
                 key={metric.label}
                 label={metric.label}
@@ -254,13 +355,13 @@ export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) 
           <div className="rounded-2xl border border-black/5 p-4 sm:p-5">
             <h4 className="text-sm font-semibold text-relaive-navy sm:text-base">Investment Returns</h4>
             <div className="mt-2">
-              {data.investmentReturns.map((row, index) => (
+              {result.investmentReturns.map((row, index) => (
                 <SummaryRow
                   key={row.label}
                   label={row.label}
                   value={row.display}
                   valueClassName={returnAmountClass(row.tone)}
-                  isLast={index === data.investmentReturns.length - 1}
+                  isLast={index === result.investmentReturns.length - 1}
                 />
               ))}
             </div>

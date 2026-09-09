@@ -72,8 +72,8 @@ export type GeneratedReportPanelProps = {
   reportSubtitle: string
   headerStats: ReportHeaderStat[]
   sections: GeneratedReportSection[]
-  twoColumnSection: GeneratedReportTwoColumnSection
-  metricCards: GeneratedReportMetricCard[]
+  twoColumnSection?: GeneratedReportTwoColumnSection
+  metricCards?: GeneratedReportMetricCard[]
   metricCardsIntro?: string
   table: GeneratedReportTable
   summaryResult: GeneratedReportSummaryResult
@@ -226,46 +226,50 @@ export function GeneratedReportPanel({
             </section>
           ))}
 
-          <section>
-            <SectionDivider label={twoColumnSection.title} />
-            <div className="mt-5 grid gap-6 lg:grid-cols-[3fr_2fr]">
-              <div className="space-y-4 text-sm leading-relaxed text-relaive-navy sm:text-[15px]">
-                {twoColumnSection.paragraphs.map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
+          {twoColumnSection ? (
+            <section>
+              <SectionDivider label={twoColumnSection.title} />
+              <div className="mt-5 grid gap-6 lg:grid-cols-[3fr_2fr]">
+                <div className="space-y-4 text-sm leading-relaxed text-relaive-navy sm:text-[15px]">
+                  {twoColumnSection.paragraphs.map((paragraph, index) => (
+                    <p key={index}>{paragraph}</p>
+                  ))}
+                </div>
+
+                <div className="rounded-2xl bg-slate-50 p-5 sm:p-6">
+                  <h4 className="text-xs font-semibold tracking-[0.06em] text-relaive-gray uppercase">
+                    {twoColumnSection.highlightsTitle}
+                  </h4>
+                  <ul className="mt-4 flex flex-col gap-3">
+                    {twoColumnSection.highlights.map((highlight, index) => (
+                      <li key={index} className="flex items-start gap-2.5 text-sm text-relaive-navy">
+                        <span className="mt-0.5 shrink-0 rounded-full bg-relaive-primary/15 p-0.5 text-relaive-primary">
+                          <CheckCircleIcon size={15} />
+                        </span>
+                        <span className="leading-snug">{highlight}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          {metricCards && metricCards.length > 0 ? (
+            <section>
+              <SectionDivider label="Market Analysis" />
+              {metricCardsIntro ? (
+                <p className="mt-5 text-sm leading-relaxed text-relaive-navy sm:text-[15px]">
+                  {metricCardsIntro}
+                </p>
+              ) : null}
+              <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                {metricCards.map((card) => (
+                  <MetricTrendCard key={card.id} card={card} />
                 ))}
               </div>
-
-              <div className="rounded-2xl bg-slate-50 p-5 sm:p-6">
-                <h4 className="text-xs font-semibold tracking-[0.06em] text-relaive-gray uppercase">
-                  {twoColumnSection.highlightsTitle}
-                </h4>
-                <ul className="mt-4 flex flex-col gap-3">
-                  {twoColumnSection.highlights.map((highlight, index) => (
-                    <li key={index} className="flex items-start gap-2.5 text-sm text-relaive-navy">
-                      <span className="mt-0.5 shrink-0 rounded-full bg-relaive-primary/15 p-0.5 text-relaive-primary">
-                        <CheckCircleIcon size={15} />
-                      </span>
-                      <span className="leading-snug">{highlight}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          <section>
-            <SectionDivider label="Market Analysis" />
-            {metricCardsIntro ? (
-              <p className="mt-5 text-sm leading-relaxed text-relaive-navy sm:text-[15px]">
-                {metricCardsIntro}
-              </p>
-            ) : null}
-            <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              {metricCards.map((card) => (
-                <MetricTrendCard key={card.id} card={card} />
-              ))}
-            </div>
-          </section>
+            </section>
+          ) : null}
 
           <section>
             <SectionDivider label={table.title} />

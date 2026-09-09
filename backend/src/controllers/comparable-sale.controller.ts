@@ -30,23 +30,25 @@ function soldAgoLabel(soldDate: Date): string {
 
 function toComparableSaleResponse(row: {
     comparableId: string
-    addressLine: string
     soldPrice: number
     soldDate: Date
-    bedrooms: number
-    bathrooms: number
-    parking: number
-    areaSqm: number
+    property: {
+        addressLine: string
+        bedrooms: number
+        bathrooms: number
+        parking: number
+        areaSqm: number
+    }
 }) {
     return {
         id: row.comparableId,
-        address: row.addressLine,
+        address: row.property.addressLine,
         price: row.soldPrice,
         soldAgo: soldAgoLabel(row.soldDate),
-        beds: row.bedrooms,
-        baths: row.bathrooms,
-        parking: row.parking,
-        areaSqm: row.areaSqm,
+        beds: row.property.bedrooms,
+        baths: row.property.bathrooms,
+        parking: row.property.parking,
+        areaSqm: row.property.areaSqm,
         matchPercent: 0,
         distanceKm: 0,
     }
@@ -103,9 +105,12 @@ export async function searchComparableSales(req: Request, res: Response) {
 
     const isMatch = rows.length > 0
 
+    // subjectProperty always describes what was searched, match or not — the
+    // "Save Property" button lives on this card, so nulling it out on a match
+    // silently killed the button for every successful search.
     res.json({
         isMatch,
-        subjectProperty: isMatch ? null : fallbackSubjectProperty,
+        subjectProperty: fallbackSubjectProperty,
         sales: rows.map(toComparableSaleResponse),
     })
 }

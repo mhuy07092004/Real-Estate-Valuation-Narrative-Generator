@@ -44,3 +44,6 @@ __pycache__/
 
 #private file
 claude.md
+
+# Large raw data dump — not meant to live in git history
+data_ai/bronze_listings.csv

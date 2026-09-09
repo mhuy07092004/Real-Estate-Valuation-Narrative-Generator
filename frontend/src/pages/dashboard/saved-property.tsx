@@ -9,6 +9,7 @@ import { PropertyGridSkeleton } from '../../features/dashboard/components/proper
 import { useAsyncData } from '../../hooks/use-async-data'
 import { getAgentSavedProperties } from '../../services/agent'
 import { getSavedProperties } from '../../services/buyer'
+import { deleteSavedProperty } from '../../services/common'
 import { getInvestorSavedProperties } from '../../services/investor'
 import { getValuerSavedEvidence } from '../../services/valuer'
 
@@ -91,9 +92,10 @@ export function SavedProperty() {
                 key={item.id}
                 property={item}
                 compareTo={config.compareTo}
-                onRemove={(id) =>
+                onRemove={async (id) => {
+                  await deleteSavedProperty(id)
                   setItems((current) => current.filter((entry) => entry.id !== id))
-                }
+                }}
               />
             ))
           )}

@@ -17,6 +17,8 @@ export type PropertyCardData = {
 type PropertyCardProps = {
   property: PropertyCardData
   className?: string
+  saved?: boolean
+  onSave?: () => void
 }
 
 const STATUS_STYLES: Record<
@@ -174,7 +176,7 @@ function HeartIcon({ className = '' }: { className?: string }) {
   )
 }
 
-export function PropertyCard({ property, className = '' }: PropertyCardProps) {
+export function PropertyCard({ property, className = '', saved = false, onSave }: PropertyCardProps) {
   const { address, features, estimatedRange, status } = property
   const statusStyle = STATUS_STYLES[status]
   const parkingLabel =
@@ -199,8 +201,15 @@ export function PropertyCard({ property, className = '' }: PropertyCardProps) {
           </button>
           <button
             type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-relaive-navy shadow-[0_2px_8px_rgba(26,32,44,0.08)] transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
-            aria-label="Save property"
+            className={`flex h-8 w-8 items-center justify-center rounded-full shadow-[0_2px_8px_rgba(26,32,44,0.08)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary ${
+              saved
+                ? 'bg-relaive-primary text-white'
+                : 'bg-white text-relaive-navy hover:bg-slate-50'
+            }`}
+            aria-label={saved ? 'Saved' : 'Save property'}
+            aria-pressed={saved}
+            disabled={saved}
+            onClick={onSave}
           >
             <HeartIcon />
           </button>

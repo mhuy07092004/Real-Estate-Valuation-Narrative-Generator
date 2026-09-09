@@ -93,12 +93,10 @@ export type CaseItem = {
   id: string
   address: string
   suburb: string
-  clientName: string
+  clientName: string | null
   status: CaseStatus
-  purpose: string
   confidence: number | null
   updatedAt: string
-  hasWarning: boolean
 }
 
 type ApiSuccess<T> = {

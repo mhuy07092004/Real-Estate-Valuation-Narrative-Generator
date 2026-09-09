@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState, type ReactElement } from 'react'
+import { createPortal } from 'react-dom'
 import dayjs from 'dayjs'
 import { Button } from '../../../components/ui/button/button'
 import { Card } from '../../../components/ui/card/card'
+import { Input } from '../../../components/ui/input/input'
 import { HomeIcon, PlusIcon, UserIcon } from '../../../components/ui/navbar/dashboard-navbar-icons'
 import { useAsyncData } from '../../../hooks/use-async-data'
 import { ListSkeleton } from '../../../features/dashboard/components/list-row-skeleton'
 import {
+  createInspection,
   getBuyerInspections,
   saveBuyerInspection,
   type BuyerInspection,
@@ -307,6 +310,124 @@ function ChecklistRow({ item, onStatusChange, onDescriptionChange, onCostChange 
   )
 }
 
+function CloseIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+type NewInspectionForm = {
+  addressLine: string
+  suburb: string
+  inspectionDateTime: string // datetime-local input value
+  agentName: string
+}
+
+const EMPTY_NEW_INSPECTION_FORM: NewInspectionForm = {
+  addressLine: '',
+  suburb: '',
+  inspectionDateTime: '',
+  agentName: '',
+}
+
+type AddInspectionModalProps = {
+  form: NewInspectionForm
+  isValid: boolean
+  isSubmitting: boolean
+  errorMessage: string | null
+  onChange: (patch: Partial<NewInspectionForm>) => void
+  onCancel: () => void
+  onSubmit: () => void
+}
+
+function AddInspectionModal({
+  form,
+  isValid,
+  isSubmitting,
+  errorMessage,
+  onChange,
+  onCancel,
+  onSubmit,
+}: AddInspectionModalProps) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      onClick={onCancel}
+    >
+      <div
+        className="flex max-h-[90vh] w-full max-w-md flex-col rounded-2xl bg-white p-6 shadow-xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex shrink-0 items-center justify-between">
+          <h2 className="text-base font-semibold tracking-tight text-[#1C2A38]">Add Inspection</h2>
+          <button
+            type="button"
+            onClick={onCancel}
+            aria-label="Close"
+            className="flex size-7 items-center justify-center rounded-full text-relaive-gray hover:bg-black/5"
+          >
+            <CloseIcon />
+          </button>
+        </div>
+
+        <div className="mt-5 flex flex-col gap-4 overflow-y-auto">
+          <Input
+            label="Address *"
+            placeholder="e.g. 45 Clarendon St"
+            value={form.addressLine}
+            onChange={(event) => onChange({ addressLine: event.target.value })}
+          />
+          <Input
+            label="Suburb *"
+            placeholder="e.g. South Melbourne VIC 3205"
+            value={form.suburb}
+            onChange={(event) => onChange({ suburb: event.target.value })}
+          />
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="new-inspection-datetime" className="text-sm font-medium text-relaive-navy">
+              Inspection Date & Time *
+            </label>
+            <input
+              id="new-inspection-datetime"
+              type="datetime-local"
+              value={form.inspectionDateTime}
+              onChange={(event) => onChange({ inspectionDateTime: event.target.value })}
+              className="w-full rounded-lg border border-black/10 bg-white px-4 py-2.5 text-sm text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
+            />
+          </div>
+          <Input
+            label="Agent *"
+            placeholder="e.g. Sarah Chen"
+            value={form.agentName}
+            onChange={(event) => onChange({ agentName: event.target.value })}
+          />
+
+          {errorMessage ? (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{errorMessage}</p>
+          ) : null}
+        </div>
+
+        <div className="mt-6 flex shrink-0 items-center justify-end gap-3">
+          <Button variant="outline" size="sm" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            className="gap-1.5 rounded-full bg-[#5DA7AC] px-4 hover:bg-[#4E969B]"
+            disabled={!isValid || isSubmitting}
+            onClick={onSubmit}
+          >
+            <PlusIcon width={14} height={14} />
+            {isSubmitting ? 'Adding…' : 'Add Inspection'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
 export function Inspections() {
@@ -314,6 +435,10 @@ export function Inspections() {
   const [inspections, setInspections] = useState<BuyerInspection[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [newInspectionForm, setNewInspectionForm] = useState<NewInspectionForm>(EMPTY_NEW_INSPECTION_FORM)
+  const [isSubmittingInspection, setIsSubmittingInspection] = useState(false)
+  const [addInspectionError, setAddInspectionError] = useState<string | null>(null)
 
   useEffect(() => {
     if (data) {
@@ -334,6 +459,46 @@ export function Inspections() {
       issues.reduce((sum, item) => sum + (item.estimatedCost ?? 0), 0),
     [issues],
   )
+
+  const isNewInspectionValid =
+    newInspectionForm.addressLine.trim().length > 0 &&
+    newInspectionForm.suburb.trim().length > 0 &&
+    newInspectionForm.inspectionDateTime.trim().length > 0 &&
+    newInspectionForm.agentName.trim().length > 0
+
+  function handleNewInspectionChange(patch: Partial<NewInspectionForm>) {
+    setNewInspectionForm((current) => ({ ...current, ...patch }))
+  }
+
+  function closeAddInspectionModal() {
+    setIsAddOpen(false)
+    setNewInspectionForm(EMPTY_NEW_INSPECTION_FORM)
+    setAddInspectionError(null)
+  }
+
+  async function handleAddInspection() {
+    if (!isNewInspectionValid || isSubmittingInspection) return
+
+    setIsSubmittingInspection(true)
+    setAddInspectionError(null)
+
+    try {
+      const created = await createInspection({
+        addressLine: newInspectionForm.addressLine.trim(),
+        suburb: newInspectionForm.suburb.trim(),
+        inspectionDate: new Date(newInspectionForm.inspectionDateTime).toISOString(),
+        agents: [newInspectionForm.agentName.trim()],
+      })
+
+      setInspections((current) => [created, ...current])
+      setSelectedId(created.id)
+      closeAddInspectionModal()
+    } catch {
+      setAddInspectionError('Something went wrong adding this inspection. Please try again.')
+    } finally {
+      setIsSubmittingInspection(false)
+    }
+  }
 
   function handleSelect(id: string) {
     setSelectedId(id)
@@ -418,7 +583,11 @@ export function Inspections() {
               Track inspection checklists and property notes
             </p>
           </div>
-          <Button size="sm" className="gap-1.5 rounded-full bg-[#5DA7AC] px-4 hover:bg-[#4E969B]">
+          <Button
+            size="sm"
+            className="gap-1.5 rounded-full bg-[#5DA7AC] px-4 hover:bg-[#4E969B]"
+            onClick={() => setIsAddOpen(true)}
+          >
             <PlusIcon width={14} height={14} />
             Add Inspection
           </Button>
@@ -567,6 +736,24 @@ export function Inspections() {
           ) : null}
         </div>
       </div>
+
+      {isAddOpen
+        ? createPortal(
+            // Portalled straight to <body>, same reason as the Add Client
+            // modal: escapes the Lenis smooth-scroll wrapper's interference
+            // with `position: fixed` on descendants.
+            <AddInspectionModal
+              form={newInspectionForm}
+              isValid={isNewInspectionValid}
+              isSubmitting={isSubmittingInspection}
+              errorMessage={addInspectionError}
+              onChange={handleNewInspectionChange}
+              onCancel={closeAddInspectionModal}
+              onSubmit={handleAddInspection}
+            />,
+            document.body,
+          )
+        : null}
     </div>
   )
 }

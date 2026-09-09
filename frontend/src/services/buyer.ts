@@ -25,8 +25,30 @@ export type AffordabilityCalculationMock = {
   metrics: AffordabilityStatMetric[]
 }
 
-export function getAffordabilityCalculationMockData(): Promise<AffordabilityCalculationMock> {
-  return fetchJson('/api/buyer/affordability-calculation')
+export type AffordabilityCalculationInput = {
+  yourAnnualIncome: number
+  partnerAnnualIncome: number
+  availableDeposit: number
+  existingMonthlyDebt: number
+  monthlyLivingExpenses: number
+  councilRates: number
+  landlordInsurance: number
+}
+
+export type AffordabilityCalculationResponse = AffordabilityCalculationMock & {
+  estimatedBorrowingCapacity: number
+  maxLoanAmount: number
+  repaymentToIncomePct: number
+}
+
+export function calculateAffordability(
+  input: AffordabilityCalculationInput,
+): Promise<AffordabilityCalculationResponse> {
+  return fetchJson('/api/buyer/affordability-calculation', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
 }
 
 export function getSearchProperties(): Promise<PropertyCardData[]> {
@@ -79,6 +101,23 @@ export function saveBuyerInspection(inspection: BuyerInspection): Promise<BuyerI
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(inspection),
+  })
+}
+
+export type CreateInspectionInput = {
+  addressLine: string
+  suburb: string
+  inspectionDate: string // ISO
+  agents: string[]
+}
+
+// The backend attaches the default 10-item checklist and empty notes —
+// only the fields collected by the "Add Inspection" form are sent here.
+export function createInspection(input: CreateInspectionInput): Promise<BuyerInspection> {
+  return fetchJson('/api/buyer/inspections', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
   })
 }
 

@@ -9,7 +9,7 @@ import { getCaseStatusLabel } from '../../../components/ui/table/status-badge'
 import { useAsyncData } from '../../../hooks/use-async-data'
 import { ListSkeleton } from '../../../features/dashboard/components/list-row-skeleton'
 import type { CaseItem, CaseStatus } from '../../../services/dashboard'
-import { getValuerCaseListMockData } from '../../../services/valuer'
+import { getValuerCaseListMockData, updateValuerCase } from '../../../services/valuer'
 
 dayjs.extend(relativeTime)
 
@@ -98,8 +98,8 @@ function confidenceLabel(confidence: number | null) {
 type ValuationCaseCardProps = {
   item: CaseItem
   timeAgo: string
-  onAddressChange: (id: string, address: string) => void
-  onStatusChange: (id: string, status: CaseStatus) => void
+  onAddressChange: (id: string, address: string) => Promise<void>
+  onStatusChange: (id: string, status: CaseStatus) => Promise<void>
 }
 
 function ValuationCaseCard({
@@ -121,8 +121,11 @@ function ValuationCaseCard({
 
   function commitAddress() {
     const next = draftAddress.trim()
-    if (next && next !== item.address) onAddressChange(item.id, next)
-    else setDraftAddress(item.address)
+    if (next && next !== item.address) {
+      onAddressChange(item.id, next).catch(() => setDraftAddress(item.address))
+    } else {
+      setDraftAddress(item.address)
+    }
     setIsEditing(false)
   }
 
@@ -173,14 +176,10 @@ function ValuationCaseCard({
             </button>
           </div>
           <p className="mt-0.5 truncate text-xs text-relaive-gray sm:text-sm">
-            {item.clientName} · {item.suburb} · {timeAgo}
+            {item.clientName ?? 'No client'} · {item.suburb} · {timeAgo}
           </p>
           <p className="mt-1 text-xs font-semibold text-[#1C2A38] sm:hidden">
-            {item.purpose}
-            <span className="ml-2 font-normal text-relaive-gray">
-              {confidenceLabel(item.confidence)}
-              {item.hasWarning ? ' · Warning' : ''}
-            </span>
+            {confidenceLabel(item.confidence)}
           </p>
         </div>
 
@@ -189,12 +188,8 @@ function ValuationCaseCard({
           className="hidden shrink-0 text-right sm:block"
           onClick={openCase}
         >
-          <span className="block text-sm font-semibold tracking-tight text-[#1C2A38]">
-            {item.purpose}
-          </span>
-          <span className="mt-0.5 block text-xs text-relaive-gray sm:text-sm">
+          <span className="block text-xs text-relaive-gray sm:text-sm">
             {confidenceLabel(item.confidence)}
-            {item.hasWarning ? ' · Warning' : ''}
           </span>
         </button>
 
@@ -244,16 +239,14 @@ export function ValuationCases() {
     })
   }, [cases, recentFirst])
 
-  function handleAddressChange(id: string, address: string) {
-    setCases((current) =>
-      current.map((item) => (item.id === id ? { ...item, address } : item)),
-    )
+  async function handleAddressChange(id: string, address: string) {
+    const updated = await updateValuerCase(id, { addressLine: address })
+    setCases((current) => current.map((item) => (item.id === id ? updated : item)))
   }
 
-  function handleStatusChange(id: string, status: CaseStatus) {
-    setCases((current) =>
-      current.map((item) => (item.id === id ? { ...item, status } : item)),
-    )
+  async function handleStatusChange(id: string, status: CaseStatus) {
+    const updated = await updateValuerCase(id, { status })
+    setCases((current) => current.map((item) => (item.id === id ? updated : item)))
   }
 
   return (
