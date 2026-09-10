@@ -193,6 +193,12 @@ Endpoint: `GET /api/appraisal/narrative-preview?...&reportType=<vendor-appraisal
 
 ---
 
+## ✅ CI
+
+Every pull request into `main` or `dev` runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml): lint + typecheck + build for the frontend, and build + test for the backend. No CD/deploy automation yet — see below.
+
+---
+
 ## ☁️ Deploy backend (Docker → Docker Hub → Render)
 
 The backend ships as a Docker image (see [`backend/Dockerfile`](backend/Dockerfile)) built and pushed by hand — there's no CI automation for this yet.
