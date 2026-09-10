@@ -4,7 +4,7 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import type { CaseItem } from '../../../services/dashboard'
 import { ConfidenceBar } from './confidence-bar'
-import { ClockIcon, DataTable, WarningIcon, type DataTableTab } from './data-table'
+import { ClockIcon, DataTable, type DataTableTab } from './data-table'
 import { getCaseStatusLabel, StatusBadge } from './status-badge'
 
 dayjs.extend(relativeTime)
@@ -62,11 +62,6 @@ export function CaseTable({
             <div className="flex flex-col gap-1 py-1">
               <span className="inline-flex items-center gap-1 text-xs font-semibold text-relaive-primary">
                 {item.id}
-                {item.hasWarning && (
-                  <span className="text-orange-500" title="Needs attention">
-                    <WarningIcon />
-                  </span>
-                )}
               </span>
               <span className="text-sm font-bold text-relaive-navy">{item.address}</span>
               <span className="text-xs text-relaive-gray">
@@ -83,13 +78,6 @@ export function CaseTable({
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
         sortingFn: (rowA, rowB) =>
           getCaseStatusLabel(rowA.original.status).localeCompare(getCaseStatusLabel(rowB.original.status)),
-      },
-      {
-        id: 'purpose',
-        header: 'Purpose',
-        accessorFn: (row) => row.purpose,
-        enableSorting: false,
-        cell: ({ row }) => <span className="text-sm text-relaive-navy">{row.original.purpose}</span>,
       },
       {
         id: 'confidence',
@@ -133,7 +121,7 @@ export function CaseTable({
       searchFilter={(item, query) =>
         item.id.toLowerCase().includes(query) ||
         item.address.toLowerCase().includes(query) ||
-        item.clientName.toLowerCase().includes(query)
+        (item.clientName?.toLowerCase().includes(query) ?? false)
       }
       onRowClick={onRowClick}
       emptyMessage={emptyMessage}

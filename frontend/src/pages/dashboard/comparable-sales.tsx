@@ -114,7 +114,6 @@ export function ComparableSales({
     if (addressFromQuery.trim()) {
       handleSearch({ address: addressFromQuery, dateRange: '12m', propertyType: 'all' })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addressFromQuery])
 
   async function handleSave(subjectProperty: SubjectProperty) {

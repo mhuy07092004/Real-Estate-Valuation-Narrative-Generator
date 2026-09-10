@@ -7,18 +7,34 @@ import type {
   CopilotConversation,
   CopilotMessage,
   CopilotSuggestion,
-  DemandSignal,
   ExecutiveSummary,
   MarketIntelligenceOverview,
   NarrativePreview,
   NotificationMock,
   PropertyInputMethodOption,
-  PropertySpecificFactors,
   ReportTemplateOption,
   StepperStep,
   SuburbOverviewMetric,
 } from '../../../services/common'
 import { simulateLatency } from './mock-utils'
+
+// Mock-only shapes: dropped from services/common.ts when the real backend
+// replaced their endpoints, but this MSW demo layer still renders them.
+type DemandSignal = {
+  id: string
+  label: string
+  level: string
+  percent: number
+  tone: string
+}
+
+type PropertySpecificFactors = {
+  title: string
+  valueAddingTitle: string
+  valueAdding: { id: string; title: string; description: string }[]
+  riskTitle: string
+  risk: { id: string; title: string; description: string }[]
+}
 
 const ROI_DISCLAIMER: NotificationMock = {
   message:

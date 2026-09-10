@@ -230,11 +230,11 @@ export function updateClientNotes(id: string, notes: string): Promise<ClientItem
 }
 
 export class CreateClientError extends Error {
-  constructor(
-    message: string,
-    public errors?: Record<string, string>,
-  ) {
+  errors?: Record<string, string>
+
+  constructor(message: string, errors?: Record<string, string>) {
     super(message)
+    this.errors = errors
   }
 }
 
