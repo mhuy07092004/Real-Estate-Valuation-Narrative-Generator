@@ -7,7 +7,7 @@ import { useAsyncData } from '../../../hooks/use-async-data'
 import { MarketInsightsSkeleton } from '../../../features/dashboard/components/market-insights-skeleton'
 import {
   MARKET_INSIGHTS_KNOWN_SUBURBS,
-  getMarketInsightsMockData,
+  getMarketInsights,
 } from '../../../services/agent'
 
 const DEFAULT_SUBURB = 'Richmond VIC'
@@ -85,7 +85,7 @@ export function MarketInsights() {
   }, [suburbInput])
 
   const { data, isLoading } = useAsyncData(
-    () => getMarketInsightsMockData({ suburb: activeSuburb }),
+    () => getMarketInsights({ suburb: activeSuburb }),
     [activeSuburb],
   )
 
@@ -162,7 +162,7 @@ export function MarketInsights() {
                 tone="blue"
                 label="Days on Market"
                 hint="avg days listed"
-                value={String(data.stats.daysOnMarket)}
+                value={data.stats.daysOnMarket === null ? 'N/A' : String(data.stats.daysOnMarket)}
                 trend={`↘ ${data.stats.daysOnMarketTrend}`}
               />
               <StatCard

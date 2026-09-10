@@ -43,7 +43,10 @@ const STAGE_STYLES: Array<{
     barClassName: 'bg-relaive-navy',
     dotClassName: 'bg-relaive-navy',
     signalToneClassName: 'text-orange-500',
-    unit: ' listings',
+    // BACKEND-121: this key held "Inventory Movement" (a listings count, no
+    // real source) — now holds real Auction Clearance %, investor's only
+    // consumer of the 'signals' layout, so safe to change here.
+    unit: '%',
   },
 ]
 

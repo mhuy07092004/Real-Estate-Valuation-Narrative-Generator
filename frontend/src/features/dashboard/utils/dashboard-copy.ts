@@ -167,17 +167,22 @@ export const DASHBOARD_COPY_BY_ROLE: Record<DashboardRole, DashboardRoleCopy> = 
       hideTotal: true,
       style: 'dots',
     },
+    // BACKEND-121: relabeled to match what's actually real (see the ticket)
+    // — dropped "Trend"/"Change" since we only have current values, not real
+    // trends, and swapped "Inventory Movement" (no real source) for "Auction
+    // Clearance" (real, via the same MarketIntelligence data as Market
+    // Comparison). One real suburb (Orange NSW) instead of 4 fake ones.
     pipeline: {
       title: 'Market Signals',
-      prospecting: 'Vacancy Rate Change',
-      appraisalSent: 'Price Momentum',
-      listing: 'Rental Yield Trend',
-      sold: 'Inventory Movement',
+      prospecting: 'Price Momentum',
+      appraisalSent: 'Rental Yield',
+      listing: 'Vacancy Rate',
+      sold: 'Auction Clearance',
       subtitles: {
-        prospecting: 'Richmond VIC',
-        appraisalSent: 'Brunswick VIC',
-        listing: 'Footscray VIC',
-        sold: 'Fitzroy VIC',
+        prospecting: 'Orange NSW',
+        appraisalSent: 'Orange NSW',
+        listing: 'Orange NSW',
+        sold: 'Orange NSW',
       },
       viewAllLabel: 'Market comparison →',
       viewAllTo: '/dashboard/investor/report',
@@ -235,24 +240,20 @@ export const DASHBOARD_COPY_BY_ROLE: Record<DashboardRole, DashboardRoleCopy> = 
       viewAllLabel: 'View all reports >',
       viewAllTo: '/dashboard/buyer/report',
     },
+    // BACKEND-122: renamed from "Melbourne Market" — factually wrong once
+    // showing a non-Melbourne suburb; was also 100% hardcoded static text
+    // that never touched any API. `values`/`trends` are now filled in for
+    // real at request time (see loadBuyerMarketSnapshot in dashboard.ts),
+    // not hardcoded here — left absent below so a stale fallback can never
+    // silently reappear if that real fetch is ever skipped.
     pipeline: {
-      title: 'Melbourne Market',
+      title: 'Market Snapshot',
       prospecting: 'Median House Price',
       appraisalSent: 'Days on Market',
       listing: 'Rental Yield',
       sold: '',
       viewAllLabel: 'Full market intelligence >',
       viewAllTo: '/dashboard/buyer/search-properties',
-      values: {
-        prospecting: '$1.28M',
-        appraisalSent: '22 days',
-        listing: '3.4%',
-      },
-      trends: {
-        prospecting: '+6.2%',
-        appraisalSent: '-3 days',
-        listing: '+0.2%',
-      },
     },
     quickActionsTitle: 'Quick Actions',
     stats: [

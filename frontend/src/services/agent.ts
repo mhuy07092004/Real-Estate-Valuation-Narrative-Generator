@@ -346,7 +346,7 @@ export type MarketInsightsStats = {
   medianPriceTrend: string     // e.g. "+8.2%"
   monthlyGrowth: string        // e.g. "+0.68%"
   monthlyGrowthTrend: string   // e.g. "+0.12pp"
-  daysOnMarket: number         // e.g. 22
+  daysOnMarket: number | null  // null when genuinely unknown for this suburb — render "N/A", never the literal string "null"
   daysOnMarketTrend: string    // e.g. "-3 days"
   rentalYield: string          // e.g. "3.4%"
   rentalYieldTrend: string     // e.g. "+0.2%"
@@ -358,80 +358,13 @@ export type MarketInsightsData = {
   priceTrend: MarketTrendPoint[]   // 12 points, Jan-Dec
 }
 
-const MARKET_TREND_MONTHS = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-]
+// BACKEND-103: real suburbs with real MarketIntelligence rows, used only for
+// this page's "try one of these" suggestion chips — not an exhaustive list
+// of what the backend supports (814+ real suburbs exist; these three are
+// just known-good examples with rich data, one per data-completeness tier).
+export const MARKET_INSIGHTS_KNOWN_SUBURBS: string[] = ['Richmond VIC', 'Orange NSW', 'Box Hill NSW']
 
-function buildPriceTrend(indexValues: number[]): MarketTrendPoint[] {
-  return MARKET_TREND_MONTHS.map((month, index) => ({
-    month,
-    priceIndex: indexValues[index],
-  }))
-}
-
-const MARKET_INSIGHTS_MOCK: Record<string, MarketInsightsData> = {
-  'richmond vic': {
-    suburb: 'Richmond VIC',
-    stats: {
-      medianPrice: '$1.28M',
-      medianPriceTrend: '+8.2%',
-      monthlyGrowth: '+0.68%',
-      monthlyGrowthTrend: '+0.12pp',
-      daysOnMarket: 22,
-      daysOnMarketTrend: '-3 days',
-      rentalYield: '3.4%',
-      rentalYieldTrend: '+0.2%',
-    },
-    priceTrend: buildPriceTrend([61, 65, 69, 73, 77, 81, 85, 89, 93, 97, 100, 103]),
-  },
-  'fitzroy vic': {
-    suburb: 'Fitzroy VIC',
-    stats: {
-      medianPrice: '$980K',
-      medianPriceTrend: '+5.4%',
-      monthlyGrowth: '+0.45%',
-      monthlyGrowthTrend: '+0.05pp',
-      daysOnMarket: 18,
-      daysOnMarketTrend: '-1 day',
-      rentalYield: '3.9%',
-      rentalYieldTrend: '+0.1%',
-    },
-    priceTrend: buildPriceTrend([70, 71, 73, 75, 76, 78, 79, 81, 82, 83, 84, 85]),
-  },
-  'south yarra vic': {
-    suburb: 'South Yarra VIC',
-    stats: {
-      medianPrice: '$1.45M',
-      medianPriceTrend: '+6.1%',
-      monthlyGrowth: '+0.52%',
-      monthlyGrowthTrend: '+0.08pp',
-      daysOnMarket: 25,
-      daysOnMarketTrend: '+2 days',
-      rentalYield: '3.1%',
-      rentalYieldTrend: '-0.1%',
-    },
-    priceTrend: buildPriceTrend([75, 77, 78, 80, 82, 83, 85, 87, 88, 90, 91, 92]),
-  },
-}
-
-export const MARKET_INSIGHTS_KNOWN_SUBURBS: string[] = Object.values(MARKET_INSIGHTS_MOCK).map(
-  (entry) => entry.suburb,
-)
-
-export function getMarketInsightsMockData(
-  query: MarketInsightsQuery,
-): Promise<MarketInsightsData | null> {
-  const key = query.suburb.trim().toLowerCase()
-  return Promise.resolve(MARKET_INSIGHTS_MOCK[key] ?? null)
+export function getMarketInsights(query: MarketInsightsQuery): Promise<MarketInsightsData | null> {
+  const params = new URLSearchParams({ suburb: query.suburb })
+  return fetchJson(`/api/agent/market-insights?${params.toString()}`)
 }

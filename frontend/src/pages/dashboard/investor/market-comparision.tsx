@@ -86,9 +86,9 @@ const DETAILED_METRIC_ROWS: DetailedMetricRow[] = [
   },
   {
     key: 'supplyConstraint',
-    label: 'Supply Constraint',
+    label: 'New Supply (per 1,000 residents)',
     higherIsBetter: true,
-    format: (value) => `${Math.round(value)}/100`,
+    format: (value) => value.toFixed(1),
   },
 ]
 
@@ -185,13 +185,19 @@ function MarketComparisonSkeleton() {
   )
 }
 
+// The page's own copy says "Compare up to 4 suburbs side by side" — with
+// only 52+ real suburbs now available (was 2-3 hardcoded mock ones), the
+// previous "select everything returned" default and uncapped add-more
+// logic went from harmless to actually violating that stated limit.
+const MAX_COMPARISON_SUBURBS = 4
+
 export function MarketComparison() {
   const { data, isLoading } = useAsyncData(getMarketComparisonSuburbs, [])
   const [selectedIds, setSelectedIds] = useState<string[]>([])
 
   useEffect(() => {
     if (data && selectedIds.length === 0) {
-      setSelectedIds(data.map((suburb) => suburb.id))
+      setSelectedIds(data.slice(0, MAX_COMPARISON_SUBURBS).map((suburb) => suburb.id))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data])
@@ -205,13 +211,17 @@ export function MarketComparison() {
   )
   const selectedSuburbs = allSuburbs.filter((suburb) => selectedIds.includes(suburb.id))
   const availableSuburbs = allSuburbs.filter((suburb) => !selectedIds.includes(suburb.id))
+  const atMaxSelection = selectedSuburbs.length >= MAX_COMPARISON_SUBURBS
 
   function handleRemoveSuburb(id: string) {
     setSelectedIds((current) => current.filter((suburbId) => suburbId !== id))
   }
 
   function handleAddSuburb(id: string) {
-    setSelectedIds((current) => (current.includes(id) ? current : [...current, id]))
+    setSelectedIds((current) => {
+      if (current.includes(id) || current.length >= MAX_COMPARISON_SUBURBS) return current
+      return [...current, id]
+    })
   }
 
   const radarSeries = selectedSuburbs.map((suburb) => ({
@@ -252,6 +262,9 @@ export function MarketComparison() {
               onRemove={() => handleRemoveSuburb(suburb.id)}
             />
           ))}
+          {atMaxSelection ? (
+            <span className="text-sm text-relaive-gray">Maximum of {MAX_COMPARISON_SUBURBS} suburbs — remove one to add another</span>
+          ) : (
           <AddItemDropdown
             triggerLabel="Add suburb"
             options={availableSuburbs.map((suburb) => ({
@@ -261,8 +274,9 @@ export function MarketComparison() {
               color: colorById.get(suburb.id),
             }))}
             onSelect={handleAddSuburb}
-            emptyMessage="No more suburbs available in this mock dataset."
+            emptyMessage="No more suburbs with complete market data available yet."
           />
+          )}
         </div>
 
         {isLoading ? (

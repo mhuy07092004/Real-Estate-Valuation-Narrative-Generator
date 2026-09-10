@@ -78,7 +78,7 @@ export function RoleDashboardView({ role }: RoleDashboardViewProps) {
           />
           {DASHBOARD_COPY_BY_ROLE[role].inspectionsTitle ? (
             <RecentReportsPanel
-              reports={data.reports}
+              reports={data.inspections ?? []}
               title={DASHBOARD_COPY_BY_ROLE[role].inspectionsTitle}
               variant="inspection"
               viewAllTo={`/dashboard/${role}/saved`}
