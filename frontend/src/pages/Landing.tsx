@@ -53,7 +53,7 @@ export default function Landing() {
       <LazyMount minHeight={520}>
         <AboutSection />
       </LazyMount>
-      <LazyMount minHeight={480}>
+      <LazyMount minHeight={560}>
         <Footer />
       </LazyMount>
     </div>
