@@ -47,3 +47,11 @@ claude.md
 
 # Large raw data dump — not meant to live in git history
 data_ai/bronze_listings.csv
+data_ai/sqm_vacancy_rate_raw.csv
+data_ai/abs_population_raw.csv
+data_ai/abs_building_approvals_raw.csv
+data_ai/domain_suburb_insights.csv
+data_ai/probe_output/
+
+# Vite local dependency cache
+.vite/

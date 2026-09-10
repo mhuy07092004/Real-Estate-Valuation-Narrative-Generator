@@ -1,5 +1,5 @@
 {
-  "name": "project",
+  "name": "relaive-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -39,7 +39,7 @@
   },
   "msw": {
     "workerDirectory": [
-      "frontend/public"
+      "public"
     ]
   }
 }
