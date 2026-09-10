@@ -41,6 +41,7 @@ function toSavedPropertyResponse(row: {
         beds: row.bedrooms,
         baths: row.bathrooms,
         areaSqm: row.areaSqm,
+        createdAt: row.createdAt.toISOString(),
     }
 }
 

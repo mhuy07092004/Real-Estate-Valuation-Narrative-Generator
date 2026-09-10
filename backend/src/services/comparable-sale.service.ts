@@ -36,7 +36,7 @@ function similarityScore(
 
 export async function findComparablesInSuburb(
     subject: ComparableSubject,
-    options: { dateRangeMonths?: number } = {},
+    options: { dateRangeMonths?: number; max?: number } = {},
 ) {
     const all = await prisma.comparableSale.findMany({
         orderBy: { soldDate: 'desc' },
@@ -51,5 +51,10 @@ export async function findComparablesInSuburb(
         ? sameSuburb.filter((row) => row.soldDate >= monthsAgo(options.dateRangeMonths!))
         : sameSuburb
 
-    return withinRange.slice().sort((a, b) => similarityScore(b, subject) - similarityScore(a, subject))
+    const ranked = withinRange.slice().sort((a, b) => similarityScore(b, subject) - similarityScore(a, subject))
+
+    // Same suburb can genuinely qualify hundreds of comparable sales — cap to
+    // the best-ranked ones rather than returning every match. Uncapped only
+    // if the caller explicitly omits `max`.
+    return typeof options.max === 'number' ? ranked.slice(0, options.max) : ranked
 }

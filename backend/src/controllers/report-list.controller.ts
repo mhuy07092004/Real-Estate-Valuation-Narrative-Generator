@@ -21,6 +21,7 @@ function toRoleReportItem(row: Awaited<ReturnType<typeof listReportsByOwnerAndRo
         beds: row.bedrooms,
         baths: row.bathrooms,
         areaSqm: row.landSizeSqm,
+        createdAt: row.createdAt,
         updatedAt: row.updatedAt,
     }
 }
@@ -57,6 +58,8 @@ function toCaseItem(row: Awaited<ReturnType<typeof listReportsByOwnerAndRole>>[n
         clientName: row.clientName,
         status: row.caseStatus ?? 'draft',
         confidence: row.confidence,
+        estimatedValue: row.estimatedValue,
+        createdAt: row.createdAt,
         updatedAt: row.updatedAt,
     }
 }

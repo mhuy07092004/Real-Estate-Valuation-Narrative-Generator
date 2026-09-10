@@ -28,11 +28,19 @@ function monthKey(date: Date): string {
     return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`
 }
 
+// BACKEND-118: broad House-vs-Unit split for the values ingest-bronze-listings.ts's
+// normalizePropertyType() already produced (House/Townhouse/Villa/Apartment/Unit).
+function houseOrUnitCategory(propertyType: string): 'House' | 'Unit' | null {
+    if (propertyType === 'House' || propertyType === 'Townhouse' || propertyType === 'Villa') return 'House'
+    if (propertyType === 'Apartment' || propertyType === 'Unit') return 'Unit'
+    return null
+}
+
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 async function main() {
     const sales = await prisma.comparableSale.findMany({
-        include: { property: { select: { suburb: true, state: true } } },
+        include: { property: { select: { suburb: true, state: true, propertyType: true } } },
     })
 
     if (sales.length === 0) {
@@ -44,13 +52,13 @@ async function main() {
     // 12-month window ending at the reference month (inclusive).
     const windowStart = new Date(Date.UTC(referenceDate.getUTCFullYear(), referenceDate.getUTCMonth() - 11, 1))
 
-    const bySuburb = new Map<string, { suburb: string; state: string; sales: { price: number; date: Date }[] }>()
+    const bySuburb = new Map<string, { suburb: string; state: string; sales: { price: number; date: Date; propertyType: string }[] }>()
     for (const sale of sales) {
         const key = `${sale.property.suburb}|${sale.property.state}`
         if (!bySuburb.has(key)) {
             bySuburb.set(key, { suburb: sale.property.suburb, state: sale.property.state, sales: [] })
         }
-        bySuburb.get(key)!.sales.push({ price: sale.soldPrice, date: sale.soldDate })
+        bySuburb.get(key)!.sales.push({ price: sale.soldPrice, date: sale.soldDate, propertyType: sale.property.propertyType })
     }
 
     let created = 0
@@ -105,6 +113,14 @@ async function main() {
         const previousMonthlyGrowthPct = prevPrevIndex > 0 ? ((prevIndex - prevPrevIndex) / prevPrevIndex) * 100 : 0
         const monthlyGrowthTrendPp = monthlyGrowthPct - previousMonthlyGrowthPct
 
+        // BACKEND-118: House-vs-Unit median split, same trailing 12-month
+        // window — null (not zero, not a copy of the blended median) when a
+        // suburb had zero sales of that category.
+        const housePrices = inWindow.filter((s) => houseOrUnitCategory(s.propertyType) === 'House').map((s) => s.price)
+        const unitPrices = inWindow.filter((s) => houseOrUnitCategory(s.propertyType) === 'Unit').map((s) => s.price)
+        const medianHousePrice = housePrices.length > 0 ? median(housePrices) : null
+        const medianUnitPrice = unitPrices.length > 0 ? median(unitPrices) : null
+
         await prisma.marketIntelligence.upsert({
             where: { suburb_state: { suburb, state } },
             update: {
@@ -112,10 +128,12 @@ async function main() {
                 medianPriceGrowthPct,
                 monthlyGrowthPct,
                 monthlyGrowthTrendPp,
-                daysOnMarket: null,
-                daysOnMarketTrendDays: null,
-                rentalYieldPct: null,
-                rentalYieldTrendPct: null,
+                // daysOnMarket/rentalYieldPct deliberately omitted from update (unlike
+                // create, below) — load-external-market-data.ts (BACKEND-117) may have
+                // already written real values here; this script re-running must not
+                // clobber them back to null.
+                medianHousePrice,
+                medianUnitPrice,
                 priceTrendJson: JSON.stringify(priceTrend),
                 asOfMonth: referenceDate,
             },
@@ -130,6 +148,8 @@ async function main() {
                 daysOnMarketTrendDays: null,
                 rentalYieldPct: null,
                 rentalYieldTrendPct: null,
+                medianHousePrice,
+                medianUnitPrice,
                 priceTrendJson: JSON.stringify(priceTrend),
                 asOfMonth: referenceDate,
             },

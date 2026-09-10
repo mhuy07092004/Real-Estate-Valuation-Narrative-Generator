@@ -19,6 +19,11 @@ function parseDateRangeMonths(dateRange: unknown): number | undefined {
     return match ? Number(match[1]) : undefined
 }
 
+function parseMax(value: unknown, fallback: number): number {
+    const n = Number(value)
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback
+}
+
 function soldAgoLabel(soldDate: Date): string {
     const diffDays = Math.floor((Date.now() - soldDate.getTime()) / (1000 * 60 * 60 * 24))
     if (diffDays < 30) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`
@@ -54,6 +59,12 @@ function toComparableSaleResponse(row: {
     }
 }
 
+// Default cap for the report wizard's inline comparable-sales step — a
+// suburb can genuinely qualify hundreds of sales, but the wizard only ever
+// needs a handful of the best matches, not a full list. Overridable via
+// ?max= for callers that want a different cap.
+const WIZARD_DEFAULT_MAX = 5
+
 export async function listComparableSales(req: Request, res: Response) {
     const address = String(req.query.address ?? '')
     const suburb = extractSuburbFromAddress(address)
@@ -71,14 +82,21 @@ export async function listComparableSales(req: Request, res: Response) {
         parking: req.query.parking ? Number(req.query.parking) : undefined,
     }
 
-    const rows = await findComparablesInSuburb(subject)
+    const max = parseMax(req.query.max, WIZARD_DEFAULT_MAX)
+    const rows = await findComparablesInSuburb(subject, { max })
     res.json(rows.map(toComparableSaleResponse))
 }
+
+// Default cap for the standalone Comparable Sales search page — same
+// suburb-wide qualification issue as the wizard, but this page is meant to
+// let a user browse more broadly, so it gets a higher default cap.
+const SEARCH_DEFAULT_MAX = 20
 
 export async function searchComparableSales(req: Request, res: Response) {
     const address = String(req.query.address ?? '')
     const propertyTypeParam = typeof req.query.propertyType === 'string' ? req.query.propertyType : undefined
     const dateRangeMonths = parseDateRangeMonths(req.query.dateRange)
+    const max = parseMax(req.query.max, SEARCH_DEFAULT_MAX)
     const suburb = extractSuburbFromAddress(address)
 
     // The frontend never sends beds/baths/areaSqm for a search query, so a
@@ -100,7 +118,7 @@ export async function searchComparableSales(req: Request, res: Response) {
 
     const rows = await findComparablesInSuburb(
         { suburb, propertyType: propertyTypeParam === 'all' ? undefined : propertyTypeParam },
-        { dateRangeMonths },
+        { dateRangeMonths, max },
     )
 
     const isMatch = rows.length > 0

@@ -19,6 +19,7 @@ import {
 import { caseStatusRouter } from './case-status.routes.js'
 import { roiCalculationRouter } from './roi-calculation.routes.js'
 import { affordabilityCalculationRouter } from './affordability-calculation.routes.js'
+import { marketComparisonRouter } from './market-comparison.routes.js'
 
 // Central /api router: auth, clients, comparable sales, and market
 // intelligence are wired so far — other domains are being rebuilt one at
@@ -44,6 +45,7 @@ apiRouter.use('/investor/reports', investorReportsRouter)
 apiRouter.use('/valuer/cases', valuerCasesRouter)
 apiRouter.use('/valuer/cases', caseStatusRouter)
 apiRouter.use('/investor/roi-calculation', roiCalculationRouter)
+apiRouter.use('/investor/market-comparison', marketComparisonRouter)
 apiRouter.use('/buyer/affordability-calculation', affordabilityCalculationRouter)
 
 // One shared handler, mounted at each role's exact expected path.

@@ -155,6 +155,25 @@ model MarketIntelligence {
   daysOnMarketTrendDays Int?     @map("days_on_market_trend_days")
   rentalYieldPct        Float?   @map("rental_yield_pct")
   rentalYieldTrendPct   Float?   @map("rental_yield_trend_pct")
+  // The four below are sourced externally (Domain suburb-profile scrape,
+  // SQM Research vacancy-rate scrape, ABS population/building-approvals
+  // REST APIs) via data_ai/ingestion scripts + backend/scripts/
+  // load-external-market-data.ts. Null means genuinely not sourced yet, or
+  // (for populationGrowthPct/supplyConstraintDwellingApprovalsPer1000) no
+  // exact-name-match ABS SA2 region was found for this suburb.
+  auctionClearanceRatePct                 Float? @map("auction_clearance_rate_pct")
+  vacancyRatePct                          Float? @map("vacancy_rate_pct")
+  populationGrowthPct                     Float? @map("population_growth_pct")
+  // A plain ratio (dwelling approvals per 1,000 residents, most recent
+  // financial year) — not a normalized 0-100 "score", since no standard
+  // published supply-constraint metric exists to copy.
+  supplyConstraintDwellingApprovalsPer1000 Float? @map("supply_constraint_dwelling_approvals_per_1000")
+  // BACKEND-118: split of medianPrice by broad dwelling category, from the
+  // same bronze ComparableSale data build-suburb-market-intelligence.ts
+  // already aggregates from — null if the suburb had zero sales of that
+  // category in the trailing 12-month window, never a copy of medianPrice.
+  medianHousePrice      Float?   @map("median_house_price")
+  medianUnitPrice       Float?   @map("median_unit_price")
   priceTrendJson        String   @map("price_trend_json")
   asOfMonth             DateTime @map("as_of_month")
   createdAt             DateTime @default(now()) @map("created_at")
