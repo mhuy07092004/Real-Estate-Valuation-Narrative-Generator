@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
 
 export function NavDropdownPanel({
   open,
@@ -8,22 +8,6 @@ export function NavDropdownPanel({
   children: ReactNode
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-
-    function handleWheel(event: WheelEvent) {
-      event.preventDefault()
-      event.stopPropagation()
-      const el = scrollRef.current
-      if (el) {
-        el.scrollTop += event.deltaY
-      }
-    }
-
-    window.addEventListener('wheel', handleWheel, { passive: false, capture: true })
-    return () => window.removeEventListener('wheel', handleWheel, { capture: true })
-  }, [open])
 
   return (
     <div

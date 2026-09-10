@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import logoIcon from '../../../assets/icon.svg'
 import { usePlansMenuListener } from '../../../hooks/use-open-plans-menu'
-import { useLenis } from '../../../lib/smooth-scroll'
 import { Button } from '../button/button'
 import { FeaturesDropdown } from './features-dropdown'
 import { PlatformDropdown } from './platform-dropdown'
@@ -43,7 +42,6 @@ export function Navbar() {
   const location = useLocation()
   const headerRef = useRef<HTMLElement>(null)
   const [openMenu, setOpenMenu] = useState<OpenMenu>(null)
-  const lenis = useLenis()
   const openPlansMenu = useCallback(() => setOpenMenu('plans'), [])
 
   usePlansMenuListener(openPlansMenu)
@@ -54,10 +52,6 @@ export function Navbar() {
 
   useEffect(() => {
     if (!openMenu) return
-
-    lenis?.stop()
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
 
     function handlePointerDown(event: MouseEvent) {
       if (headerRef.current && !headerRef.current.contains(event.target as Node)) {
@@ -75,12 +69,10 @@ export function Navbar() {
     document.addEventListener('keydown', handleKeyDown)
 
     return () => {
-      lenis?.start()
-      document.body.style.overflow = previousOverflow
       document.removeEventListener('mousedown', handlePointerDown)
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [openMenu, lenis])
+  }, [openMenu])
 
   return (
     <header ref={headerRef} className="relative sticky top-0 z-50 w-full border-b border-black/5 bg-white">
