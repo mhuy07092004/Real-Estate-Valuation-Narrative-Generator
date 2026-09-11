@@ -1,8 +1,10 @@
-import { PrismaClient } from '@prisma/client'
+//**default import, not `import { PrismaClient } from '@prisma/client'*/
+import PrismaPkg from '@prisma/client'
 
-// tsx watch re-runs this module on every file change; without a
-// singleton you'd open a fresh SQLite connection each reload.
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient }
+const { PrismaClient } = PrismaPkg
+
+// tsx watch re-runs this module on every file change; without a singleton you'd open a fresh SQLite connection each reload*/
+const globalForPrisma = globalThis as unknown as { prisma?: InstanceType<typeof PrismaClient> }
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient()
 

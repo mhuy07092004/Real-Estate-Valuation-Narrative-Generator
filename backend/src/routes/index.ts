@@ -6,7 +6,9 @@ import { propertyInputRouter } from './appraisal-property-input.routes.js'
 import { appraisalReportRouter } from './appraisal-report.routes.js'
 import { appraisalStepsRouter } from './appraisal-steps.routes.js'
 import { contentRouter } from './content.routes.js'
+import { geocodeRouter } from './geocode.routes.js'
 import { navigationRouter } from './navigation.routes.js'
+import { placesRouter } from './places.routes.js'
 import { registrationRouter } from './registration.routes.js'
 import { reportRouter } from './report.routes.js'
 
@@ -16,6 +18,8 @@ apiRouter.use('/content', contentRouter)
 apiRouter.use('/navigation', navigationRouter)
 apiRouter.use('/auth', registrationRouter)
 apiRouter.use('/reports', reportRouter)
+apiRouter.use('/geocode', geocodeRouter)
+apiRouter.use('/places', placesRouter)
 
 // Generate Appraisal wizard (5 steps) — one router FILE per step (per
 // senior's ask), but all mounted at the same flat /api/appraisal base,

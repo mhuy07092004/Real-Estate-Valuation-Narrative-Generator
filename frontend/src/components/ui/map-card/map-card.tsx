@@ -1,12 +1,17 @@
 import { useCallback, useRef, useState } from 'react'
 import { APIProvider, Map, Marker, useMap } from '@vis.gl/react-google-maps'
 import { AddressSearch } from '../search-bar/address-search'
+import { geocodeAddress } from '../../../services/geocode'
+import type { Amenity } from '../../../services/places'
+import { RadiusCircle } from './radius-circle'
+import { AmenityMarkers, CATEGORY_COLOR, CATEGORY_LABEL } from './amenity-markers'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined
 
-// Sydney CBD — reasonable default center for an AU property platform.
+//*default map loc being sydney cbd*/
 const DEFAULT_CENTER = { lat: -33.8688, lng: 151.2093 }
 const DEFAULT_ZOOM = 12
+const AMENITY_RADIUS_METERS = 5000
 
 function ZoomInIcon() {
   return (
@@ -119,24 +124,17 @@ function AddressSearchBar({ onLocate }: { onLocate: (pos: google.maps.LatLngLite
   const handleSearch = useCallback(
     async (value: string) => {
       setError(null)
-      if (!value.trim() || !GOOGLE_MAPS_API_KEY) return
+      if (!value.trim()) return
 
       try {
-        const res = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(value)}&key=${GOOGLE_MAPS_API_KEY}`,
-        )
-        const data = await res.json()
-        const result = data.results?.[0]
-        if (!result) {
-          setError('Address not found')
-          return
-        }
-        const pos = result.geometry.location as google.maps.LatLngLiteral
+        //routed through our backend*/
+        const result = await geocodeAddress(value)
+        const pos: google.maps.LatLngLiteral = { lat: result.lat, lng: result.lng }
         map?.panTo(pos)
         map?.setZoom(16)
-        onLocate(pos, result.formatted_address)
-      } catch {
-        setError('Could not search that address right now')
+        onLocate(pos, result.formattedAddress)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Could not search that address right now')
       }
     },
     [map, onLocate],
@@ -150,9 +148,30 @@ function AddressSearchBar({ onLocate }: { onLocate: (pos: google.maps.LatLngLite
   )
 }
 
+/** Bottom-left legend showing which amenity categories are currently plotted, with counts. */
+function AmenityLegend({ amenities }: { amenities: Amenity[] }) {
+  if (amenities.length === 0) return null
+
+  const categories = (Object.keys(CATEGORY_LABEL) as Array<keyof typeof CATEGORY_LABEL>).filter((category) =>
+    amenities.some((amenity) => amenity.category === category),
+  )
+
+  return (
+    <div className="absolute bottom-5 left-5 z-10 flex max-w-[calc(100%-2.5rem)] flex-wrap gap-x-3 gap-y-1.5 rounded-2xl bg-white/95 px-3.5 py-2.5 shadow-[0_2px_10px_rgba(26,32,44,0.08)]">
+      {categories.map((category) => (
+        <span key={category} className="flex items-center gap-1.5 text-xs text-relaive-navy">
+          <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: CATEGORY_COLOR[category] }} />
+          {CATEGORY_LABEL[category]} ({amenities.filter((amenity) => amenity.category === category).length})
+        </span>
+      ))}
+    </div>
+  )
+}
+
 export function MapCard() {
   const [isExpanded, setIsExpanded] = useState(false)
   const [marker, setMarker] = useState<google.maps.LatLngLiteral | null>(null)
+  const [amenities, setAmenities] = useState<Amenity[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
 
   if (!GOOGLE_MAPS_API_KEY) {
@@ -186,10 +205,22 @@ export function MapCard() {
           className="h-full w-full"
         >
           {marker && <Marker position={marker} />}
-          <AddressSearchBar onLocate={(pos) => setMarker(pos)} />
+          {marker && (
+            <>
+              <RadiusCircle center={marker} radiusMeters={AMENITY_RADIUS_METERS} />
+              <AmenityMarkers center={marker} radiusMeters={AMENITY_RADIUS_METERS} onAmenitiesChange={setAmenities} />
+            </>
+          )}
+          <AddressSearchBar
+            onLocate={(pos) => {
+              setMarker(pos)
+              setAmenities([])
+            }}
+          />
           <MapControls isExpanded={isExpanded} onToggleExpand={() => setIsExpanded((v) => !v)} />
         </Map>
       </APIProvider>
+      {marker && <AmenityLegend amenities={amenities} />}
     </div>
   )
 }

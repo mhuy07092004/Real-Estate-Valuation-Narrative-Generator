@@ -1,4 +1,8 @@
-import { PrismaClient } from '@prisma/client'
+// Default import — see backend/src/lib/prisma.ts for why (Node ESM +
+// Prisma 5.x's CommonJS client bundle).
+import PrismaPkg from '@prisma/client'
+
+const { PrismaClient } = PrismaPkg
 
 const prisma = new PrismaClient()
 
