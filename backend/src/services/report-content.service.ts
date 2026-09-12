@@ -6,6 +6,7 @@
 // data source needed.
 import { findComparablesInSuburb } from './comparable-sale.service.js'
 import { getMarketIntelligenceOverviewForSuburb } from './market-intelligence.service.js'
+import { generateNarrativeViaVertex } from './vertex-narrative.service.js'
 
 export type ReportRole = 'agent' | 'valuer' | 'buyer' | 'investor'
 
@@ -147,6 +148,21 @@ export async function buildExecutiveSummary(subject: SubjectInput) {
     const midpointText = formatCurrency(evidence.midpoint)
     const growthText = evidence.growthStat ? evidence.growthStat.trend : 'unavailable'
 
+    const observationTitle = 'Key Observation'
+    const observationMessage = evidence.primaryComparable
+        ? `The primary comparable — ${evidence.primaryComparable.property.addressLine} (sold ${formatCurrency(evidence.primaryComparable.soldPrice)}) — is the strongest evidence for this estimate given its similarity to the subject property.`
+        : 'No single comparable stands out as a primary anchor for this estimate.'
+
+    const vertexParagraphs = await tryVertexExecutiveSummary(subject, evidence, midpointText, growthText)
+    if (vertexParagraphs) {
+        return {
+            title: '1. EXECUTIVE SUMMARY',
+            paragraphs: vertexParagraphs,
+            observationTitle,
+            observationMessage,
+        }
+    }
+
     return {
         title: '1. EXECUTIVE SUMMARY',
         paragraphs: [
@@ -165,11 +181,51 @@ export async function buildExecutiveSummary(subject: SubjectInput) {
                 },
             ],
         ],
-        observationTitle: 'Key Observation',
-        observationMessage: evidence.primaryComparable
-            ? `The primary comparable — ${evidence.primaryComparable.property.addressLine} (sold ${formatCurrency(evidence.primaryComparable.soldPrice)}) — is the strongest evidence for this estimate given its similarity to the subject property.`
-            : 'No single comparable stands out as a primary anchor for this estimate.',
+        observationTitle,
+        observationMessage,
     }
+}
+
+// Connection-test integration (2026-09-12): tries the live Vertex AI
+// endpoint (base Gemma 2 9B-it, not fine-tuned yet) before falling back to
+// the templated paragraphs above. Returns null on any failure so the
+// templated path is always the safety net.
+async function tryVertexExecutiveSummary(
+    subject: SubjectInput,
+    evidence: Awaited<ReturnType<typeof buildRealEvidence>>,
+    midpointText: string,
+    growthText: string,
+): Promise<{ text: string }[][] | null> {
+    if (evidence.comparables.length === 0) return null
+
+    const comparableLines = evidence.comparables
+        .slice(0, 5)
+        .map((c) => `- ${c.property.addressLine}: ${formatCurrency(c.soldPrice)}`)
+        .join('\n')
+
+    const prompt = [
+        `You are a professional real estate agent writing the Executive Summary section of a property appraisal report.`,
+        ``,
+        `Property: ${subject.street}, ${subject.suburb} ${subject.state ?? ''} — ${subject.propertyType ?? 'property'}, ${subject.bedrooms ?? '?'} bed / ${subject.bathrooms ?? '?'} bath / ${subject.parking ?? '?'} car`,
+        `Estimated value: ${midpointText} (range ${evidence.priceRangeText})`,
+        `Suburb annual growth: ${growthText}`,
+        ``,
+        `Comparable sales:`,
+        comparableLines,
+        ``,
+        `Write only the Executive Summary section (2 short paragraphs), grounded strictly in the data above. Do not invent any figures not present above.`,
+    ].join('\n')
+
+    const text = await generateNarrativeViaVertex(prompt)
+    if (!text) return null
+
+    const paragraphs = text
+        .split(/\n\s*\n/)
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0)
+        .map((p) => [{ text: p }])
+
+    return paragraphs.length > 0 ? paragraphs : null
 }
 
 export async function buildNarrativePreview(subject: SubjectInput, templateTitle: string) {

@@ -1,5 +1,39 @@
 # SCP-425 plan: labeled narrative training set
 
+## Superseded 2026-09-11 — see actual implementation
+
+Everything below describes the original MVP plan (buyer_purpose-keyed,
+single-paragraph, hand-written fixture). That's no longer what's in
+`data_ai/narrative_training_pairs.jsonl` — it was rebuilt for real once we
+checked the actual production report shape (`generated-report-container.tsx`'s
+`sections` array, verified against a live screenshot) rather than the
+simplified scheme this doc originally assumed:
+
+- **Real conditioning is `role`** (agent/valuer/buyer/investor), not
+  `buyer_purpose` — that field never existed in the real narrative
+  generation code (`report-content.service.ts`).
+- **Every role gets one Executive Summary section.** There is no separate
+  "Market Analysis" heading in the real report — only the wizard's live
+  preview has that, a different, non-persisted code path.
+- **Only investor (Growth Outlook) and buyer (Affordability Assessment)
+  get one additional section**, sourced from the real `calculateRoi()` /
+  `calculateAffordability()` functions. Agent and valuer have no extra
+  dynamic section today.
+- **300 rows** (75 per role), sourced from `backend/prisma/dev.db`'s real
+  `Property`/`ComparableSale`/`MarketIntelligence` data via
+  `backend/scripts/export-narrative-training-inputs.ts` — not from
+  `data_ai/bronze_listings.csv` or a hand-written fixture.
+- **I (Claude) wrote all 300 narratives directly**, grounded strictly in
+  each row's real comparables/market/ROI/affordability figures — verified
+  programmatically afterward (every dollar figure in every narrative
+  traces back to that row's own grounding data, zero mismatches).
+- **Split via `data_ai/scripts/split_narrative_dataset.py`**: fixed-seed
+  (42) 80/10/10, stratified by role (240/28/32), reproducible (same seed
+  reproduces an identical file byte-for-byte). No DVC — plain git-tracked
+  files, a deliberate scope reduction for this dataset's size.
+
+The rest of this document is kept for historical context only.
+
 ## Goal
 Build a simple training-pair generation step that turns cleaned property data into a labeled narrative dataset for later fine-tuning.
 

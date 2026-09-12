@@ -1,24 +1,28 @@
 from __future__ import annotations
 
+import csv
 import json
 import time
+import uuid
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
-import psycopg
 import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
-from .config import IngestionConfig
+# Matches the Chrome installed on this dev machine; bump if it updates (see
+# domain_suburb_insights_ingest.py's CHROME_VERSION_MAIN for the same pin).
+CHROME_VERSION_MAIN = 152
 
 
 class ExtractTool:
     """
     An ExtractTool for scraping sold listing data from Domain.com.au,
-    and saving them into the Bronze table.
+    appending them to the Bronze CSV (data_ai/bronze_listings.csv).
     """
 
     BASE_URL = (
@@ -32,8 +36,16 @@ class ExtractTool:
     MAX_PAGE = 50
     LAND_SIZE_STEP = 10
 
-    def __init__(self, config: IngestionConfig | None = None):
-        self.config = config or IngestionConfig()
+    # Matches the existing bronze_listings.csv header exactly, so this script
+    # can append to that same file without a schema mismatch.
+    CSV_COLUMNS = [
+        "listing_id", "source", "address", "suburb", "postcode", "state",
+        "property_type", "bedrooms", "bathrooms", "parking", "land_size_sqm",
+        "price", "listing_date", "listing_description", "raw_payload", "scraped_at",
+    ]
+
+    def __init__(self, csv_path: str | Path | None = None):
+        self.csv_path = Path(csv_path or Path(__file__).resolve().parent.parent / "bronze_listings.csv")
 
     def extract(self):
         headers = [
@@ -47,7 +59,7 @@ class ExtractTool:
             size_max = size_min + self.LAND_SIZE_STEP
             print(f"Scraping land size: {size_min}-{size_max} m²")
 
-            driver = uc.Chrome(version_main=150)
+            driver = uc.Chrome(version_main=CHROME_VERSION_MAIN)
             try:
                 page = 1
                 while page <= self.MAX_PAGE:
@@ -78,7 +90,7 @@ class ExtractTool:
 
                     if page_records:
                         page_df = pd.DataFrame(page_records, columns=headers)
-                        self._append_to_database(page_df)
+                        self._append_to_csv(page_df)
                         records.extend(page_records)
 
                     page += 1
@@ -146,45 +158,35 @@ class ExtractTool:
             bathrooms, parking, land_size, price, sold_date,
         ]
 
-    def _append_to_database(self, df: pd.DataFrame) -> None:
+    def _append_to_csv(self, df: pd.DataFrame) -> None:
         if df.empty:
             return
 
-        with psycopg.connect(self.config.dsn) as conn:
-            with conn.cursor() as cur:
-                for _, row in df.iterrows():
-                    clean_row = {}
-                    for key, value in row.items():
-                        if pd.isna(value):
-                            clean_row[key] = None
-                        else:
-                            clean_row[key] = value
+        file_exists = self.csv_path.exists()
+        with self.csv_path.open("a", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=self.CSV_COLUMNS)
+            if not file_exists:
+                writer.writeheader()
 
-                    cur.execute(
-                        """
-                        INSERT INTO bronze_listings (
-                            source, address, suburb, postcode, state,
-                            property_type, bedrooms, bathrooms, parking,
-                            land_size_sqm, price, listing_date,
-                            listing_description, raw_payload, scraped_at
-                        )
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                        """,
-                        (
-                            "domain_com_au",
-                            clean_row.get("address"),
-                            clean_row.get("suburb"),
-                            None,
-                            "NSW",
-                            clean_row.get("property_type"),
-                            clean_row.get("bedrooms"),
-                            clean_row.get("bathrooms"),
-                            clean_row.get("parking"),
-                            clean_row.get("land_size_sqm"),
-                            clean_row.get("price"),
-                            clean_row.get("sold_date"),
-                            None,
-                            json.dumps(clean_row, default=str),
-                            datetime.now(),
-                        ),
-                    )
+            for _, row in df.iterrows():
+                clean_row = {key: (None if pd.isna(value) else value) for key, value in row.items()}
+                writer.writerow(
+                    {
+                        "listing_id": str(uuid.uuid4()),
+                        "source": "domain_com_au",
+                        "address": clean_row.get("address"),
+                        "suburb": clean_row.get("suburb"),
+                        "postcode": None,
+                        "state": "NSW",
+                        "property_type": clean_row.get("property_type"),
+                        "bedrooms": clean_row.get("bedrooms"),
+                        "bathrooms": clean_row.get("bathrooms"),
+                        "parking": clean_row.get("parking"),
+                        "land_size_sqm": clean_row.get("land_size_sqm"),
+                        "price": clean_row.get("price"),
+                        "listing_date": clean_row.get("sold_date"),
+                        "listing_description": None,
+                        "raw_payload": json.dumps(clean_row, default=str),
+                        "scraped_at": datetime.now().isoformat(),
+                    }
+                )

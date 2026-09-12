@@ -1,224 +1,109 @@
-# Backend Guide
+# Backend
 
-This folder contains the Express + TypeScript API for the project.
+Express + TypeScript API for the Relaive real-estate appraisal app. Designed to be tested directly with Postman even when the frontend is incomplete.
 
-The backend is designed so it can be tested directly with Postman, even when the frontend is incomplete.
+**Tech stack:** Node.js + Express, TypeScript, Prisma ORM, SQLite (local dev), JWT bearer auth.
 
-## Tech stack
+## Folder map
 
-- Node.js + Express
-- TypeScript
-- Prisma ORM
-- SQLite (local development)
-- JWT authentication
+Start here if you just cloned the repo — this is what each part of `src/` actually does:
 
-## Project layout
+| Path | What's there |
+| --- | --- |
+| `src/server.ts` | Process entrypoint — starts the HTTP server. |
+| `src/app.ts` | Express app wiring: middleware, CORS, mounting `apiRouter`. |
+| `src/routes/` | One file per domain (clients, reports, comparable sales, ROI calc, ...), plus `index.ts` which mounts them all onto `/api/...`. See the route table below for the real, current paths. |
+| `src/controllers/` | HTTP handlers — parse the request, call a service, shape the response. One file per domain, matching `routes/`. |
+| `src/services/` | Business logic. Talks to Prisma / does calculations / calls external APIs. This is where to look for "how does X actually work." |
+| `src/validators/` | Zod schemas for request payload validation. |
+| `src/middleware/` | Cross-cutting request handling — `require-auth.ts` is the bearer-token guard used on almost every route. |
+| `src/config/` | Environment/config loading. |
+| `src/lib/` | Shared low-level utilities (e.g. the Prisma client instance). |
+| `src/types/` | Shared TypeScript types. |
+| `prisma/schema.prisma` | The data model. |
+| `prisma/seed.ts` | Fast, repeatable dev seed data (roles + one demo user) — **not** real property data. |
+| `scripts/` | One-off data-import scripts, run manually with `npx tsx`, not part of normal `npm run dev` — see "Data import" below. |
 
-- src/server.ts: server entrypoint
-- src/app.ts: app wiring and middleware
-- src/routes: route modules under /api
-- src/controllers: HTTP handlers
-- src/services: business logic helpers
-- src/middleware/require-auth.ts: bearer token protection
-- prisma/schema.prisma: data model
-- prisma/seed.ts: sample data and test user
+## First-time setup
 
-## Quick start
+1. `npm install`
+2. Copy the env file: `copy .env.example .env` (Windows) or `cp .env.example .env`
+3. Apply the schema: `npm run prisma:migrate`
+4. Seed reference/demo data: `npm run prisma:seed`
+5. Start the dev server: `npm run dev`
 
-1. Open a terminal in this backend folder.
-2. Install packages:
+Server runs on `http://localhost:4000` by default.
 
-```bash
-npm install
-```
+Seeded test login (created by step 4):
+- email: `postman.user@example.com`
+- password: `Password123`
 
-3. Create env file:
+## Data import
 
-```bash
-copy .env.example .env
-```
+Step 4 above only gives you fast dev-seed data (roles + one demo user) — no real properties. To get real data into the DB, run these **manually, in order**, after migrating (they're one-off scripts, not part of the normal dev loop):
 
-4. Run migrations:
+1. `npx tsx scripts/ingest-bronze-listings.ts` — reads `data_ai/bronze_listings.csv` (real scraped NSW sold listings) and inserts them as `Property` + `ComparableSale` rows. Skips any row it can't confidently clean rather than guessing a value. Re-run after any `prisma migrate reset`.
+2. `npx tsx scripts/build-suburb-market-intelligence.ts` — computes real per-suburb `MarketIntelligence` rows (median price, growth, trend) from the `ComparableSale` data step 1 just inserted.
+3. `npx tsx scripts/load-external-market-data.ts` — enriches those same `MarketIntelligence` rows with real `daysOnMarket`/`rentalYieldPct`/etc. from `data_ai/ingestion`'s scraped Domain/ABS/SQM CSVs. Only updates existing rows from step 2, never creates new ones.
 
-```bash
-npm run prisma:migrate
-```
+`scripts/export-narrative-training-inputs.ts` is unrelated to importing data — it's an export script for building the AI fine-tuning dataset (see `data_ai/`).
 
-5. Seed sample data:
+## Auth model
 
-```bash
-npm run prisma:seed
-```
-
-6. Start API in dev mode:
-
-```bash
-npm run dev
-```
-
-Server runs on port 4000 by default.
-
-## Authentication model
-
-- Auth endpoints are under /api/auth.
-- Non-auth domain endpoints are protected by Bearer token.
-- Protection is owner-only for user-owned records (clients, reports, saved properties).
-
-Seeded test login:
-
-- email: postman.user@example.com
-- password: Password123
+- Auth endpoints (`/api/auth/*`) are unauthenticated.
+- Every other domain route is protected by the `requireAuth` bearer-token middleware.
+- User-owned resources (clients, reports, saved properties) are scoped to the owning user — you can only see/modify your own.
 
 ## API routes
 
-Base URL:
+Base URL: `http://localhost:4000`
 
-- http://localhost:4000
+| Mount | Routes |
+| --- | --- |
+| `GET /api/health` | Liveness check, `{ status: "ok" }` — used as Render's health check. |
+| `/api/auth` | `POST /register`, `POST /login`, `POST /forgot-password` (prototype stub, always a generic ack), `GET /me`, `POST /refresh-token` |
+| `/api/clients` | `GET /`, `GET /:clientId`, `POST /`, `PATCH /:clientId`, `DELETE /:clientId` |
+| `/api/appraisal` | `GET /comparable-sales`, `GET /comparable-sales/search`, `GET /market-intelligence-overview`, `GET /steps`, `GET /property-types`, `GET /appraisal-summary`, `GET /report-templates`, `GET /executive-summary`, `GET /narrative-preview`, `GET /agent-recommendations`, `GET /growth-outlook`, `GET /affordability-outlook`, `GET /appraisal-disclaimer` |
+| `/api/agent/reports`, `/api/buyer/reports`, `/api/investor/reports` | `GET /` (investor also has `GET /summary`) |
+| `/api/valuer/cases` | `GET /`, `GET /summary`, `PATCH /:reportId` |
+| `/api/investor/roi-calculation` | `POST /` |
+| `/api/investor/market-comparison` | `GET /` |
+| `/api/buyer/affordability-calculation` | `POST /` |
+| `/api/agent/market-insights`, `/api/valuer/market-insights`, `/api/buyer/suburb-explorer`, `/api/investor/suburb-explorer` | `GET /` — same shared handler, mounted per role's expected path |
+| `/api/agent/properties/saved`, `/api/investor/properties/saved`, `/api/buyer/properties/saved`, `/api/valuer/evidence/saved` | `GET /` — shared read handler |
+| `/api/properties/saved` | `POST /`, `DELETE /:savedPropertyId` — shared write handler (not role-prefixed) |
+| `/api/buyer/inspections` | `GET /`, `POST /`, `PUT /:inspectionId` |
+| `/api/reports` | `GET /`, `GET /:reportId`, `POST /` |
 
-### Public / unauthenticated routes
+## AI narrative generation
 
-| Method | Relative path | Notes |
-| --- | --- | --- |
-| GET | /api/health | Liveness check — `{ status: "ok" }`. Used as Render's health check path. |
-| POST | /api/auth/register | |
-| POST | /api/auth/login | |
-| POST | /api/auth/forgot-password | Prototype — always returns a generic ack, no email actually sent |
-| POST | /api/auth/refresh-token | |
-| GET | /api/auth/me | Reads bearer token inline, not via the `requireAuth` middleware |
-| GET | /api/content/homepage | Static marketing content ([content.controller.ts](src/controllers/content.controller.ts)) |
-| GET | /api/navigation/config | Static nav/CTA config |
-| POST /GET | /api/navigation/demo/... | In-memory-only demo session, no persistence |
-| GET | /api/dashboard/:role, /api/agent/\*, /api/investor/\*, /api/buyer/\*, /api/valuer/\*, /api/copilot/\*, /api/notifications/\* | Frontend-mocking layer for dashboard UI — static/derived JSON, no DB writes. See [mock.routes.ts](src/routes/mock.routes.ts). |
-| GET | /api/appraisal/\* | Appraisal wizard endpoints (property types, comparables, summaries...) plus the **AI narrative endpoints** — see "AI narrative generation" below. |
+`buildExecutiveSummary` (in `report-content.service.ts`) is the only place AI-generated text is attempted. It first tries `src/services/vertex-narrative.service.ts`, which calls a Vertex AI endpoint hosting a Gemma 2 model (base or fine-tuned, depending what's deployed at the time — see `data_ai/README.md`), and falls back to the existing templated content (built from real comparable sales + market data) on **any** failure — timeout, auth issue, endpoint not deployed, unexpected response shape.
 
-### Protected routes (Bearer token required)
-
-| Method | Relative path | Full URL |
-| --- | --- | --- |
-| GET | /api/clients | http://localhost:4000/api/clients |
-| GET | /api/clients/:clientId | http://localhost:4000/api/clients/:clientId |
-| POST | /api/clients | http://localhost:4000/api/clients |
-| PATCH | /api/clients/:clientId | http://localhost:4000/api/clients/:clientId |
-| DELETE | /api/clients/:clientId | http://localhost:4000/api/clients/:clientId |
-| GET | /api/reports | http://localhost:4000/api/reports |
-| GET | /api/reports/:reportId | http://localhost:4000/api/reports/:reportId |
-| POST | /api/reports | http://localhost:4000/api/reports |
-| PATCH | /api/reports/:reportId | http://localhost:4000/api/reports/:reportId |
-| DELETE | /api/reports/:reportId | http://localhost:4000/api/reports/:reportId |
-| GET | /api/saved-properties | http://localhost:4000/api/saved-properties |
-| GET | /api/saved-properties/:savedPropertyId | http://localhost:4000/api/saved-properties/:savedPropertyId |
-| POST | /api/saved-properties | http://localhost:4000/api/saved-properties |
-| PATCH | /api/saved-properties/:savedPropertyId | http://localhost:4000/api/saved-properties/:savedPropertyId |
-| DELETE | /api/saved-properties/:savedPropertyId | http://localhost:4000/api/saved-properties/:savedPropertyId |
-| GET | /api/market/comparable-sales | http://localhost:4000/api/market/comparable-sales |
-| GET | /api/market/market-intelligence | http://localhost:4000/api/market/market-intelligence |
-
-## AI narrative generation (Groq)
-
-Appraisal report narratives are generated by calling [Groq's](https://console.groq.com/keys) chat completions API rather than static string templates. Each of the 4 report types gets its own system prompt (tone/audience/rules) — see:
-
-- [src/services/narrative-prompts.ts](src/services/narrative-prompts.ts) — the 4 prompts (`vendor-appraisal`, `bank-valuation`, `buyer-advisory`, `investment-report`)
-- [src/services/groq.service.ts](src/services/groq.service.ts) — thin fetch wrapper around Groq's OpenAI-compatible `/chat/completions` endpoint
-- [src/services/narrative.service.ts](src/services/narrative.service.ts) — ties the two together
-
-**Endpoint:** `GET /api/appraisal/narrative-preview?address=...&propertyType=...&bedrooms=...&bathrooms=...&parking=...&landSizeSqm=...&reportType=<vendor-appraisal|bank-valuation|buyer-advisory|investment-report>` (handler in [mock.routes.ts](src/routes/mock.routes.ts)).
-
-**Required env var:** `GROQ_API_KEY` (get one at https://console.groq.com/keys). Optional: `GROQ_MODEL` (default `llama-3.3-70b-versatile`), `GROQ_BASE_URL`, `GROQ_TEMPERATURE`, `GROQ_MAX_TOKENS` — see [.env.example](.env.example).
-
-**Graceful fallback:** if `GROQ_API_KEY` is unset or the Groq request fails, the endpoint falls back to static placeholder text instead of erroring — check server logs for a `Groq narrative generation failed...` warning if a response doesn't look AI-generated.
+This is experimental and not continuously running: the Vertex endpoint isn't left deployed by default (it costs GPU-hours per hour while up), so most of the time this silently falls back. Check backend logs for a `[vertex-narrative]` warning to see whether a given request actually hit the model or fell back. To make it actually call the model, redeploy the endpoint first — steps are in `data_ai/README.md`, not duplicated here.
 
 ## Docker / deployment
 
-A production image is built from [`Dockerfile`](Dockerfile) (two-stage, `node:22-slim`, runs `prisma migrate deploy` on boot). Build/push/Render setup steps are documented in the repo root [README.md](../README.md) under "Deploy backend (Docker → Docker Hub → Render)" rather than duplicated here. Note the SQLite caveat there — data resets on every redeploy/restart in the current setup.
-
-## API file locations
-
-Main API router:
-
-- src/routes/index.ts
-
-Auth endpoints:
-
-- Route file: src/routes/registration.routes.ts
-- Controller file: src/controllers/auth.controller.ts
-- Register controller file: src/controllers/registration.controller.ts
-- Service files: src/services/auth.service.ts, src/services/registration.service.ts, src/services/user.service.ts, src/services/jwt.service.ts
-
-Clients endpoints:
-
-- Route file: src/routes/clients.routes.ts
-- Controller file: src/controllers/clients.controller.ts
-- Validator file: src/validators/client.validator.ts
-- Auth middleware: src/middleware/require-auth.ts
-
-Reports endpoints:
-
-- Route file: src/routes/report.routes.ts
-- Controller file: src/controllers/reports.controller.ts
-- Validator file: src/validators/report.validator.ts
-- Auth middleware: src/middleware/require-auth.ts
-
-Saved properties endpoints:
-
-- Route file: src/routes/saved-properties.routes.ts
-- Controller file: src/controllers/saved-properties.controller.ts
-- Validator file: src/validators/saved-property.validator.ts
-- Auth middleware: src/middleware/require-auth.ts
-
-Market data endpoints:
-
-- Route file: src/routes/market-data.routes.ts
-- Controller file: src/controllers/market-data.controller.ts
-- Auth middleware: src/middleware/require-auth.ts
+Production image built from `Dockerfile` (two-stage, `node:22-slim` — not alpine, since `bcrypt` is a native addon without reliable musl prebuilts). On boot it runs `prisma migrate deploy`, then `prisma/seed.ts`, then starts the server — both run every boot because the SQLite file is ephemeral in the current deployment (**data resets on every redeploy/restart**). Build/push/Render setup steps are documented in the repo root [README.md](../README.md) under "Deploy backend (Docker → Docker Hub → Render)."
 
 ## Postman smoke test
 
-1. Login to get token
+1. **Login** — `POST http://localhost:4000/api/auth/login`, body:
+   ```json
+   { "email": "postman.user@example.com", "password": "Password123" }
+   ```
+2. Copy `accessToken` from the response.
+3. Call a protected endpoint with header `Authorization: Bearer <accessToken>` — e.g. `GET http://localhost:4000/api/clients`.
 
-Request:
+## Notes for contributors
 
-- Method: POST
-- URL: http://localhost:4000/api/auth/login
-- Body JSON:
-
-```json
-{
-  "email": "postman.user@example.com",
-  "password": "Password123"
-}
-```
-
-2. Copy accessToken from the response.
-
-3. Call protected endpoint with Authorization header:
-
-- Header name: Authorization
-- Header value: Bearer <accessToken>
-
-Example list clients:
-
-- Method: GET
-- URL: http://localhost:4000/api/clients
-
-## Notes for new contributors
-
-- Keep endpoint responses consistent:
-  - Success: success true + data or message
-  - Failure: success false + message (+ optional errors)
-- Use zod validators for request payloads.
-- Use ownerUserId filters for user-owned resources.
-- If schema changes, run migration and regenerate client through prisma migrate.
+- Keep responses consistent: success → `{ success: true, data | message }`; failure → `{ success: false, message, errors? }`.
+- Validate request payloads with a Zod schema in `src/validators/`.
+- Filter user-owned resources by `ownerUserId`.
+- Schema change → run a migration and regenerate the Prisma client.
 
 ## Build and test
 
-Build TypeScript:
-
 ```bash
-npm run build
-```
-
-Run tests:
-
-```bash
-npm test
+npm run build   # tsc -p tsconfig.json
+npm test        # vitest run --passWithNoTests
 ```

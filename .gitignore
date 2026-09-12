@@ -45,6 +45,11 @@ __pycache__/
 #private file
 claude.md
 
+# Contains a plaintext Hugging Face token for Vertex AI training jobs
+data_ai/training/job_config.yaml
+data_ai/training/merge_job_config.yaml
+data_ai/training/*.egg-info/
+
 # Large raw data dump — not meant to live in git history
 data_ai/bronze_listings.csv
 data_ai/sqm_vacancy_rate_raw.csv

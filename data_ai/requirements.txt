@@ -1,7 +1,3 @@
-psycopg
-psycopg[binary]
-fastapi
-uvicorn
 pandas
 undetected_chromedriver
 webdriver-manager
