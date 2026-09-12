@@ -4,6 +4,12 @@ import { DuplicateEmailError, toFrontendUser, type AuthResponseData } from '../t
 import { registrationSchema, type RegistrationInput } from '../validators/registration.validator.js'
 import { createUser, findRoleIdByName, findUserByEmail } from './user.service.js'
 import { signAccessToken, signRefreshToken } from './jwt.service.js'
+import { CaptchaRequiredError, verifyTurnstileToken } from './turnstile.service.js'
+import {
+  isRegisterCaptchaRequired,
+  recordRegisterFailure,
+  recordRegisterSuccess,
+} from './auth-risk.service.js'
 
 const SALT_ROUNDS = 12
 const DEFAULT_ROLE_NAME = 'user'
@@ -17,12 +23,25 @@ const DEFAULT_ROLE_NAME = 'user'
  * Throws a ZodError on invalid input, or DuplicateEmailError if the
  * email is already registered.
  */
-export async function registerUser(input: RegistrationInput): Promise<AuthResponseData> {
-  const { fullName, email, password, role = DEFAULT_ROLE_NAME } = registrationSchema.parse(input)
+export async function registerUser(input: RegistrationInput, remoteIp?: string): Promise<AuthResponseData> {
+  const {
+    fullName,
+    email,
+    password,
+    role = DEFAULT_ROLE_NAME,
+    turnstileToken,
+  } = registrationSchema.parse(input)
+  const risk = { ip: remoteIp }
+
+  if (isRegisterCaptchaRequired(risk)) {
+    if (!turnstileToken) throw new CaptchaRequiredError()
+    await verifyTurnstileToken(turnstileToken, remoteIp)
+  }
 
   const existing = await findUserByEmail(email)
   if (existing) {
-    throw new DuplicateEmailError(email)
+    recordRegisterFailure(risk)
+    throw new DuplicateEmailError(email, isRegisterCaptchaRequired(risk))
   }
 
   const roleId = await findRoleIdByName(DEFAULT_ROLE_NAME)
@@ -33,6 +52,7 @@ export async function registerUser(input: RegistrationInput): Promise<AuthRespon
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
   const stored = await createUser({ fullName, email, passwordHash, roleId })
+  recordRegisterSuccess(risk)
 
   const tokenPayload = { userId: stored.userId, email: stored.email, roles: [stored.roleName] }
 

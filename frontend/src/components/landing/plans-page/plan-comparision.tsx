@@ -216,9 +216,9 @@ const getComparisonRows = (billingPeriod: 'monthly' | 'annually'): ComparisonRow
 ]
 
 const PLAN_CTAS: PlanCta[] = [
-  { label: 'Start Free', href: '#' },
-  { label: 'Upgrade to Plus', href: '#' },
-  { label: 'Upgrade to Pro', href: '#' },
+  { label: 'Start Free', href: '/signin' },
+  { label: 'Upgrade to Plus', href: '/signin' },
+  { label: 'Upgrade to Pro', href: '/signin' },
 ]
 
 const VALUE_PROPS = [

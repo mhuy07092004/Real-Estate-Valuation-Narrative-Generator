@@ -4,6 +4,13 @@ import { signAccessToken, signRefreshToken, verifyRefreshToken } from './jwt.ser
 import { toFrontendUser, type AuthResponseData, InvalidCredentialsError } from '../types/auth.types.js'
 import { loginSchema, refreshTokenSchema, type LoginInput } from '../validators/auth.validator.js'
 import { findUserByEmail, findUserById } from './user.service.js'
+import { CaptchaRequiredError, verifyTurnstileToken } from './turnstile.service.js'
+import {
+  isLoginCaptchaRequired,
+  recordLoginAttempt,
+  recordLoginFailure,
+  recordLoginSuccess,
+} from './auth-risk.service.js'
 
 // Auth service stays DB-backed for users while the rest of the product can
 // use mock data routes.
@@ -29,20 +36,35 @@ function buildAuthResponse(user: {
   }
 }
 
-/** Validates credentials and returns a ready-to-store frontend session payload. */
-export async function loginUser(input: LoginInput): Promise<AuthResponseData> {
-  const { email, password } = loginSchema.parse(input)
+/**
+ * Validates credentials and returns a ready-to-store frontend session payload.
+ * A captcha is only verified when risk scoring asks for one, so normal sign-ins
+ * never pay for the challenge or the Cloudflare round trip.
+ */
+export async function loginUser(input: LoginInput, remoteIp?: string): Promise<AuthResponseData> {
+  const { email, password, turnstileToken } = loginSchema.parse(input)
+  const risk = { ip: remoteIp, email }
+
+  recordLoginAttempt(risk)
+
+  if (isLoginCaptchaRequired(risk)) {
+    if (!turnstileToken) throw new CaptchaRequiredError()
+    await verifyTurnstileToken(turnstileToken, remoteIp)
+  }
+
   const user = await findUserByEmail(email)
+  const passwordMatches = user?.passwordHash
+    ? await bcrypt.compare(password, user.passwordHash)
+    : false
 
-  if (!user?.passwordHash) {
-    throw new InvalidCredentialsError()
+  if (!user?.passwordHash || !passwordMatches) {
+    recordLoginFailure(risk)
+    // Tell the client whether the *next* attempt needs a captcha, so the widget
+    // appears before the retry instead of costing an extra doomed submit.
+    throw new InvalidCredentialsError(isLoginCaptchaRequired(risk))
   }
 
-  const passwordMatches = await bcrypt.compare(password, user.passwordHash)
-  if (!passwordMatches) {
-    throw new InvalidCredentialsError()
-  }
-
+  recordLoginSuccess(risk)
   return buildAuthResponse(user)
 }
 

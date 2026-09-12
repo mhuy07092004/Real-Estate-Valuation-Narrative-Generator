@@ -4,6 +4,8 @@ import { z } from 'zod'
 export const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email('Invalid email address'),
   password: z.string().min(1, 'Password is required'),
+  // Only sent once risk scoring has asked for a captcha (see auth-risk.service).
+  turnstileToken: z.string().min(1).optional(),
 })
 
 export const forgotPasswordSchema = z.object({

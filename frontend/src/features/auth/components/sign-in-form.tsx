@@ -2,7 +2,9 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../../../components/ui/button/button'
 import { Input } from '../../../components/ui/input/input'
+import { TurnstileWidget } from '../../../components/ui/turnstile/turnstile-widget'
 import { useAuth } from '../hooks/use-auth'
+import { useCaptchaGate } from '../hooks/use-captcha-gate'
 import { AuthError } from '../../../types/auth'
 
 function MailIcon() {
@@ -125,6 +127,15 @@ function SocialLoginButtons() {
 export function SignInForm() {
   const navigate = useNavigate()
   const { login } = useAuth()
+  const {
+    isRequired: captchaRequired,
+    token: captchaToken,
+    widgetRef: captchaWidgetRef,
+    setToken: setCaptchaToken,
+    requireCaptcha,
+    resetToken: resetCaptcha,
+    clear: clearCaptcha,
+  } = useCaptchaGate('signin')
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -136,18 +147,27 @@ export function SignInForm() {
     event.preventDefault()
     setError(null)
     setFieldErrors({})
+
+    if (captchaRequired && !captchaToken) {
+      setError('Please complete the security check below.')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      await login({ email, password })
+      await login({ email, password, turnstileToken: captchaToken || undefined })
+      clearCaptcha()
       navigate('/dashboard', { replace: true })
     } catch (err) {
       if (err instanceof AuthError) {
         setError(err.message)
         if (err.errors) setFieldErrors(err.errors)
+        if (err.captchaRequired) requireCaptcha()
       } else {
         setError('Login failed. Please try again.')
       }
+      resetCaptcha()
     } finally {
       setIsSubmitting(false)
     }
@@ -226,10 +246,24 @@ export function SignInForm() {
           </Button>
         </div>
 
+        {captchaRequired ? (
+          <div className="flex flex-col gap-2">
+            <p className="text-xs text-relaive-gray">
+              Extra security check after repeated failed attempts.
+            </p>
+            <TurnstileWidget
+              ref={captchaWidgetRef}
+              onVerify={setCaptchaToken}
+              onExpire={resetCaptcha}
+              onError={resetCaptcha}
+            />
+          </div>
+        ) : null}
+
         <Button
           type="submit"
           size="lg"
-          disabled={isSubmitting}
+          disabled={isSubmitting || (captchaRequired && !captchaToken)}
           className="w-full bg-gradient-to-r from-relaive-primary to-relaive-secondary hover:opacity-90 disabled:opacity-60"
         >
           {isSubmitting ? 'Signing in...' : 'Sign in'}

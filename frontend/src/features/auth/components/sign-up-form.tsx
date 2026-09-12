@@ -2,8 +2,10 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../../../components/ui/button/button'
 import { Input } from '../../../components/ui/input/input'
+import { TurnstileWidget } from '../../../components/ui/turnstile/turnstile-widget'
 import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-role'
 import { useAuth } from '../hooks/use-auth'
+import { useCaptchaGate } from '../hooks/use-captcha-gate'
 import { AuthError } from '../../../types/auth'
 
 function MailIcon() {
@@ -146,6 +148,15 @@ function SocialLoginButtons() {
 export function SignUpForm() {
   const navigate = useNavigate()
   const { register } = useAuth()
+  const {
+    isRequired: captchaRequired,
+    token: captchaToken,
+    widgetRef: captchaWidgetRef,
+    setToken: setCaptchaToken,
+    requireCaptcha,
+    resetToken: resetCaptcha,
+    clear: clearCaptcha,
+  } = useCaptchaGate('signup')
   const [role, setRole] = useState<DashboardRole | ''>('')
   const [showPassword, setShowPassword] = useState(false)
   const [fullName, setFullName] = useState('')
@@ -159,6 +170,12 @@ export function SignUpForm() {
     event.preventDefault()
     setError(null)
     setFieldErrors({})
+
+    if (captchaRequired && !captchaToken) {
+      setError('Please complete the security check below.')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -167,15 +184,19 @@ export function SignUpForm() {
         email,
         password,
         role: role || undefined,
+        turnstileToken: captchaToken || undefined,
       })
+      clearCaptcha()
       navigate('/dashboard', { replace: true })
     } catch (err) {
       if (err instanceof AuthError) {
         setError(err.message)
         if (err.errors) setFieldErrors(err.errors)
+        if (err.captchaRequired) requireCaptcha()
       } else {
         setError('Sign up failed. Please try again.')
       }
+      resetCaptcha()
     } finally {
       setIsSubmitting(false)
     }
@@ -276,10 +297,24 @@ export function SignUpForm() {
 
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
+        {captchaRequired ? (
+          <div className="flex flex-col gap-2">
+            <p className="text-xs text-relaive-gray">
+              Extra security check before creating another account.
+            </p>
+            <TurnstileWidget
+              ref={captchaWidgetRef}
+              onVerify={setCaptchaToken}
+              onExpire={resetCaptcha}
+              onError={resetCaptcha}
+            />
+          </div>
+        ) : null}
+
         <Button
           type="submit"
           size="lg"
-          disabled={isSubmitting}
+          disabled={isSubmitting || (captchaRequired && !captchaToken)}
           className="w-full bg-gradient-to-r from-relaive-primary to-relaive-secondary hover:opacity-90"
         >
           {isSubmitting ? 'Signing up...' : 'Sign up'}

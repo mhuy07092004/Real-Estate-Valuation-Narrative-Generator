@@ -18,6 +18,8 @@ export interface User {
 export interface LoginCredentials {
   email: string
   password: string
+  // Only sent once the backend has asked for a captcha (adaptive challenge).
+  turnstileToken?: string
 }
 
 export interface RegisterCredentials {
@@ -25,6 +27,7 @@ export interface RegisterCredentials {
   email: string
   password: string
   role?: UserRole
+  turnstileToken?: string
 }
 export interface AuthSession {
   user: User
@@ -51,6 +54,8 @@ export interface ApiErrorResponse {
   success: false
   message: string
   errors?: Record<string, string>
+  // Backend risk scoring asks for a captcha before the next attempt.
+  captchaRequired?: boolean
 }
 
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse
@@ -64,10 +69,12 @@ export interface LoginResponseData {
 
 export class AuthError extends Error {
   readonly errors?: Record<string, string>
+  readonly captchaRequired: boolean
 
-  constructor(message: string, errors?: Record<string, string>) {
+  constructor(message: string, errors?: Record<string, string>, captchaRequired = false) {
     super(message)
     this.name = 'AuthError'
     this.errors = errors
+    this.captchaRequired = captchaRequired
   }
 }

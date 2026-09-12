@@ -3,6 +3,7 @@ import { ZodError } from 'zod'
 import { verifyAccessToken } from '../services/jwt.service.js'
 import { forgotPasswordSchema } from '../validators/auth.validator.js'
 import { getMe, loginUser, refreshSession } from '../services/auth.service.js'
+import { CaptchaRequiredError, TurnstileVerificationError } from '../services/turnstile.service.js'
 import { InvalidCredentialsError, type ApiResponse, type AuthResponseData, type FrontendUser } from '../types/auth.types.js'
 
 /**
@@ -33,7 +34,7 @@ function getBearerToken(req: Request): string | null {
  */
 export async function login(req: Request, res: Response) {
   try {
-    const data = await loginUser(req.body)
+    const data = await loginUser(req.body, req.ip)
     const body: ApiResponse<AuthResponseData> = {
       success: true,
       message: 'Login successful.',
@@ -46,8 +47,33 @@ export async function login(req: Request, res: Response) {
       return
     }
 
+    if (err instanceof CaptchaRequiredError) {
+      const body: ApiResponse<never> = {
+        success: false,
+        message: err.message,
+        captchaRequired: true,
+      }
+      res.status(403).json(body)
+      return
+    }
+
+    if (err instanceof TurnstileVerificationError) {
+      const body: ApiResponse<never> = {
+        success: false,
+        message: err.message,
+        errors: { turnstileToken: err.message },
+        captchaRequired: true,
+      }
+      res.status(400).json(body)
+      return
+    }
+
     if (err instanceof InvalidCredentialsError) {
-      const body: ApiResponse<never> = { success: false, message: err.message }
+      const body: ApiResponse<never> = {
+        success: false,
+        message: err.message,
+        captchaRequired: err.captchaRequired,
+      }
       res.status(401).json(body)
       return
     }

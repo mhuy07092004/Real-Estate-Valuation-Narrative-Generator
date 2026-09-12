@@ -12,6 +12,8 @@ export const registrationSchema = z.object({
     .regex(/[A-Za-z]/, 'Password must contain at least one letter')
     .regex(/[0-9]/, 'Password must contain at least one number'),
   role: z.enum(['user', 'agent', 'valuer', 'investor', 'buyer']).optional().default('user'),
+  // Only sent once risk scoring has asked for a captcha (see auth-risk.service).
+  turnstileToken: z.string().min(1).optional(),
 })
 
 export type RegistrationInput = z.infer<typeof registrationSchema>

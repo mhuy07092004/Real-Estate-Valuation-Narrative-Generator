@@ -7,6 +7,10 @@ import { apiRouter } from './routes/index.js'
 export function createApp() {
   const app = express()
 
+  if (env.trustProxy > 0) {
+    app.set('trust proxy', env.trustProxy)
+  }
+
   app.use(cors({ origin: env.corsOrigin }))
   app.use(express.json())
 

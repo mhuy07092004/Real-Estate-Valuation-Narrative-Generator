@@ -69,7 +69,7 @@ export function isAuthenticated(): boolean {
 
 function toSession(body: ApiResponse<LoginResponseData>): AuthSession {
   if (!body.success) {
-    throw new AuthError(body.message, body.errors)
+    throw new AuthError(body.message, body.errors, body.captchaRequired)
   }
 
   return {

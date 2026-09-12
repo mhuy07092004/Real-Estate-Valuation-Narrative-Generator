@@ -1,12 +1,13 @@
 import type { Request, Response } from 'express'
 import { ZodError } from 'zod'
 import { registerUser } from '../services/registration.service.js'
+import { CaptchaRequiredError, TurnstileVerificationError } from '../services/turnstile.service.js'
 import { DuplicateEmailError } from '../types/auth.types.js'
 import type { ApiResponse, AuthResponseData } from '../types/auth.types.js'
 
 export async function register(req: Request, res: Response) {
   try {
-    const data = await registerUser(req.body)
+    const data = await registerUser(req.body, req.ip)
     const body: ApiResponse<AuthResponseData> = {
       success: true,
       message: 'Account created successfully.',
@@ -26,11 +27,31 @@ export async function register(req: Request, res: Response) {
       res.status(400).json(body)
       return
     }
+    if (err instanceof CaptchaRequiredError) {
+      const body: ApiResponse<never> = {
+        success: false,
+        message: err.message,
+        captchaRequired: true,
+      }
+      res.status(403).json(body)
+      return
+    }
+    if (err instanceof TurnstileVerificationError) {
+      const body: ApiResponse<never> = {
+        success: false,
+        message: err.message,
+        errors: { turnstileToken: err.message },
+        captchaRequired: true,
+      }
+      res.status(400).json(body)
+      return
+    }
     if (err instanceof DuplicateEmailError) {
       const body: ApiResponse<never> = {
         success: false,
         message: 'An account with this email already exists.',
         errors: { email: 'Email already in use' },
+        captchaRequired: err.captchaRequired,
       }
       res.status(409).json(body)
       return

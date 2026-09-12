@@ -48,19 +48,32 @@ export type AuthResponseData = {
 }
 
 export type ApiSuccessResponse<T> = { success: true; message?: string; data: T }
-export type ApiErrorResponse = { success: false; message: string; errors?: Record<string, string> }
+// `captchaRequired` tells the client to reveal the captcha before the next
+// attempt, so the widget only appears once risk scoring asks for it.
+export type ApiErrorResponse = {
+  success: false
+  message: string
+  errors?: Record<string, string>
+  captchaRequired?: boolean
+}
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse
 
 export class DuplicateEmailError extends Error {
-  constructor(email: string) {
+  readonly captchaRequired: boolean
+
+  constructor(email: string, captchaRequired = false) {
     super(`An account with email "${email}" already exists`)
     this.name = 'DuplicateEmailError'
+    this.captchaRequired = captchaRequired
   }
 }
 
 export class InvalidCredentialsError extends Error {
-  constructor() {
+  readonly captchaRequired: boolean
+
+  constructor(captchaRequired = false) {
     super('Invalid email or password.')
     this.name = 'InvalidCredentialsError'
+    this.captchaRequired = captchaRequired
   }
 }
