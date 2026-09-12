@@ -38,29 +38,66 @@ function NavChevron({ pointUp = false }: { pointUp?: boolean }) {
   )
 }
 
+// Time (ms) the closing panel needs to fade + collapse before the next one
+// starts opening. Keeps the two panels from overlapping mid-transition and
+// removes the "khựng" hitch when switching straight between menu items.
+const MENU_SWITCH_DELAY = 200
+
 export function Navbar() {
   const location = useLocation()
   const headerRef = useRef<HTMLElement>(null)
   const [openMenu, setOpenMenu] = useState<OpenMenu>(null)
+  const switchTimeoutRef = useRef<number | null>(null)
   const openPlansMenu = useCallback(() => setOpenMenu('plans'), [])
 
   usePlansMenuListener(openPlansMenu)
 
+  const clearSwitchTimeout = useCallback(() => {
+    if (switchTimeoutRef.current !== null) {
+      window.clearTimeout(switchTimeoutRef.current)
+      switchTimeoutRef.current = null
+    }
+  }, [])
+
+  const handleNavClick = useCallback(
+    (key: Exclude<OpenMenu, null>) => {
+      clearSwitchTimeout()
+      setOpenMenu((current) => {
+        if (current === key) return null
+        if (current === null) return key
+        // Another menu is already open: close it first, then open the newly
+        // selected one once the close animation has mostly finished instead
+        // of animating both panels on top of each other at once.
+        switchTimeoutRef.current = window.setTimeout(() => {
+          setOpenMenu(key)
+          switchTimeoutRef.current = null
+        }, MENU_SWITCH_DELAY)
+        return null
+      })
+    },
+    [clearSwitchTimeout],
+  )
+
   useEffect(() => {
+    clearSwitchTimeout()
     setOpenMenu(null)
-  }, [location.pathname])
+  }, [location.pathname, clearSwitchTimeout])
+
+  useEffect(() => () => clearSwitchTimeout(), [clearSwitchTimeout])
 
   useEffect(() => {
     if (!openMenu) return
 
     function handlePointerDown(event: MouseEvent) {
       if (headerRef.current && !headerRef.current.contains(event.target as Node)) {
+        clearSwitchTimeout()
         setOpenMenu(null)
       }
     }
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
+        clearSwitchTimeout()
         setOpenMenu(null)
       }
     }
@@ -72,7 +109,7 @@ export function Navbar() {
       document.removeEventListener('mousedown', handlePointerDown)
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [openMenu])
+  }, [openMenu, clearSwitchTimeout])
 
   return (
     <header ref={headerRef} className="relative sticky top-0 z-50 w-full border-b border-black/5 bg-white">
@@ -100,7 +137,7 @@ export function Navbar() {
                   type="button"
                   aria-expanded={isOpen}
                   aria-haspopup="true"
-                  onClick={() => setOpenMenu((current) => (current === item.key ? null : item.key))}
+                  onClick={() => handleNavClick(item.key)}
                   className={`flex items-center text-sm font-medium transition-colors cursor-pointer bg-transparent border-none p-0 ${
                     isOpen
                       ? 'text-relaive-primary'
