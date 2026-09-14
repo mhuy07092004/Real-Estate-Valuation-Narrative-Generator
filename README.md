@@ -201,13 +201,13 @@ Every pull request into `main` or `dev` runs [`.github/workflows/ci.yml`](.githu
 
 ## ☁️ Deploy backend (Docker → Docker Hub → Render)
 
-The backend ships as a Docker image (see [`backend/Dockerfile`](backend/Dockerfile)) built and pushed by hand — there's no CI automation for this yet.
+The backend ships as a Docker image (see [`backend/Dockerfile`](backend/Dockerfile)). Building and pushing to Docker Hub is automated via [`.github/workflows/docker-deploy.yml`](.github/workflows/docker-deploy.yml) — every push to `main` touching `backend/**` or `data_ai/*.csv` builds the image and pushes `:latest` + `:sha-<commit>` to Docker Hub. Pulling that new image into Render is still a manual step (see step 4).
 
-**1. Build and push the image:**
+**Build context note:** the Dockerfile now reads CSVs from `data_ai/` (outside `backend/`), so it must be built from the **repo root**, not from inside `backend/`:
 
 ```bash
 docker login
-docker build -t <your-dockerhub-username>/relaive-backend:latest ./backend
+docker build -f backend/Dockerfile -t <your-dockerhub-username>/relaive-backend:latest .
 docker push <your-dockerhub-username>/relaive-backend:latest
 ```
 
@@ -222,12 +222,15 @@ docker push <your-dockerhub-username>/relaive-backend:latest
 
 | Variable | Notes |
 |---|---|
-| `DATABASE_URL` | `file:./dev.db` — see the SQLite caveat below |
+| `DATABASE_URL` | **Do not set this on Render** — it's hardcoded in the Dockerfile (`file:./prisma/dev.db`) to match the path the database was baked into at build time; an override here would point the server at an empty/missing file. |
 | `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` | **Generate real random values** (e.g. `openssl rand -hex 32`) — do not reuse the checked-in dev defaults |
 | `CORS_ORIGIN` | The deployed frontend's origin, e.g. `https://real-estate-valuation-narrative-gen.vercel.app` (comma-separate multiple, e.g. to also allow a Vercel preview URL) |
-| `GROQ_API_KEY` | See "AI narrative generation" above |
+| `TURNSTILE_SECRET_KEY` | See "Auth" section above — only demanded on risky login/register attempts |
 | `PORT` | Supplied automatically by Render — don't set it |
 
-**4. Redeploying after a change:** push a new `:latest` to Docker Hub, then trigger "Manual Deploy" in the Render dashboard to pull it — this is a manual step since there's no CI wired up.
+**4. Redeploying after a change:** once GitHub Actions pushes a new `:latest` to Docker Hub, trigger "Manual Deploy" in the Render dashboard to pull it — Render doesn't auto-pull on its own.
 
-**SQLite caveat:** the container runs `prisma migrate deploy` on every boot against a local SQLite file inside the container's ephemeral filesystem. That means **all data (users, clients, reports) resets on every redeploy or restart** — an accepted trade-off for now to avoid standing up Postgres. If this needs to hold real data long-term, migrate `schema.prisma`'s datasource to Postgres and use a managed Render Postgres instance instead.
+**Data/DB note:** the database is no longer ephemeral-and-reset-on-boot. `prisma migrate deploy`, `prisma/seed.ts`, and the CSV ingestion scripts (`ingest-bronze-listings.ts`, `load-external-market-data.ts`, `build-suburb-market-intelligence.ts`) all run **once, at Docker build time**, producing a populated `prisma/dev.db` that ships inside the image. The container starts the server directly with no migrate/seed step. This means:
+- The image starts with real reference data (properties, comparable sales, suburb market stats) already loaded, not just the dev seed's roles + demo user.
+- A schema change or CSV update requires a rebuild + redeploy to take effect, not just a restart.
+- Any data written after boot (new users, clients, reports) still doesn't persist across redeploys/restarts, since the container's filesystem is ephemeral — only the build-time-baked data survives. Long-term, persisting live app data requires either a Render persistent disk or migrating `schema.prisma`'s datasource to a managed Postgres instance.

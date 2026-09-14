@@ -83,7 +83,7 @@ This is experimental and not continuously running: the Vertex endpoint isn't lef
 
 ## Docker / deployment
 
-Production image built from `Dockerfile` (two-stage, `node:22-slim` — not alpine, since `bcrypt` is a native addon without reliable musl prebuilts). On boot it runs `prisma migrate deploy`, then `prisma/seed.ts`, then starts the server — both run every boot because the SQLite file is ephemeral in the current deployment (**data resets on every redeploy/restart**). Build/push/Render setup steps are documented in the repo root [README.md](../README.md) under "Deploy backend (Docker → Docker Hub → Render)."
+Production image built from `Dockerfile` (two-stage, `node:22-slim` — not alpine, since `bcrypt` is a native addon without reliable musl prebuilts). The database is baked in at **build time**: the builder stage runs `prisma migrate deploy`, `prisma/seed.ts`, and the CSV ingestion scripts (see "Data import" above) against a SQLite file that ships inside the final image already populated with real reference data. The container's `CMD` just starts the server — no migrate/seed step at boot. A schema change or CSV update requires a rebuild, not just a restart; data written after boot (new users, clients, reports) still doesn't survive a redeploy, since only the build-time-baked file persists. Build/push/Render setup steps are documented in the repo root [README.md](../README.md) under "Deploy backend (Docker → Docker Hub → Render)."
 
 ## Postman smoke test
 

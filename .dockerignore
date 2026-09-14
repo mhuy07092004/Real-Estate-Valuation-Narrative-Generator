@@ -1,0 +1,28 @@
+node_modules
+**/node_modules
+dist
+**/dist
+*.db
+**/*.db
+*.db-journal
+**/*.db-journal
+.env
+**/.env
+.env.*
+**/.env.*
+!.env.example
+!**/.env.example
+.git
+.gitignore
+npm-debug.log*
+coverage
+
+# Not needed to build/run the backend image — excluding these keeps the
+# build-context upload small (the venv especially can be huge).
+frontend
+data_ai/venv
+data_ai/docs
+data_ai/training
+data_ai/ingestion
+data_ai/scripts
+data_ai/eval
