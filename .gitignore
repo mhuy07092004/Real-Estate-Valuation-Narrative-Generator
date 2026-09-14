@@ -50,12 +50,6 @@ data_ai/training/job_config.yaml
 data_ai/training/merge_job_config.yaml
 data_ai/training/*.egg-info/
 
-# Large raw data dump — not meant to live in git history
-data_ai/bronze_listings.csv
-data_ai/sqm_vacancy_rate_raw.csv
-data_ai/abs_population_raw.csv
-data_ai/abs_building_approvals_raw.csv
-data_ai/domain_suburb_insights.csv
 data_ai/probe_output/
 
 # Vite local dependency cache
