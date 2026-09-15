@@ -89,12 +89,17 @@ export interface RegisterRiskContext {
 
 /** True when this sign-in attempt has to solve a captcha before being processed. */
 export function isLoginCaptchaRequired({ ip, email }: LoginRiskContext): boolean {
-  if (email && exceeded(loginFailEmailKey(email), RULES.loginFailuresPerEmail)) return true
-  if (!ip) return false
-  return (
-    exceeded(loginFailIpKey(ip), RULES.loginFailuresPerIp) ||
-    exceeded(loginAttemptIpKey(ip), RULES.loginAttemptsPerIp)
-  )
+  // Disabled on hold — TURNSTILE_SECRET_KEY isn't configured, so
+  // verifyTurnstileToken always fails closed once this returns true,
+  // permanently locking out anyone who trips the risk threshold. Uncomment
+  // below once a real Turnstile secret is set.
+  return false
+  // if (email && exceeded(loginFailEmailKey(email), RULES.loginFailuresPerEmail)) return true
+  // if (!ip) return false
+  // return (
+  //   exceeded(loginFailIpKey(ip), RULES.loginFailuresPerIp) ||
+  //   exceeded(loginAttemptIpKey(ip), RULES.loginAttemptsPerIp)
+  // )
 }
 
 /** Counts every sign-in request, successful or not, to catch attempt velocity. */
@@ -118,11 +123,13 @@ export function recordLoginSuccess({ ip, email }: LoginRiskContext): void {
 
 /** True when this sign-up attempt has to solve a captcha before being processed. */
 export function isRegisterCaptchaRequired({ ip }: RegisterRiskContext): boolean {
-  if (!ip) return false
-  return (
-    exceeded(registerOkIpKey(ip), RULES.registrationsPerIp) ||
-    exceeded(registerFailIpKey(ip), RULES.registerFailuresPerIp)
-  )
+  // Disabled on hold — see isLoginCaptchaRequired above for why.
+  return false
+  // if (!ip) return false
+  // return (
+  //   exceeded(registerOkIpKey(ip), RULES.registrationsPerIp) ||
+  //   exceeded(registerFailIpKey(ip), RULES.registerFailuresPerIp)
+  // )
 }
 
 export function recordRegisterSuccess({ ip }: RegisterRiskContext): void {
