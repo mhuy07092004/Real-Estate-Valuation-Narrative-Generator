@@ -16,14 +16,17 @@ const REGION = process.env.VERTEX_REGION ?? 'us-central1'
 const ENDPOINT_ID = process.env.VERTEX_ENDPOINT_ID ?? '3931876120915345408'
 const TIMEOUT_MS = 10_000
 
-let auth: GoogleAuth | null = null
+const auth = new GoogleAuth({ scopes: 'https://www.googleapis.com/auth/cloud-platform' })
 
-function getAuth(): GoogleAuth {
-    if (!auth) {
-        auth = new GoogleAuth({ scopes: 'https://www.googleapis.com/auth/cloud-platform' })
-    }
-    return auth
-}
+// Credential discovery alone (auth.getClient()) measured ~2.2s on this
+// machine — GoogleAuth caches the resolved client after its first call, but
+// without this, that ~2.2s cost lands on whichever real user's report
+// happens to trigger the first executive-summary request after a server
+// restart. Kicking it off at module load (server startup) instead moves
+// that one-time cost off the request path entirely. Errors here are
+// swallowed — generateNarrativeViaVertex below re-attempts and handles
+// failure the normal way regardless of whether this warm-up succeeded.
+const clientPromise = auth.getClient().catch(() => null)
 
 function extractMessageContent(data: unknown): string | null {
     // The "chatCompletions" passthrough format isn't consistently documented
@@ -50,7 +53,8 @@ function extractMessageContent(data: unknown): string | null {
 
 export async function generateNarrativeViaVertex(prompt: string, maxTokens = 300): Promise<string | null> {
     try {
-        const client = await getAuth().getClient()
+        const client = await clientPromise
+        if (!client) return null
         const accessTokenResponse = await client.getAccessToken()
         const accessToken = accessTokenResponse.token
         if (!accessToken) return null

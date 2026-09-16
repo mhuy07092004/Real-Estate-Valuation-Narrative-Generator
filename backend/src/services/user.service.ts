@@ -11,6 +11,8 @@ function toStoredUserWithPassword(user: {
   userId: string
   fullName: string
   email: string
+  phone: string | null
+  company: string | null
   passwordHash: string | null
   createdAt: Date
   role: { roleName: string }
@@ -19,6 +21,8 @@ function toStoredUserWithPassword(user: {
     userId: user.userId,
     fullName: user.fullName,
     email: user.email,
+    phone: user.phone,
+    company: user.company,
     roleName: user.role.roleName,
     createdAt: user.createdAt,
     passwordHash: user.passwordHash,
@@ -64,6 +68,24 @@ export async function findUserById(userId: string) {
   return toStoredUserWithPassword(user)
 }
 
+/** Updates the editable fields on Settings > Personal Information. */
+export async function updateUserProfile(
+  userId: string,
+  params: { fullName: string; phone: string | null; company: string | null },
+): Promise<StoredUser | null> {
+  const user = await prisma.user.update({
+    where: { userId },
+    data: {
+      fullName: params.fullName,
+      phone: params.phone,
+      company: params.company,
+    },
+    include: { role: true },
+  })
+
+  return toStoredUserWithPassword(user)
+}
+
 /** Persists a new local-auth user and returns frontend-safe profile fields. */
 export async function createUser(params: {
   fullName: string
@@ -86,6 +108,8 @@ export async function createUser(params: {
     userId: user.userId,
     fullName: user.fullName,
     email: user.email,
+    phone: user.phone,
+    company: user.company,
     roleName: user.role.roleName,
     createdAt: user.createdAt,
   }

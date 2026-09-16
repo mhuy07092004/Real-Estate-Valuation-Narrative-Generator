@@ -6,6 +6,7 @@
 // data source needed.
 import { findComparablesInSuburb } from './comparable-sale.service.js'
 import { getMarketIntelligenceOverviewForSuburb } from './market-intelligence.service.js'
+import { predictPropertyPrice } from './price-prediction.service.js'
 import { generateNarrativeViaVertex } from './vertex-narrative.service.js'
 
 export type ReportRole = 'agent' | 'valuer' | 'buyer' | 'investor'
@@ -88,11 +89,13 @@ export function getReportTemplateForRole(role: ReportRole): ReportTemplate {
 type SubjectInput = {
     suburb: string
     state?: string
+    postcode?: string
     street: string
     propertyType?: string
     bedrooms?: number
     bathrooms?: number
     parking?: number
+    landSizeSqm?: number
 }
 
 function formatCurrency(value: number): string {
@@ -117,9 +120,29 @@ async function buildRealEvidence(subject: SubjectInput) {
     }
 
     const prices = comparables.map((row) => row.soldPrice)
-    const midpoint = prices.reduce((sum, price) => sum + price, 0) / prices.length
+    const comparableAverage = prices.reduce((sum, price) => sum + price, 0) / prices.length
     const min = Math.min(...prices)
     const max = Math.max(...prices)
+
+    // Same ML-first, comparable-average-fallback rule as
+    // appraisal-summary.controller.ts's headline midpoint — this used to be
+    // its own independent comparable average, which meant this report's
+    // prose could (and did) disagree with the header's midpoint whenever
+    // the ML model was actually reachable.
+    const predictedPrice =
+        subject.state && subject.postcode
+            ? await predictPropertyPrice({
+                  suburb: subject.suburb,
+                  state: subject.state,
+                  postcode: subject.postcode,
+                  propertyType: subject.propertyType,
+                  bedrooms: subject.bedrooms,
+                  bathrooms: subject.bathrooms,
+                  parking: subject.parking,
+                  landSizeSqm: subject.landSizeSqm,
+              })
+            : null
+    const midpoint = predictedPrice ?? comparableAverage
 
     return {
         comparables,

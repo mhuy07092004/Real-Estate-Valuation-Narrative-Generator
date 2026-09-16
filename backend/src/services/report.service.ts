@@ -1,6 +1,7 @@
 // Data-access layer for Report — the only file allowed to query the
 // database directly for this feature. Every function is scoped by
 // ownerUserId so a caller can never read or write another user's reports.
+import crypto from 'node:crypto'
 import { prisma } from '../lib/prisma.js'
 import type { CreateReportInput } from '../validators/report.validator.js'
 import type { UpdateCaseInput } from '../validators/case-status.validator.js'
@@ -86,7 +87,36 @@ export async function createReport(ownerUserId: string, input: CreateReportInput
             affordabilityEstimatedBorrowingCapacity: input.affordabilityEstimatedBorrowingCapacity ?? null,
             affordabilityMaxLoanAmount: input.affordabilityMaxLoanAmount ?? null,
             affordabilityRepaymentToIncomePct: input.affordabilityRepaymentToIncomePct ?? null,
+            priceRangeLow: input.priceRangeLow ?? null,
+            priceRangeHigh: input.priceRangeHigh ?? null,
+            sectionsJson: input.sections ? JSON.stringify(input.sections) : null,
+            comparablesJson: input.comparables ? JSON.stringify(input.comparables) : null,
+            strategyCardsJson: input.strategyCards ? JSON.stringify(input.strategyCards) : null,
         },
+    })
+}
+
+/** Returns the existing share link if one was already generated, otherwise
+ *  mints a new high-entropy token and saves it. Idempotent by design — the
+ *  same link keeps working across repeated "Send Report" clicks rather than
+ *  rotating (and invalidating) it every time. */
+export async function getOrCreateShareToken(reportId: string, ownerUserId: string): Promise<string | null> {
+    const existing = await prisma.report.findFirst({ where: { reportId, ownerUserId } })
+    if (!existing) return null
+    if (existing.shareToken) return existing.shareToken
+
+    const shareToken = crypto.randomBytes(24).toString('base64url')
+    await prisma.report.update({ where: { reportId }, data: { shareToken } })
+    return shareToken
+}
+
+/** Public lookup by share token — deliberately NOT scoped by ownerUserId,
+ *  since the whole point is that an anonymous client (no account) can read
+ *  it with just the token. */
+export async function getReportByShareToken(shareToken: string) {
+    return prisma.report.findUnique({
+        where: { shareToken },
+        include: { owner: { select: { fullName: true } } },
     })
 }
 

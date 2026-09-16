@@ -12,7 +12,6 @@ import {
 } from './auth-risk.service.js'
 
 const SALT_ROUNDS = 12
-const DEFAULT_ROLE_NAME = 'user'
 
 /**
  * Validates input, checks for an existing account, hashes the password,
@@ -28,7 +27,7 @@ export async function registerUser(input: RegistrationInput, remoteIp?: string):
     fullName,
     email,
     password,
-    role = DEFAULT_ROLE_NAME,
+    role,
     turnstileToken,
   } = registrationSchema.parse(input)
   const risk = { ip: remoteIp }
@@ -44,10 +43,10 @@ export async function registerUser(input: RegistrationInput, remoteIp?: string):
     throw new DuplicateEmailError(email, isRegisterCaptchaRequired(risk))
   }
 
-  const roleId = await findRoleIdByName(DEFAULT_ROLE_NAME)
+  const roleId = await findRoleIdByName(role)
   if (roleId === null) {
     // Seed data missing — this is a setup problem, not a user error.
-    throw new Error(`Default role "${DEFAULT_ROLE_NAME}" not found — run "npm run prisma:seed"`)
+    throw new Error(`Role "${role}" not found — run "npm run prisma:seed"`)
   }
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)

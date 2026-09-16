@@ -46,11 +46,20 @@ function splitSuburbState(suburbQuery: string): { suburb: string; state?: string
   return { suburb: parts.slice(0, -1).join(' '), state: parts[parts.length - 1] }
 }
 
+// Narrows via a `contains` filter first (SQLite's LIKE is case-insensitive
+// for ASCII by default) so only same-suburb candidate rows cross the Prisma
+// boundary, same reasoning and same fix as comparable-sale.service.ts's
+// findComparablesInSuburb — this table is currently small (~800 rows, one
+// per suburb, not one per sale) so it wasn't a measured perf problem, but
+// keeping the same discipline here avoids it becoming one as suburb
+// coverage grows, and matching the pattern is one less thing to relearn.
 async function findBySuburb(suburb: string, state?: string) {
-  const rows = await prisma.marketIntelligence.findMany()
+  const candidates = await prisma.marketIntelligence.findMany({
+    where: { suburb: { contains: suburb.trim() } },
+  })
 
   return (
-    rows.find((row) => {
+    candidates.find((row) => {
       const suburbMatches = row.suburb.trim().toLowerCase() === suburb.trim().toLowerCase()
       const stateMatches = state ? row.state.trim().toLowerCase() === state.trim().toLowerCase() : true
       return suburbMatches && stateMatches

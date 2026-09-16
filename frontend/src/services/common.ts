@@ -1,6 +1,6 @@
 // Shared types + HTTP service for notifications, AI copilot, generate-appraisal wizard.
 
-import { fetchJson } from './api-client'
+import { API_BASE_URL, fetchJson } from './api-client'
 
 export type AppraisalInputContext = {
   address: string
@@ -218,9 +218,28 @@ export type PersistGeneratedReportInput = {
   roi?: RoiPersistResult | null
   // Buyer-only, same override semantics as `roi`.
   affordability?: AffordabilityPersistResult | null
+  // Snapshot of exactly what the agent saw at generation time — persisted so
+  // a share link (or a later reopen) shows the same figures forever, not a
+  // live re-fetch that can drift as comparable/market data changes.
+  priceRangeLow?: number
+  priceRangeHigh?: number
+  sections?: ReportSectionSnapshot[]
+  comparables?: ComparableSale[]
+  strategyCards?: { id: string; title: string; description: string; iconKey: string }[]
 }
 
-export async function persistGeneratedReport(input: PersistGeneratedReportInput): Promise<void> {
+// Local shape, not imported from generated-report-panel.tsx (a UI component)
+// to keep this a plain data/service module — structurally identical to that
+// component's GeneratedReportSection prop type.
+export type ReportSectionSnapshot = {
+  id: string
+  title: string
+  paragraphs: ExecutiveSummarySegment[][]
+}
+
+export async function persistGeneratedReport(
+  input: PersistGeneratedReportInput,
+): Promise<{ reportId: string }> {
   const context = getAppraisalContext()
   if (!context?.address) {
     throw new Error('Property details are missing. Complete step 1 before saving report.')
@@ -254,6 +273,11 @@ export async function persistGeneratedReport(input: PersistGeneratedReportInput)
     affordabilityEstimatedBorrowingCapacity: affordability?.estimatedBorrowingCapacity,
     affordabilityMaxLoanAmount: affordability?.maxLoanAmount,
     affordabilityRepaymentToIncomePct: affordability?.repaymentToIncomePct,
+    priceRangeLow: input.priceRangeLow,
+    priceRangeHigh: input.priceRangeHigh,
+    sections: input.sections,
+    comparables: input.comparables,
+    strategyCards: input.strategyCards,
   }
 
   const response = await fetchJson<ApiResponse<{ reportId: string }>>('/api/reports', {
@@ -265,6 +289,70 @@ export async function persistGeneratedReport(input: PersistGeneratedReportInput)
   if (!response.success) {
     throw new Error(response.message)
   }
+  return response.data
+}
+
+export async function createShareLink(reportId: string): Promise<string> {
+  const response = await fetchJson<ApiResponse<{ shareToken: string }>>(`/api/reports/${reportId}/share-link`, {
+    method: 'POST',
+  })
+
+  if (!response.success) {
+    throw new Error(response.message)
+  }
+  return `${window.location.origin}/shared-report/${response.data.shareToken}`
+}
+
+export async function sendReportEmail(
+  reportId: string,
+  payload: { clientName: string; clientEmail: string; note?: string },
+): Promise<string> {
+  const response = await fetchJson<ApiResponse<{ shareUrl: string }>>(`/api/reports/${reportId}/send-email`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.success) {
+    throw new Error(response.message)
+  }
+  return response.data.shareUrl
+}
+
+export type PublicReport = {
+  reportTitle: string
+  propertyAddressLine: string
+  propertySuburb: string
+  propertyState: string
+  propertyPostcode: string
+  propertyType: string
+  bedrooms: number
+  bathrooms: number
+  parking: number
+  landSizeSqm: number
+  estimatedValue: number
+  priceRangeLow: number | null
+  priceRangeHigh: number | null
+  sections: ReportSectionSnapshot[] | null
+  comparables: ComparableSale[] | null
+  strategyCards: { id: string; title: string; description: string; iconKey: string }[] | null
+  preparedByName: string
+  preparedByRole: ReportRole
+  createdAt: string
+}
+
+// Deliberately a plain fetch, not fetchJson — this is the one call in the
+// app that must NEVER attach the viewer's own Authorization header (there
+// may not even be a logged-in viewer at all; a client opening this link has
+// no Relaive account).
+export async function getPublicReport(token: string): Promise<PublicReport> {
+  const response = await fetch(`${API_BASE_URL}/api/public/reports/${token}`)
+  const body = (await response.json()) as ApiResponse<PublicReport>
+
+  if (!body.success) {
+    throw new Error(body.message)
+  }
+  return body.data
 }
 
 // ---------------------------------------------------------------------------

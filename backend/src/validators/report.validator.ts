@@ -8,6 +8,37 @@ import { z } from 'zod'
 
 export const reportRoleValues = ['agent', 'valuer', 'buyer', 'investor'] as const
 
+const segmentSchema = z.object({
+    text: z.string(),
+    highlight: z.boolean().optional(),
+})
+
+const sectionSchema = z.object({
+    id: z.string(),
+    title: z.string(),
+    paragraphs: z.array(z.array(segmentSchema)),
+})
+
+const comparableSchema = z.object({
+    id: z.string(),
+    address: z.string(),
+    price: z.number(),
+    soldAgo: z.string(),
+    beds: z.number(),
+    baths: z.number(),
+    parking: z.number(),
+    areaSqm: z.number(),
+    matchPercent: z.number(),
+    distanceKm: z.number(),
+})
+
+const strategyCardSchema = z.object({
+    id: z.string(),
+    title: z.string(),
+    description: z.string(),
+    iconKey: z.string(),
+})
+
 export const createReportSchema = z.object({
     role: z.enum(reportRoleValues),
     clientName: z.string().trim().min(1).optional(),
@@ -32,6 +63,22 @@ export const createReportSchema = z.object({
     affordabilityEstimatedBorrowingCapacity: z.number().optional(),
     affordabilityMaxLoanAmount: z.number().optional(),
     affordabilityRepaymentToIncomePct: z.number().optional(),
+    // Snapshot fields — optional so older callers (or tests) that don't send
+    // them still work; a report saved without these just has no rich replay
+    // content later (see schema.prisma's Report model comment).
+    priceRangeLow: z.number().optional(),
+    priceRangeHigh: z.number().optional(),
+    sections: z.array(sectionSchema).optional(),
+    comparables: z.array(comparableSchema).optional(),
+    strategyCards: z.array(strategyCardSchema).optional(),
 })
 
 export type CreateReportInput = z.infer<typeof createReportSchema>
+
+export const sendReportEmailSchema = z.object({
+    clientName: z.string().trim().min(1, 'Client name is required.'),
+    clientEmail: z.string().trim().email('A valid client email is required.'),
+    note: z.string().trim().max(2000).optional(),
+})
+
+export type SendReportEmailInput = z.infer<typeof sendReportEmailSchema>

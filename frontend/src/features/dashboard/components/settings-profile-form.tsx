@@ -1,6 +1,8 @@
+import { useState, type FormEvent } from 'react'
 import { Button } from '../../../components/ui/button/button'
 import { Card } from '../../../components/ui/card/card'
 import { Input } from '../../../components/ui/input/input'
+import { useAuth } from '../../auth/hooks/use-auth'
 import type { User } from '../../../types/auth'
 import { getInitials } from '../utils/dashboard-user'
 
@@ -19,9 +21,37 @@ function splitFullName(fullName: string): { firstName: string; lastName: string 
 }
 
 export function SettingsProfileForm({ user, roleLabel }: SettingsProfileFormProps) {
+  const { updateProfile } = useAuth()
   const fullName = user?.fullName ?? 'Guest User'
-  const { firstName, lastName } = splitFullName(fullName)
   const initials = getInitials(fullName)
+
+  const initial = splitFullName(fullName)
+  const [firstName, setFirstName] = useState(initial.firstName)
+  const [lastName, setLastName] = useState(initial.lastName)
+  const [phone, setPhone] = useState(user?.phone ?? '')
+  const [company, setCompany] = useState(user?.company ?? '')
+  const [isSaving, setIsSaving] = useState(false)
+  const [savedJustNow, setSavedJustNow] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault()
+    setIsSaving(true)
+    setError(null)
+    try {
+      await updateProfile({
+        fullName: `${firstName} ${lastName}`.trim(),
+        phone: phone.trim(),
+        company: company.trim(),
+      })
+      setSavedJustNow(true)
+      setTimeout(() => setSavedJustNow(false), 2500)
+    } catch {
+      setError('Failed to save changes. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   return (
     <Card className="flex-1">
@@ -44,53 +74,50 @@ export function SettingsProfileForm({ user, roleLabel }: SettingsProfileFormProp
         </div>
       </div>
 
-      <form
-        className="mt-6 flex flex-col gap-5"
-        onSubmit={(event) => event.preventDefault()}
-      >
+      <form className="mt-6 flex flex-col gap-5" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input
             id="settings-first-name"
             label="First Name"
-            defaultValue={firstName}
+            value={firstName}
+            onChange={(event) => setFirstName(event.target.value)}
             className={INPUT_CLASS}
           />
           <Input
             id="settings-last-name"
             label="Last Name"
-            defaultValue={lastName}
-            className={INPUT_CLASS}
-          />
-          <Input
-            id="settings-email"
-            label="Email"
-            type="email"
-            defaultValue={user?.email ?? ''}
+            value={lastName}
+            onChange={(event) => setLastName(event.target.value)}
             className={INPUT_CLASS}
           />
           <Input
             id="settings-phone"
             label="Phone"
             type="tel"
-            defaultValue="+61 400 000 000"
+            value={phone}
+            onChange={(event) => setPhone(event.target.value)}
             className={INPUT_CLASS}
           />
           <Input
             id="settings-company"
             label="Company"
-            defaultValue="Relaive"
+            value={company}
+            onChange={(event) => setCompany(event.target.value)}
             className={INPUT_CLASS}
           />
           <Input
             id="settings-role"
             label="Role"
             defaultValue={roleLabel}
+            disabled
             className={INPUT_CLASS}
           />
         </div>
 
-        <Button type="submit" variant="primary" className="w-fit">
-          Save Changes
+        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
+        <Button type="submit" variant="primary" className="w-fit" disabled={isSaving}>
+          {isSaving ? 'Saving…' : savedJustNow ? 'Saved!' : 'Save Changes'}
         </Button>
       </form>
     </Card>

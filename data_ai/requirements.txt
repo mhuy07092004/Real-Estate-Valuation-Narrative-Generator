@@ -2,3 +2,10 @@ pandas
 undetected_chromedriver
 webdriver-manager
 openpyxl
+
+# Price-prediction model (notebooks/ + future FastAPI serving)
+scikit-learn
+matplotlib
+seaborn
+jupyter
+joblib

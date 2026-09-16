@@ -49,20 +49,28 @@ export async function getMarketComparisonSuburbs(): Promise<MarketComparisonSubu
     },
   })
 
-  const results: MarketComparisonSuburb[] = []
-  for (const row of rows) {
-    // MarketIntelligence has no postcode column of its own — real postcodes
-    // live on Property, keyed the same way (suburb+state) since both were
-    // populated from the same bronze import.
-    const property = await prisma.property.findFirst({
-      where: { suburb: row.suburb, state: row.state },
-      select: { postcode: true },
-    })
+  // MarketIntelligence has no postcode column of its own — real postcodes
+  // live on Property, keyed the same way (suburb+state) since both were
+  // populated from the same bronze import. One batched query for every
+  // qualifying suburb's postcode, instead of the N+1 findFirst-per-row this
+  // replaced (measured ~100ms for 52 suburbs — one round trip per row).
+  const properties = await prisma.property.findMany({
+    where: { OR: rows.map((row) => ({ suburb: row.suburb, state: row.state })) },
+    select: { suburb: true, state: true, postcode: true },
+  })
+  const postcodeByKey = new Map<string, string>()
+  for (const property of properties) {
+    const key = `${property.suburb.toLowerCase()}|${property.state.toLowerCase()}`
+    if (!postcodeByKey.has(key)) postcodeByKey.set(key, property.postcode)
+  }
 
-    results.push({
-      id: `${slugify(row.suburb)}-${row.state.toLowerCase()}-${property?.postcode ?? ''}`,
+  return rows.map((row) => {
+    const postcode = postcodeByKey.get(`${row.suburb.toLowerCase()}|${row.state.toLowerCase()}`) ?? ''
+
+    return {
+      id: `${slugify(row.suburb)}-${row.state.toLowerCase()}-${postcode}`,
       suburb: row.suburb,
-      postcode: property?.postcode ?? '',
+      postcode,
       medianHousePrice: row.medianHousePrice!,
       medianUnitPrice: row.medianUnitPrice!,
       growth12m: row.medianPriceGrowthPct,
@@ -71,7 +79,6 @@ export async function getMarketComparisonSuburbs(): Promise<MarketComparisonSubu
       clearanceRate: row.auctionClearanceRatePct!,
       populationGrowth: row.populationGrowthPct!,
       supplyConstraint: row.supplyConstraintDwellingApprovalsPer1000!,
-    })
-  }
-  return results
+    }
+  })
 }

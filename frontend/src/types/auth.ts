@@ -10,6 +10,8 @@ export interface User {
   id: string
   email: string
   fullName: string
+  phone: string | null
+  company: string | null
   roles: UserRole[]
   avatar: string | null
   createdAt: string

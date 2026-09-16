@@ -101,4 +101,4 @@ export function getPlanById(id: PlanId): PlanTier {
 }
 
 /** Mock "current subscription" — swap for the real user's plan once billing is wired. */
-export const CURRENT_PLAN_ID: PlanId = 'plus'
+export const CURRENT_PLAN_ID: PlanId = 'free'

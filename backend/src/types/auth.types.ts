@@ -5,18 +5,24 @@ export type StoredUser = {
   userId: string
   fullName: string
   email: string
+  phone: string | null
+  company: string | null
   roleName: string
   createdAt: Date
 }
 
 // NOTE: the frontend's dashboard experience expects role arrays. The DB stores
-// a single role_id, so this mapper expands core roles for prototype access
-// (e.g. `user` can enter all dashboard role views) while keeping a stable
-// response contract. Replace with product-approved role policy later.
+// a single role_id, so this mapper expands the `admin` role into every
+// dashboard role view (used for QA/demo accounts that need to see
+// everything, e.g. the seeded demo account) while keeping a stable response
+// contract. Every other role maps to exactly itself — one role, one
+// dashboard, enforced both here and by requireRole on the backend routes.
 export type FrontendUser = {
   id: string
   email: string
   fullName: string
+  phone: string | null
+  company: string | null
   roles: string[]
   avatar: string | null
   createdAt: string
@@ -24,16 +30,14 @@ export type FrontendUser = {
 
 export function toFrontendUser(user: StoredUser): FrontendUser {
   const expandedRoles =
-    user.roleName === 'admin'
-      ? ['admin', 'agent', 'valuer', 'investor', 'buyer']
-      : user.roleName === 'user'
-        ? ['agent', 'valuer', 'investor', 'buyer']
-        : [user.roleName]
+    user.roleName === 'admin' ? ['admin', 'agent', 'valuer', 'investor', 'buyer'] : [user.roleName]
 
   return {
     id: user.userId,
     email: user.email,
     fullName: user.fullName,
+    phone: user.phone,
+    company: user.company,
     roles: expandedRoles,
     avatar: null,
     createdAt: user.createdAt.toISOString(),

@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from 'react'
+import { Suspense, useEffect, type ReactNode } from 'react'
 import { Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '../../components/ui/button/button'
 import { DashboardNavbar } from '../../components/ui/navbar/dashboard-navbar'
@@ -6,6 +6,7 @@ import { PageTransition } from '../../components/ui/page-transition/page-transit
 import { useAuth } from '../../features/auth/hooks/use-auth'
 import { DashboardViewSkeleton } from './dashboard-view-skeleton.tsx'
 import {
+  type DashboardRole,
   getActiveDashboardRole,
   getDefaultDashboardRole,
   isDashboardRole,
@@ -96,6 +97,22 @@ export function DashboardRoleGuard() {
   }
 
   return <Outlet />
+}
+
+/**
+ * Gates a single feature route (nested under `:role`) to one dashboard role.
+ * DashboardRoleGuard already ensures the `:role` segment matches the user's
+ * active role, but every feature route was mounted under every role — this
+ * closes that gap by redirecting to the role's own home page on mismatch.
+ */
+export function RoleGate({ role, children }: { role: DashboardRole; children: ReactNode }) {
+  const { role: roleParam } = useParams<{ role: string }>()
+
+  if (roleParam !== role) {
+    return <Navigate to={`/dashboard/${roleParam}`} replace />
+  }
+
+  return <>{children}</>
 }
 
 export function DashboardRoleHome() {

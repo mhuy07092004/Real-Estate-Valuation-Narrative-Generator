@@ -25,6 +25,8 @@ model User {
   userId       String    @id @default(uuid()) @map("user_id")
   fullName     String    @map("full_name")
   email        String    @unique
+  phone        String?
+  company      String?
   passwordHash String?   @map("password_hash") // null for OAuth-only accounts
   authProvider String    @default("local") @map("auth_provider")
   roleId       Int       @map("role_id")
@@ -217,6 +219,23 @@ model Report {
   affordabilityEstimatedBorrowingCapacity Float? @map("affordability_estimated_borrowing_capacity")
   affordabilityMaxLoanAmount              Float? @map("affordability_max_loan_amount")
   affordabilityRepaymentToIncomePct       Float? @map("affordability_repayment_to_income_pct")
+  // Snapshot fields: capture exactly what the agent saw at generation time,
+  // so a shared/reopened report shows the same figures forever, not a live
+  // re-fetch that can drift as the underlying comparable/market data changes.
+  // Nullable since reports saved before this existed have none — rendering
+  // treats a null snapshot as "no rich content available" rather than
+  // erroring, same "honest gap" pattern used elsewhere.
+  priceRangeLow      Float?  @map("price_range_low")
+  priceRangeHigh     Float?  @map("price_range_high")
+  sectionsJson       String? @map("sections_json")
+  comparablesJson    String? @map("comparables_json")
+  strategyCardsJson  String? @map("strategy_cards_json")
+  // Public share link — null until an agent first requests one. High-entropy
+  // random token, deliberately separate from reportId (which is already
+  // exposed on authenticated list/CRUD endpoints) so a leaked reportId can
+  // never grant read access, and a share link can be rotated independently
+  // of the report's own identity.
+  shareToken          String?  @unique @map("share_token")
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
 

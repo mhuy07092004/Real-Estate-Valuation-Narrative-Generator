@@ -224,7 +224,7 @@ export function SettingsPage() {
                   </p>
 
                   <div className="mt-5 flex flex-wrap gap-2">
-                    <Button type="button" variant="secondary" size="sm">
+                    <Button type="button" variant="secondary" size="sm" disabled>
                       Upgrade to Pro
                     </Button>
                     <Button
@@ -275,7 +275,7 @@ export function SettingsPage() {
                       ))}
                     </ul>
                     {!isCurrent ? (
-                      <Button type="button" size="sm" className="mt-5 w-full">
+                      <Button type="button" size="sm" className="mt-5 w-full" disabled>
                         Switch Plan
                       </Button>
                     ) : (

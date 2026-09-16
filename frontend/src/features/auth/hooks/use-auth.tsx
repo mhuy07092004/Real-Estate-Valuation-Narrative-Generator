@@ -13,6 +13,8 @@ import {
   getStoredSession,
   login as loginRequest,
   register as registerRequest,
+  updateProfile as updateProfileRequest,
+  type UpdateProfileInput,
 } from '../../../services/auth'
 
 interface AuthContextValue {
@@ -21,6 +23,7 @@ interface AuthContextValue {
   isLoading: boolean
   login: (credentials: LoginCredentials) => Promise<AuthSession>
   register: (credentials: RegisterCredentials) => Promise<AuthSession>
+  updateProfile: (input: UpdateProfileInput) => Promise<User>
   logout: () => void
 }
 
@@ -47,6 +50,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(session.user)
     return session
   }, [])
+  const updateProfile = useCallback(async (input: UpdateProfileInput) => {
+    const updatedUser = await updateProfileRequest(input)
+    setUser(updatedUser)
+    return updatedUser
+  }, [])
+
   const logout = useCallback(() => {
     clearSession()
     setUser(null)
@@ -59,9 +68,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       login,
       register,
+      updateProfile,
       logout,
     }),
-    [user, isLoading, login, register, logout]
+    [user, isLoading, login, register, updateProfile, logout]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

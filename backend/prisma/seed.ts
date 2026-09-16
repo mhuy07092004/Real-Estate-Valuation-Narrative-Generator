@@ -4,26 +4,31 @@ import bcrypt from 'bcrypt'
 const prisma = new PrismaClient()
 
 async function main() {
-  const userRole = await prisma.role.upsert({
-    where: { roleName: 'user' },
-    update: {},
-    create: { roleName: 'user' },
-  })
-
-  await prisma.role.upsert({
+  const adminRole = await prisma.role.upsert({
     where: { roleName: 'admin' },
     update: {},
     create: { roleName: 'admin' },
   })
 
+  // Real dashboard roles a registrant can actually pick at sign-up
+  // (registration.validator.ts) — must exist for findRoleIdByName to
+  // resolve them.
+  await Promise.all(
+    (['agent', 'valuer', 'investor', 'buyer'] as const).map((roleName) =>
+      prisma.role.upsert({ where: { roleName }, update: {}, create: { roleName } }),
+    ),
+  )
+
   const passwordHash = await bcrypt.hash('Password123', 10)
 
+  // Seeded as admin (not a specific dashboard role) so it can exercise every
+  // role's dashboard/API during manual QA — see auth.types.ts's toFrontendUser.
   await prisma.user.upsert({
     where: { email: 'postman.user@example.com' },
     update: {
       fullName: 'Postman User',
       passwordHash,
-      roleId: userRole.roleId,
+      roleId: adminRole.roleId,
       authProvider: 'local',
       isActive: true,
     },
@@ -31,7 +36,7 @@ async function main() {
       fullName: 'Postman User',
       email: 'postman.user@example.com',
       passwordHash,
-      roleId: userRole.roleId,
+      roleId: adminRole.roleId,
       authProvider: 'local',
       isActive: true,
     },

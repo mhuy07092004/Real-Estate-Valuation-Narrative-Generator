@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { useAuth } from '../../../auth/hooks/use-auth'
 import { SendReportCard } from '../../../../components/ui/send-report-card/send-report-card'
 import type { ReportHeaderStat } from '../../../../components/ui/report-header-card/report-header-card'
@@ -18,7 +18,9 @@ import {
   getNarrativePreview,
   getReportTemplate,
   getRoiResult,
+  createShareLink,
   persistGeneratedReport,
+  sendReportEmail,
   type AffordabilityPersistResult,
   type PersistedReport,
   type ReportRole,
@@ -115,7 +117,6 @@ export function GeneratedReportContainer({
   savedReport,
 }: GeneratedReportContainerProps) {
   const { role } = useParams<{ role?: string }>()
-  const navigate = useNavigate()
   const { user } = useAuth()
   const reportRole = toReportRole(role)
   const roiForDisplay = reportRole === 'investor' ? resolveRoiForDisplay(savedReport) : null
@@ -163,6 +164,23 @@ export function GeneratedReportContainer({
       .join('\n\n')
   }
 
+  // Snapshot of exactly what's on screen right now — persisted alongside the
+  // report so a later share link (or reopen) shows the same figures
+  // forever, not a live re-fetch that can drift as comparable/market data
+  // changes underneath it.
+  const buildSnapshotFields = () => ({
+    priceRangeLow: rangeLow,
+    priceRangeHigh: rangeHigh,
+    sections,
+    comparables: comparableSales ?? [],
+    strategyCards: (agentRecommendations?.items ?? []).map((item) => ({
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      iconKey: item.iconKey,
+    })),
+  })
+
   const handleSave = async () => {
     if (!selectedTemplate || !appraisalSummary) return
     setIsSaving(true)
@@ -174,17 +192,13 @@ export function GeneratedReportContainer({
         estimatedValue: parseCurrency(appraisalSummary.midpointEstimate),
         roi: roiForDisplay,
         affordability: affordabilityForDisplay,
+        ...buildSnapshotFields(),
       })
       setSavedJustNow(true)
       setTimeout(() => setSavedJustNow(false), 2500)
     } finally {
       setIsSaving(false)
     }
-  }
-
-  const handleSendSuccess = () => {
-    setShareOpen(false)
-    navigate(role ? `/dashboard/${role}` : '/dashboard')
   }
 
   if (
@@ -331,8 +345,8 @@ export function GeneratedReportContainer({
             <div ref={sharePanelRef}>
               <SendReportCard
                 onClose={() => setShareOpen(false)}
-                onSend={(payload) =>
-                  persistGeneratedReport({
+                onSend={async (payload) => {
+                  const { reportId } = await persistGeneratedReport({
                     role: reportRole,
                     reportTemplateId: selectedTemplate.id,
                     narrativeText: buildNarrative(),
@@ -341,9 +355,30 @@ export function GeneratedReportContainer({
                     clientEmail: payload.clientEmail,
                     roi: roiForDisplay,
                     affordability: affordabilityForDisplay,
+                    ...buildSnapshotFields(),
                   })
-                }
-                onSuccess={handleSendSuccess}
+                  const shareUrl = await createShareLink(reportId)
+                  return { shareUrl }
+                }}
+                onSendEmail={async (payload) => {
+                  const { reportId } = await persistGeneratedReport({
+                    role: reportRole,
+                    reportTemplateId: selectedTemplate.id,
+                    narrativeText: buildNarrative(),
+                    estimatedValue: parseCurrency(appraisalSummary.midpointEstimate),
+                    clientName: payload.clientName,
+                    clientEmail: payload.clientEmail,
+                    roi: roiForDisplay,
+                    affordability: affordabilityForDisplay,
+                    ...buildSnapshotFields(),
+                  })
+                  const shareUrl = await sendReportEmail(reportId, {
+                    clientName: payload.clientName,
+                    clientEmail: payload.clientEmail,
+                    note: payload.note,
+                  })
+                  return { shareUrl }
+                }}
               />
             </div>
           ) : null

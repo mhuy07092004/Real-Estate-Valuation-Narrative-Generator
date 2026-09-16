@@ -11,7 +11,9 @@ export const registrationSchema = z.object({
     .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Za-z]/, 'Password must contain at least one letter')
     .regex(/[0-9]/, 'Password must contain at least one number'),
-  role: z.enum(['user', 'agent', 'valuer', 'investor', 'buyer']).optional().default('user'),
+  role: z.enum(['agent', 'valuer', 'investor', 'buyer'], {
+    errorMap: () => ({ message: 'Please select a role' }),
+  }),
   // Only sent once risk scoring has asked for a captcha (see auth-risk.service).
   turnstileToken: z.string().min(1).optional(),
 })

@@ -2,7 +2,7 @@ import type { Request, Response } from 'express'
 import { ZodError } from 'zod'
 import { verifyAccessToken } from '../services/jwt.service.js'
 import { forgotPasswordSchema } from '../validators/auth.validator.js'
-import { getMe, loginUser, refreshSession } from '../services/auth.service.js'
+import { getMe, loginUser, refreshSession, updateProfile as updateProfileService } from '../services/auth.service.js'
 import { CaptchaRequiredError, TurnstileVerificationError } from '../services/turnstile.service.js'
 import { InvalidCredentialsError, type ApiResponse, type AuthResponseData, type FrontendUser } from '../types/auth.types.js'
 
@@ -141,6 +141,38 @@ export async function me(req: Request, res: Response) {
       message: 'Token is invalid or has expired.',
     }
     res.status(401).json(body)
+  }
+}
+
+/**
+ * Updates the current authenticated user's Personal Information (Settings
+ * > Personal Information). Mounted behind requireAuth, unlike /me above,
+ * which does its own token parsing — this reads the userId requireAuth
+ * already put in res.locals.
+ */
+export async function updateProfile(req: Request, res: Response) {
+  try {
+    const user = await updateProfileService(res.locals.userId, req.body)
+
+    if (!user) {
+      const body: ApiResponse<never> = { success: false, message: 'User not found.' }
+      res.status(404).json(body)
+      return
+    }
+
+    const body: ApiResponse<{ user: FrontendUser }> = {
+      success: true,
+      message: 'Profile updated successfully.',
+      data: { user },
+    }
+    res.status(200).json(body)
+  } catch (err) {
+    if (err instanceof ZodError) {
+      res.status(400).json(toFieldErrorResponse(err))
+      return
+    }
+
+    throw err
   }
 }
 

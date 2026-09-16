@@ -234,3 +234,41 @@ docker push <your-dockerhub-username>/relaive-backend:latest
 - The image starts with real reference data (properties, comparable sales, suburb market stats) already loaded, not just the dev seed's roles + demo user.
 - A schema change or CSV update requires a rebuild + redeploy to take effect, not just a restart.
 - Any data written after boot (new users, clients, reports) still doesn't persist across redeploys/restarts, since the container's filesystem is ephemeral — only the build-time-baked data survives. Long-term, persisting live app data requires either a Render persistent disk or migrating `schema.prisma`'s datasource to a managed Postgres instance.
+
+---
+
+## 🤖 Deploy AI price-prediction service (Docker → Docker Hub → Render)
+
+The AI service (`data_ai/service`) is a separate FastAPI app that serves the trained price-prediction model, and deploys the same way as the backend — its own Docker image, its own Docker Hub repo, its own Render service.
+
+**1. Build & push is automated** via [`.github/workflows/docker-deploy-ai.yml`](.github/workflows/docker-deploy-ai.yml) — every push to `main` touching `data_ai/service/**`, `data_ai/model/**`, or `data_ai/*.csv` builds the image and pushes `:latest` + `:sha-<commit>` to Docker Hub as `<your-dockerhub-username>/relaive-ai-service`. Uses the same `DOCKERHUB_USERNAME`/`DOCKERHUB_TOKEN` repo secrets as the backend workflow — no extra secrets to add.
+
+Manual build/push, if needed (same repo-root build-context requirement as the backend, since the Dockerfile reaches `data_ai/*.csv` and `data_ai/model/` outside `data_ai/service/`):
+
+```bash
+docker login
+docker build -f data_ai/service/Dockerfile -t <your-dockerhub-username>/relaive-ai-service:latest .
+docker push <your-dockerhub-username>/relaive-ai-service:latest
+```
+
+**2. Create the Render service** (dashboard → New Web Service → "Existing Image"):
+
+| Setting | Value |
+|---|---|
+| Image URL | `docker.io/<your-dockerhub-username>/relaive-ai-service:latest` |
+| Health Check Path | `/health` |
+
+No environment variables are required — the trained model and preprocessing artifacts are baked into the image at build time (see [`data_ai/service/Dockerfile`](data_ai/service/Dockerfile)), same pattern as the backend's baked-in database. Set `ML_API_KEY` only if you want to require a bearer token on `/predict` (see `data_ai/service/main.py`) — leave unset for none.
+
+**3. Point the backend at it:** once the AI service has a live Render URL, set on the **backend's** Render service:
+
+| Variable | Value |
+|---|---|
+| `ML_PRICE_PREDICTION_URL` | `https://<your-ai-service>.onrender.com/predict` |
+| `ML_PRICE_PREDICTION_API_KEY` | Only if you set `ML_API_KEY` on the AI service — otherwise leave blank |
+
+`price-prediction.service.ts` reads both purely from env, so no backend code or redeploy-of-code is needed — just set the vars and restart the backend service. If `ML_PRICE_PREDICTION_URL` is unset or the call fails, the backend silently falls back to the comparable-sales average (see `report-content.service.ts`'s `buildRealEvidence`).
+
+**4. Redeploying after a change:** same as the backend — GitHub Actions pushes a new `:latest` to Docker Hub automatically, but pulling it into the running Render service still requires triggering "Manual Deploy" in the Render dashboard.
+
+**Free-tier note:** if the AI service is on Render's free tier, it cold-sleeps after ~15 minutes idle — the first prediction after a gap takes noticeably longer (cold start) before falling back to normal latency.

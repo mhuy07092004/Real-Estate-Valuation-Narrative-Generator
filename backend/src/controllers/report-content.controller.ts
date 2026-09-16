@@ -20,10 +20,15 @@ function isReportRole(value: unknown): value is ReportRole {
     return typeof value === 'string' && (VALID_ROLES as string[]).includes(value)
 }
 
-function parseAddress(address: string): { street: string; suburb: string; state: string } | null {
+function parseAddress(address: string): { street: string; suburb: string; state: string; postcode: string } | null {
     const match = address.trim().match(/^(\d+\s+[^,]+),\s*([^,]+)\s+([A-Za-z]{2,3})\s+(\d{4})$/)
     if (!match) return null
-    return { street: match[1].trim(), suburb: match[2].trim(), state: match[3].trim().toUpperCase() }
+    return {
+        street: match[1].trim(),
+        suburb: match[2].trim(),
+        state: match[3].trim().toUpperCase(),
+        postcode: match[4].trim(),
+    }
 }
 
 export function getReportTemplate(req: Request, res: Response) {
@@ -42,11 +47,12 @@ function readSubjectQuery(req: Request) {
     const bedrooms = req.query.bedrooms ? Number(req.query.bedrooms) : undefined
     const bathrooms = req.query.bathrooms ? Number(req.query.bathrooms) : undefined
     const parking = req.query.parking ? Number(req.query.parking) : undefined
-    return { address, propertyType, bedrooms, bathrooms, parking }
+    const landSizeSqm = req.query.landSizeSqm ? Number(req.query.landSizeSqm) : undefined
+    return { address, propertyType, bedrooms, bathrooms, parking, landSizeSqm }
 }
 
 export async function getExecutiveSummary(req: Request, res: Response) {
-    const { address, propertyType, bedrooms, bathrooms, parking } = readSubjectQuery(req)
+    const { address, propertyType, bedrooms, bathrooms, parking, landSizeSqm } = readSubjectQuery(req)
     const parsed = parseAddress(address)
 
     if (!parsed) {
@@ -59,12 +65,12 @@ export async function getExecutiveSummary(req: Request, res: Response) {
         return
     }
 
-    const summary = await buildExecutiveSummary({ ...parsed, propertyType, bedrooms, bathrooms, parking })
+    const summary = await buildExecutiveSummary({ ...parsed, propertyType, bedrooms, bathrooms, parking, landSizeSqm })
     res.json(summary)
 }
 
 export async function getNarrativePreview(req: Request, res: Response) {
-    const { address, propertyType, bedrooms, bathrooms, parking } = readSubjectQuery(req)
+    const { address, propertyType, bedrooms, bathrooms, parking, landSizeSqm } = readSubjectQuery(req)
     const reportType = typeof req.query.reportType === 'string' ? req.query.reportType : undefined
     const parsed = parseAddress(address)
 
@@ -81,7 +87,10 @@ export async function getNarrativePreview(req: Request, res: Response) {
         return
     }
 
-    const preview = await buildNarrativePreview({ ...parsed, propertyType, bedrooms, bathrooms, parking }, templateTitle)
+    const preview = await buildNarrativePreview(
+        { ...parsed, propertyType, bedrooms, bathrooms, parking, landSizeSqm },
+        templateTitle,
+    )
     res.json(preview)
 }
 

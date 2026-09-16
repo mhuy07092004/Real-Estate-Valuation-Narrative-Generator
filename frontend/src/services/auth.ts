@@ -6,8 +6,9 @@ import {
   type LoginCredentials,
   type LoginResponseData,
   type RegisterCredentials,
+  type User,
 } from '../types/auth'
-import { API_BASE_URL } from './api-client'
+import { API_BASE_URL, fetchJson } from './api-client'
 
 // Not routed through fetchJson (api-client.ts) because these calls must never
 // attach a stale Authorization header before a session exists — but they still
@@ -59,6 +60,13 @@ export function persistSession(session: AuthSession): void {
   localStorage.setItem(SESSION_KEY, JSON.stringify(session))
 }
 
+/** Merges an updated user into the stored session (e.g. after a profile edit). */
+function persistSessionUser(user: AuthSession['user']): void {
+  const session = getStoredSession()
+  if (!session) return
+  persistSession({ ...session, user })
+}
+
 export function clearSession(): void {
   localStorage.removeItem(SESSION_KEY)
 }
@@ -92,6 +100,27 @@ export async function login(credentials: LoginCredentials): Promise<AuthSession>
 
   persistSession(session)
   return session
+}
+
+export type UpdateProfileInput = {
+  fullName: string
+  phone?: string
+  company?: string
+}
+
+export async function updateProfile(input: UpdateProfileInput): Promise<User> {
+  const body = await fetchJson<ApiResponse<{ user: User }>>(`${API_BASE}/me`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+
+  if (!body.success) {
+    throw new AuthError(body.message, body.errors)
+  }
+
+  persistSessionUser(body.data.user)
+  return body.data.user
 }
 
 export async function register(credentials: RegisterCredentials): Promise<AuthSession> {

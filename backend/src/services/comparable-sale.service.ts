@@ -1,9 +1,16 @@
 // Data-access + matching logic for ComparableSale — reference data, not
 // owned by a user. Filters to the subject's suburb first, then ranks by
-// property-type match and beds/bathrooms/parking closeness. Filtering is
-// done in JS after a full fetch rather than in the query, since SQLite +
-// Prisma has no case-insensitive string comparison (that's Postgres-only) —
-// fine at this table's small reference-data scale.
+// property-type match and beds/bathrooms/parking closeness.
+//
+// The suburb match itself is still finished in JS (exact, trimmed,
+// case-insensitive) because SQLite + Prisma has no case-insensitive
+// `equals` (that's Postgres-only). But the DB query narrows to candidate
+// rows first via a `contains` filter — SQLite's LIKE is case-insensitive
+// for ASCII by default — so a request only ships the couple hundred
+// same-suburb rows across the Prisma boundary, not the entire table. Without
+// this, the query was a full-table scan + full join of every comparable
+// sale on every request (measured ~1.3s at 33k rows, growing without bound
+// as more data is ingested) instead of a few ms.
 import { prisma } from '../lib/prisma.js'
 
 export type ComparableSubject = {
@@ -38,12 +45,17 @@ export async function findComparablesInSuburb(
     subject: ComparableSubject,
     options: { dateRangeMonths?: number; max?: number } = {},
 ) {
-    const all = await prisma.comparableSale.findMany({
+    const candidates = await prisma.comparableSale.findMany({
+        where: {
+            property: {
+                suburb: { contains: subject.suburb.trim() },
+            },
+        },
         orderBy: { soldDate: 'desc' },
         include: { property: true },
     })
 
-    const sameSuburb = all.filter(
+    const sameSuburb = candidates.filter(
         (row) => row.property.suburb.trim().toLowerCase() === subject.suburb.trim().toLowerCase(),
     )
 

@@ -3,10 +3,18 @@
 import { Router } from 'express'
 import { requireAuth } from '../middleware/require-auth.js'
 import { asyncHandler } from '../middleware/async-handler.js'
-import { createReport, getReport, listReports } from '../controllers/report.controller.js'
+import {
+    createReport,
+    createShareLink,
+    getReport,
+    listReports,
+    sendReportEmail,
+} from '../controllers/report.controller.js'
 
 export const reportRouter = Router()
 
 reportRouter.get('/', requireAuth, asyncHandler(listReports))
 reportRouter.get('/:reportId', requireAuth, asyncHandler(getReport))
 reportRouter.post('/', requireAuth, asyncHandler(createReport))
+reportRouter.post('/:reportId/share-link', requireAuth, asyncHandler(createShareLink))
+reportRouter.post('/:reportId/send-email', requireAuth, asyncHandler(sendReportEmail))

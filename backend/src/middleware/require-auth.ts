@@ -16,6 +16,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = verifyAccessToken(token)
     res.locals.userId = payload.userId
+    res.locals.roles = payload.roles
     next()
   } catch {
     res.status(401).json({ success: false, message: 'Token is invalid or expired.' })

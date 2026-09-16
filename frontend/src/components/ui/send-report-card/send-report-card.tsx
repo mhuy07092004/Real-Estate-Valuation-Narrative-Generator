@@ -9,8 +9,8 @@ export type SendReportPayload = {
 
 type SendReportCardProps = {
   onClose: () => void
-  onSend?: (payload: SendReportPayload) => Promise<void>
-  onSuccess?: () => void
+  onSend?: (payload: SendReportPayload) => Promise<{ shareUrl: string }>
+  onSendEmail?: (payload: SendReportPayload & { note?: string }) => Promise<{ shareUrl: string }>
 }
 
 function MailIcon() {
@@ -73,16 +73,33 @@ function SuccessTickIcon() {
   )
 }
 
-export function SendReportCard({ onClose, onSend, onSuccess }: SendReportCardProps) {
+function LinkIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M9 15l6-6M10.5 7.5l1-1a3.5 3.5 0 0 1 5 5l-1 1M13.5 16.5l-1 1a3.5 3.5 0 0 1-5-5l1-1"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+export function SendReportCard({ onClose, onSend, onSendEmail }: SendReportCardProps) {
   const emailId = useId()
   const nameId = useId()
   const noteId = useId()
   const [includeNote, setIncludeNote] = useState(true)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [sentTo, setSentTo] = useState<string | null>(null)
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [emailedTo, setEmailedTo] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isEmailing, setIsEmailing] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
   const [note, setNote] = useState(
     'Hi {name},\n\nPlease find attached the property appraisal report for your review. Happy to discuss any questions.\n\nBest regards',
   )
@@ -99,14 +116,47 @@ export function SendReportCard({ onClose, onSend, onSuccess }: SendReportCardPro
     }
 
     try {
-      await onSend?.(payload)
-      const recipient = payload.clientEmail || payload.clientName || 'without recipient details'
-      setSentTo(recipient)
-      onSuccess?.()
+      const result = await onSend?.(payload)
+      if (result) setShareUrl(result.shareUrl)
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Unable to save and send report.')
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to save report and generate a link.')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleSendEmail = async () => {
+    setIsEmailing(true)
+    setErrorMessage(null)
+
+    const payload = {
+      clientName: name.trim(),
+      clientEmail: trimmedEmail,
+      note: includeNote ? note.replace('{name}', name.trim() || 'there') : undefined,
+    }
+
+    try {
+      const result = await onSendEmail?.(payload)
+      if (result) {
+        setShareUrl(result.shareUrl)
+        setEmailedTo(trimmedEmail)
+      }
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to email the report to the client.')
+    } finally {
+      setIsEmailing(false)
+    }
+  }
+
+  const handleCopyLink = async () => {
+    if (!shareUrl) return
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard API can fail (permissions, insecure context) — the link
+      // text is still visible and selectable, so this isn't a dead end.
     }
   }
 
@@ -115,7 +165,7 @@ export function SendReportCard({ onClose, onSend, onSuccess }: SendReportCardPro
       aria-labelledby="send-report-title"
       className="w-full rounded-3xl border border-[#E5E7EB] bg-white px-5 py-6 shadow-[0_4px_24px_rgba(26,32,44,0.08)] sm:px-7 sm:py-7"
     >
-      {sentTo ? (
+      {shareUrl ? (
         <div className="flex flex-col items-center px-2 py-6 text-center sm:py-8">
           <span className="text-emerald-500">
             <SuccessTickIcon />
@@ -124,11 +174,26 @@ export function SendReportCard({ onClose, onSend, onSuccess }: SendReportCardPro
             id="send-report-title"
             className="mt-4 text-lg font-semibold text-relaive-navy sm:text-xl"
           >
-            Report sent successfully
+            {emailedTo ? 'Report sent' : 'Link ready to share'}
           </h2>
           <p className="mt-2 text-sm text-relaive-gray">
-            Delivered to <span className="font-medium text-relaive-navy">{sentTo}</span>
+            {emailedTo
+              ? `Report saved and emailed to ${emailedTo}. You can also copy the link below.`
+              : "Report saved. Copy this link and send it to your client yourself — Relaive doesn't email it for you."}
           </p>
+
+          <div className="mt-5 flex w-full items-center gap-2 rounded-xl border border-black/10 bg-[#F3F4F6] px-3 py-2.5">
+            <span className="flex-1 truncate text-left text-sm text-relaive-navy">{shareUrl}</span>
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-relaive-navy shadow-sm transition-colors hover:bg-gray-50"
+            >
+              <LinkIcon />
+              {copied ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+
           <button
             type="button"
             onClick={onClose}
@@ -148,7 +213,7 @@ export function SendReportCard({ onClose, onSend, onSuccess }: SendReportCardPro
                 id="send-report-title"
                 className="text-base font-semibold text-relaive-navy sm:text-lg"
               >
-                Send Report to Client
+                Get Shareable Link
               </h2>
             </div>
             <button
@@ -226,15 +291,29 @@ export function SendReportCard({ onClose, onSend, onSuccess }: SendReportCardPro
             ) : null}
           </div>
 
-          <button
-            type="button"
-            onClick={handleSend}
-            disabled={isSubmitting}
-            className={`mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-relaive-primary to-relaive-secondary px-4 py-3 text-sm font-medium text-white shadow-md shadow-relaive-secondary/25 transition-opacity hover:opacity-95 ${BUTTON_FONT_CLASS}`}
-          >
-            <SendIcon />
-            {isSubmitting ? 'Saving...' : 'Send Report'}
-          </button>
+          <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+            <button
+              type="button"
+              onClick={handleSendEmail}
+              disabled={isSubmitting || isEmailing || !trimmedEmail}
+              className={`flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-relaive-primary to-relaive-secondary px-4 py-3 text-sm font-medium text-white shadow-md shadow-relaive-secondary/25 transition-opacity hover:opacity-95 disabled:opacity-50 ${BUTTON_FONT_CLASS}`}
+            >
+              <SendIcon />
+              {isEmailing ? 'Sending...' : 'Email to Client'}
+            </button>
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={isSubmitting || isEmailing}
+              className={`flex flex-1 items-center justify-center gap-2 rounded-xl border border-relaive-secondary/40 bg-white px-4 py-3 text-sm font-medium text-relaive-navy transition-colors hover:bg-gray-50 disabled:opacity-50 ${BUTTON_FONT_CLASS}`}
+            >
+              <LinkIcon />
+              {isSubmitting ? 'Generating link...' : 'Get Shareable Link'}
+            </button>
+          </div>
+          {!trimmedEmail ? (
+            <p className="mt-2 text-xs text-relaive-gray">Enter a client email to send it directly.</p>
+          ) : null}
         </>
       )}
     </section>

@@ -1,9 +1,9 @@
 import bcrypt from 'bcrypt'
 import { env } from '../config/env.js'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from './jwt.service.js'
-import { toFrontendUser, type AuthResponseData, InvalidCredentialsError } from '../types/auth.types.js'
-import { loginSchema, refreshTokenSchema, type LoginInput } from '../validators/auth.validator.js'
-import { findUserByEmail, findUserById } from './user.service.js'
+import { toFrontendUser, type AuthResponseData, type StoredUser, InvalidCredentialsError } from '../types/auth.types.js'
+import { loginSchema, refreshTokenSchema, updateProfileSchema, type LoginInput } from '../validators/auth.validator.js'
+import { findUserByEmail, findUserById, updateUserProfile } from './user.service.js'
 import { CaptchaRequiredError, verifyTurnstileToken } from './turnstile.service.js'
 import {
   isLoginCaptchaRequired,
@@ -14,13 +14,7 @@ import {
 
 // Auth service stays DB-backed for users while the rest of the product can
 // use mock data routes.
-function buildAuthResponse(user: {
-  userId: string
-  fullName: string
-  email: string
-  roleName: string
-  createdAt: Date
-}): AuthResponseData {
+function buildAuthResponse(user: StoredUser): AuthResponseData {
   const frontendUser = toFrontendUser(user)
   const tokenPayload = {
     userId: user.userId,
@@ -71,6 +65,18 @@ export async function loginUser(input: LoginInput, remoteIp?: string): Promise<A
 /** Resolves the current user profile for /auth/me responses. */
 export async function getMe(userId: string) {
   const user = await findUserById(userId)
+  if (!user) return null
+  return toFrontendUser(user)
+}
+
+/** Validates and persists Settings > Personal Information edits. */
+export async function updateProfile(userId: string, input: unknown) {
+  const { fullName, phone, company } = updateProfileSchema.parse(input)
+  const user = await updateUserProfile(userId, {
+    fullName,
+    phone: phone && phone.length > 0 ? phone : null,
+    company: company && company.length > 0 ? company : null,
+  })
   if (!user) return null
   return toFrontendUser(user)
 }

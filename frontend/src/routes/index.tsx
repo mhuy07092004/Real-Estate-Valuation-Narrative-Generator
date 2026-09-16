@@ -8,6 +8,7 @@ import {
   DashboardRoleGuard,
   DashboardRoleHome,
   DashboardRoleRedirect,
+  RoleGate,
 } from '../pages/dashboard'
 import MockPageRoute from '../pages/mock'
 import { SearchProperty } from '../pages/dashboard/buyer/search-property'
@@ -32,6 +33,7 @@ import { GenerateReport } from '../pages/dashboard/generate-report'
 import { ComparableSales } from '../pages/dashboard/comparable-sales'
 import { MarketComparison } from '../pages/dashboard/investor/market-comparision'
 import { ProtectedRoute } from '../features/auth/components/protected-route'
+import SharedReportPage from '../pages/shared-report'
 
 function DashboardReport() {
   const { role } = useParams<{ role: string }>()
@@ -65,6 +67,7 @@ export function AppRoutes() {
       <Route path="/signin" element={<SignInPageRoute />} />
       <Route path="/signup" element={<SignUpPageRoute />} />
       <Route path="/forgot-password" element={<ForgotPasswordPageRoute />} />
+      <Route path="/shared-report/:token" element={<SharedReportPage />} />
       <Route
         path="/dashboard"
         element={
@@ -76,30 +79,81 @@ export function AppRoutes() {
         <Route index element={<DashboardRoleRedirect />} />
         <Route path=":role" element={<DashboardRoleGuard />}>
           <Route index element={<DashboardRoleHome />} />
-          <Route path="valuation-cases" element={<ValuationCases />} />
-          <Route path="clients" element={<ClientAgent />} />
+          <Route
+            path="valuation-cases"
+            element={
+              <RoleGate role="valuer">
+                <ValuationCases />
+              </RoleGate>
+            }
+          />
+          <Route
+            path="clients"
+            element={
+              <RoleGate role="agent">
+                <ClientAgent />
+              </RoleGate>
+            }
+          />
           <Route path="market-insights" element={<DashboardMarketInsights />} />
           <Route path="suburb-explorer" element={<DashboardSuburbExplorer />} />
           <Route path="report" element={<DashboardReport />} />
           <Route
             path="evidence-centre"
             element={
-              <ComparableSales emptyStateDescription="Search a property address to find comparable evidence" />
+              <RoleGate role="valuer">
+                <ComparableSales emptyStateDescription="Search a property address to find comparable evidence" />
+              </RoleGate>
             }
           />
-          <Route path="search-properties" element={<SearchProperty />} />
+          <Route
+            path="search-properties"
+            element={
+              <RoleGate role="buyer">
+                <SearchProperty />
+              </RoleGate>
+            }
+          />
           <Route path="saved" element={<SavedProperty />} />
-          <Route path="inspections" element={<Inspections />} />
+          <Route
+            path="inspections"
+            element={
+              <RoleGate role="buyer">
+                <Inspections />
+              </RoleGate>
+            }
+          />
           <Route path="saved-properties" element={<SavedProperty />} />
           <Route path="saved-evidence" element={<SavedProperty />} />
           <Route path="settings" element={<Settings />} />
           <Route path="copilot" element={<Copilot />} />
-          <Route path="roi-calculation" element={<RoiCalculation />} />
-          <Route path="affortability-calculation" element={<AffordabilityCalculation />} />
+          <Route
+            path="roi-calculation"
+            element={
+              <RoleGate role="investor">
+                <RoiCalculation />
+              </RoleGate>
+            }
+          />
+          <Route
+            path="affortability-calculation"
+            element={
+              <RoleGate role="buyer">
+                <AffordabilityCalculation />
+              </RoleGate>
+            }
+          />
           <Route path="notifications" element={<NotificationPage />} />
           <Route path="generate-report" element={<GenerateReport />} />
           <Route path="comparable-sales" element={<ComparableSales />} />
-          <Route path="market-comparison" element={<MarketComparison />} />
+          <Route
+            path="market-comparison"
+            element={
+              <RoleGate role="investor">
+                <MarketComparison />
+              </RoleGate>
+            }
+          />
           <Route path="mock" element={<MockPageRoute />} />
         </Route>
       </Route>

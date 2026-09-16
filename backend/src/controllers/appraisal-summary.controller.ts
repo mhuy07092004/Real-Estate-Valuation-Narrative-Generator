@@ -5,9 +5,16 @@
 // (for the two real market stats) — no new service needed. Returns raw
 // JSON directly, no envelope, matching the other /api/appraisal-family
 // endpoints' contract.
+//
+// The midpoint estimate tries price-prediction.service's ML model first,
+// falling back to the comparable-sales average on any failure (no model is
+// deployed yet, so this always falls back today — see that service's
+// comment). The price RANGE (min/max) always comes from comparables either
+// way; the ML model only ever replaces the single midpoint figure.
 import type { Request, Response } from 'express'
 import { findComparablesInSuburb } from '../services/comparable-sale.service.js'
 import { getMarketIntelligenceOverviewForSuburb } from '../services/market-intelligence.service.js'
+import { predictPropertyPrice } from '../services/price-prediction.service.js'
 
 function parseAddress(address: string): { street: string; suburb: string; state: string; postcode: string } | null {
     const match = address.trim().match(/^(\d+\s+[^,]+),\s*([^,]+)\s+([A-Za-z]{2,3})\s+(\d{4})$/)
@@ -54,9 +61,21 @@ export async function getAppraisalSummary(req: Request, res: Response) {
     }
 
     const prices = comparables.map((row) => row.soldPrice)
-    const midpoint = prices.reduce((sum, price) => sum + price, 0) / prices.length
+    const comparableAverage = prices.reduce((sum, price) => sum + price, 0) / prices.length
     const min = Math.min(...prices)
     const max = Math.max(...prices)
+
+    const predictedPrice = await predictPropertyPrice({
+        suburb: parsed.suburb,
+        state: parsed.state,
+        postcode: parsed.postcode,
+        propertyType,
+        bedrooms,
+        bathrooms,
+        parking,
+        landSizeSqm,
+    })
+    const midpoint = predictedPrice ?? comparableAverage
 
     const marketOverview = await getMarketIntelligenceOverviewForSuburb(parsed.suburb, parsed.state)
     const stats = [{ id: 'comparables', value: String(comparables.length), label: 'Comparables' }]
