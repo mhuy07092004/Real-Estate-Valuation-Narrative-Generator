@@ -27,7 +27,12 @@ export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T>
   const url = `${API_BASE_URL}${path}`
   const response = await fetch(url, { ...init, headers })
   if (!response.ok) {
-    throw new Error(`Request to ${url} failed with status ${response.status}`)
+    // Prefer the backend's own { success: false, message } body when present —
+    // a generic "failed with status N" hides the actual reason (validation
+    // error, upstream service failure, etc.) that the backend already knew.
+    const body = await response.json().catch(() => null)
+    const message = body && typeof body === 'object' && 'message' in body ? String(body.message) : null
+    throw new Error(message ?? `Request to ${url} failed with status ${response.status}`)
   }
   if (response.status === 204) {
     return undefined as T
