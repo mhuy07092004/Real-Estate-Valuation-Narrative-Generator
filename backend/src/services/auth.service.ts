@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import { env } from '../config/env.js'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from './jwt.service.js'
 import { toFrontendUser, type AuthResponseData, type StoredUser, InvalidCredentialsError } from '../types/auth.types.js'

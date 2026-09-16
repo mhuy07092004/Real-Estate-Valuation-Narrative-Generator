@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import { env } from '../config/env.js'
 import { DuplicateEmailError, toFrontendUser, type AuthResponseData } from '../types/auth.types.js'
 import { registrationSchema, type RegistrationInput } from '../validators/registration.validator.js'
