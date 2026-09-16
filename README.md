@@ -19,7 +19,7 @@ A full-stack web application for AI-powered property appraisal (Relaive).
 - **Express:** ^4.21.1
 - **TypeScript:** ^5.7.2
 - **Prisma ORM:** ^5.22.0 (SQLite for local dev)
-- **bcrypt:** ^5.1.1
+- **bcrypt:** ^5.1.1 ** (currently switch to bcryptjs for local compatibility)
 - **jsonwebtoken:** ^9.0.2
 - **Vitest:** ^2.1.8
 
