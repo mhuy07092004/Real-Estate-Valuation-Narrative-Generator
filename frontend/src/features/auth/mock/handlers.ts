@@ -30,6 +30,8 @@ const MOCK_USERS: MockUser[] = [
     password: 'admin',
     roles: ['admin', 'agent', 'valuer', 'investor', 'buyer'],
     avatar: null,
+    phone: null,
+    company: null,
     createdAt: '2025-01-01T00:00:00.000Z',
   },
 ]
@@ -196,6 +198,8 @@ export const authHandlers = [
         password,
         roles: ['user'],
         avatar: null,
+        phone: null,
+        company: null,
         createdAt: new Date().toISOString(),
       }
 
