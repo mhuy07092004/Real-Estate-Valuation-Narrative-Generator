@@ -1,0 +1,44 @@
+## Summary (push SEP16)
+- Wires up the homepage's Property Intelligence Map with real Google Maps
+  rendering (`@vis.gl/react-google-maps`), an interactive address search bar,
+  and nearby-amenity markers within a radius of the searched address.
+- Adds backend `/api/geocode` and `/api/places/nearby` endpoints — routed
+  server-side rather than called directly from the browser, since Google's
+  Geocoding/Places APIs reject referrer-restricted keys, and the browser-side
+  Maps key needs referrer restriction.
+- Adds a missing `formatZodError` shared utility (`backend/src/utils/zod-error.ts`)
+  that the new geocode/places controllers depend on.
+- Points `frontend/src/services/geocode.ts` and `places.ts` through `API_BASE_URL`
+  (matching every other service call) instead of a bare relative fetch — needed
+  now that frontend (Vercel) and backend (Render) are separate origins in prod.
+- Also bundled in: swap `bcrypt` → `bcryptjs` (native bcrypt's install script
+  gets blocked by npm 12+ by default; bcryptjs is pure JS, no native build step).
+
+## Environment variables required for this to work once deployed
+New config needed specifically for the map/geocoding feature — nothing else changes.
+
+**Vercel (frontend project)**
+- `VITE_GOOGLE_MAPS_API_KEY` — Maps JavaScript API key, HTTP-referrer-restricted
+  to the production domain(s). Team credentials sheet.
+- `VITE_API_BASE_URL` — the deployed backend's origin (Render URL). Also now
+  required for geocode/places, not just auth/reports.
+
+**Render (backend service)**
+- `GOOGLE_MAPS_SERVER_KEY` — a *separate* key from the Maps JS one above. Must
+  NOT be referrer-restricted (Google rejects that for server-to-server
+  Geocoding/Places calls) — restrict by IP instead, or leave unrestricted.
+  Team credentials sheet.
+
+> Note: OAuth sign-in (Google/Microsoft) is planned next — see the
+> `authProvider` comment in `schema.prisma`. That'll need its own client
+> ID/secret env vars on both sides; not part of this PR.
+
+## Test plan
+- [ ] `npm install` in both `frontend/` and `backend/`
+- [ ] Set `VITE_GOOGLE_MAPS_API_KEY` in `frontend/.env`, `GOOGLE_MAPS_SERVER_KEY`
+      in `backend/.env`
+- [ ] `npm run dev` in both, load the homepage, confirm the map renders
+- [ ] Search an address (Enter key or the magnifier icon) — map recenters,
+      amenity markers + legend appear
+- [ ] Before merging: confirm `GOOGLE_MAPS_SERVER_KEY` and `VITE_API_BASE_URL`
+      are actually set in Render/Vercel, not just locally

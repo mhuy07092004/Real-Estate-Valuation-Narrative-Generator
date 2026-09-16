@@ -21,6 +21,12 @@ model Role {
   @@map("roles")
 }
 
+// Plain String, not a Prisma enum — SQLite's connector doesn't support
+// native enums (Postgres/MySQL do). Values in practice: 'local' | 'google'
+// | 'microsoft'; enforce that set in application code (e.g. a zod schema)
+// if/when OAuth signup actually lands, rather than in the DB layer. This
+// reverts to a real `enum AuthProvider` if/when the datasource above moves
+// to Postgres per the comment up top.
 model User {
   userId       String    @id @default(uuid()) @map("user_id")
   fullName     String    @map("full_name")

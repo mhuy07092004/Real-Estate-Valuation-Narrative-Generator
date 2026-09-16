@@ -27,4 +27,13 @@ export const env = {
     temperature: Number(process.env.GROQ_TEMPERATURE) || 0.4,
     maxTokens: Number(process.env.GROQ_MAX_TOKENS) || 700,
   },
+  googleMaps: {
+    // Server-side key ONLY — must NOT have HTTP referrer restrictions (Google
+    // rejects referrer-restricted keys for Geocoding API, Places API, and
+    // similar server-to-server calls; "referrer" isn't a meaningful check
+    // outside a browser). Restrict this key by IP address (or leave
+    // unrestricted for local dev) and scope its API restrictions to
+    // Geocoding API + Places API (New) only.
+    serverKey: process.env.GOOGLE_MAPS_SERVER_KEY || '',
+  },
 }
