@@ -94,7 +94,7 @@ def resolve_suburb_stats(suburb: str, state: str, postcode: str, property_type: 
     return stats
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
