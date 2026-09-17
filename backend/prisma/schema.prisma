@@ -1,11 +1,13 @@
-// Local dev database. Swapping to production Postgres later is a
-// datasource change only — provider + url — nothing in src/ changes.
+// Migrated from SQLite to Postgres (Cloud SQL) — see infra/terraform/ for
+// the instance this now targets. Migration history before this point lives
+// in prisma/migrations-sqlite-archive/ (not replayable against Postgres;
+// kept for reference only).
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

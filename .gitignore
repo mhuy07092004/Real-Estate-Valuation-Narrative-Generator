@@ -59,3 +59,11 @@ data_ai/model/*.joblib
 
 # Vite local dependency cache
 .vite/
+
+# Terraform local state and cache — state contains the Cloud SQL password in
+# plaintext, and .tfvars files are for local overrides only. See
+# infra/terraform/README.md.
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.*
+infra/terraform/*.tfvars
