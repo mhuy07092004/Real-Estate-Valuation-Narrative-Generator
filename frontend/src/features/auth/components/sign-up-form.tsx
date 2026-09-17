@@ -49,6 +49,28 @@ function ShieldIcon() {
   )
 }
 
+function OtpIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <rect
+        x="2.5"
+        y="4"
+        width="11"
+        height="8"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.3"
+      />
+      <path
+        d="M5.5 8h.01M8 8h.01M10.5 8h.01"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 function EyeIcon({ visible }: { visible: boolean }) {
   if (visible) {
     return (
@@ -161,6 +183,7 @@ export function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
+  const [otp, setOtp] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
@@ -228,18 +251,45 @@ export function SignUpForm() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Input
-            id="email"
-            type="email"
-            label="Email"
-            placeholder="Enter your email"
-            startIcon={<MailIcon />}
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            required
-          />
+          <div className="flex items-end gap-2">
+            <div className="min-w-0 flex-1">
+              <Input
+                id="email"
+                type="email"
+                label="Email"
+                placeholder="Enter your email"
+                startIcon={<MailIcon />}
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-[42px] shrink-0 whitespace-nowrap"
+            >
+              Send OTP
+            </Button>
+          </div>
           {fieldErrors.email ? <p className="text-xs text-red-600">{fieldErrors.email}</p> : null}
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Input
+            id="otp"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            label="OTP"
+            placeholder="Enter OTP code"
+            startIcon={<OtpIcon />}
+            value={otp}
+            onChange={(event) => setOtp(event.target.value)}
+          />
+          {fieldErrors.otp ? <p className="text-xs text-red-600">{fieldErrors.otp}</p> : null}
         </div>
 
         <div className="flex flex-col gap-1.5">
