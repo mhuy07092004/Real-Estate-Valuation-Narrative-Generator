@@ -137,6 +137,7 @@ export function SignInForm() {
     clear: clearCaptcha,
   } = useCaptchaGate('signin')
   const [showPassword, setShowPassword] = useState(false)
+  const [rememberMe, setRememberMe] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -156,7 +157,7 @@ export function SignInForm() {
     setIsSubmitting(true)
 
     try {
-      await login({ email, password, turnstileToken: captchaToken || undefined })
+      await login({ email, password, turnstileToken: captchaToken || undefined }, { rememberMe })
       clearCaptcha()
       navigate('/dashboard', { replace: true })
     } catch (err) {
@@ -236,7 +237,8 @@ export function SignInForm() {
           <label className="flex items-center gap-2 text-relaive-navy">
             <input
               type="checkbox"
-              defaultChecked
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
               className="h-4 w-4 rounded border-black/20 text-relaive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
             />
             Remember me

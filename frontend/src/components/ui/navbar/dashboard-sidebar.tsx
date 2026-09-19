@@ -167,14 +167,7 @@ export function DashboardSidebar({
                           : 'rounded-xl font-medium text-relaive-gray hover:bg-relaive-navy/[0.04] hover:text-relaive-navy',
                       ].join(' ')}
                     >
-                      <span className="relative inline-flex shrink-0">
-                        <Icon className="size-(--dash-icon)" />
-                        {item.badge != null && item.badge > 0 ? (
-                          <span className="absolute -right-1.5 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#5D8CAE] px-0.5 text-[clamp(0.5rem,0.4rem+0.1vw,0.625rem)] font-semibold leading-none text-white 3xl:h-4 3xl:min-w-4">
-                            {item.badge}
-                          </span>
-                        ) : null}
-                      </span>
+                      <Icon className="size-(--dash-icon) shrink-0" />
                       {!collapsed && <span className="truncate">{item.label}</span>}
                     </a>
                   </li>

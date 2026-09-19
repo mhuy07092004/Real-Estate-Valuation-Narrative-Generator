@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Button } from '../../../components/ui/button/button'
 import { Card } from '../../../components/ui/card/card'
 import { DropCardList, type DropCardItem } from '../../../components/ui/drop-card/drop-card'
 import { CURRENT_PLAN_ID, getPlanById } from '../../../services/plans'
 import { useAuth } from '../../auth/hooks/use-auth'
 import { clearActiveDashboardRole, isDashboardRole, type DashboardRole } from '../utils/dashboard-role'
-import { SettingsNav, SETTINGS_NAV_ITEMS, type SettingsSectionId } from './settings-nav'
+import { SettingsNav, SETTINGS_NAV_ITEMS, isSettingsSectionId, type SettingsSectionId } from './settings-nav'
 import { SettingsProfileForm } from './settings-profile-form'
 import { SettingsSectionPlaceholder } from './settings-section-placeholder'
 
@@ -70,14 +70,6 @@ const HELP_FAQ_ITEMS: DropCardItem[] = [
 
 const SUBSCRIPTION_PICKS = ['free', 'plus', 'pro'] as const
 
-const THEME_OPTIONS = [
-  { id: 'light', label: 'Light' },
-  { id: 'dark', label: 'Dark' },
-  { id: 'system', label: 'System' },
-] as const
-
-type ThemeOptionId = (typeof THEME_OPTIONS)[number]['id']
-
 const NOTIFICATION_ITEMS = [
   {
     id: 'email',
@@ -131,14 +123,6 @@ const NOTIFICATION_ITEMS = [
 
 type NotificationId = (typeof NOTIFICATION_ITEMS)[number]['id']
 
-const LANGUAGE_OPTIONS = [
-  { id: 'en', label: 'English' },
-  { id: 'vi', label: 'Tiếng Việt' },
-  { id: 'es', label: 'Español' },
-  { id: 'fr', label: 'Français' },
-  { id: 'zh', label: '中文' },
-] as const
-
 const ROLE_LABELS: Record<DashboardRole, string> = {
   agent: 'Senior Real-Estate Agent',
   valuer: 'Senior Property Valuer',
@@ -149,10 +133,10 @@ const ROLE_LABELS: Record<DashboardRole, string> = {
 export function SettingsPage() {
   const navigate = useNavigate()
   const { role: roleParam } = useParams<{ role: string }>()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { user, logout } = useAuth()
-  const [activeSection, setActiveSection] = useState<SettingsSectionId>('profile')
-  const [theme, setTheme] = useState<ThemeOptionId>('system')
-  const [language, setLanguage] = useState<string>('en')
+  const tab = searchParams.get('tab')
+  const activeSection: SettingsSectionId = isSettingsSectionId(tab) ? tab : 'profile'
   const [notifications, setNotifications] = useState<Record<NotificationId, boolean>>(
     () =>
       Object.fromEntries(
@@ -169,6 +153,14 @@ export function SettingsPage() {
   const roleLabel = ROLE_LABELS[resolvedRole]
   const activeLabel =
     SETTINGS_NAV_ITEMS.find((item) => item.id === activeSection)?.label ?? 'Settings'
+
+  function handleSelectSection(section: SettingsSectionId) {
+    if (section === 'profile') {
+      setSearchParams({}, { replace: true })
+      return
+    }
+    setSearchParams({ tab: section }, { replace: true })
+  }
 
   function handleSignOut() {
     clearActiveDashboardRole()
@@ -190,7 +182,7 @@ export function SettingsPage() {
       <div className="flex flex-col gap-5 p-4 sm:flex-row sm:gap-6 sm:p-6 lg:p-8">
         <SettingsNav
           activeSection={activeSection}
-          onSelect={setActiveSection}
+          onSelect={handleSelectSection}
           onSignOut={handleSignOut}
         />
         {activeSection === 'profile' ? (
@@ -368,48 +360,6 @@ export function SettingsPage() {
                 )
               })}
             </div>
-          </Card>
-        ) : activeSection === 'appearance' ? (
-          <Card className="!h-auto flex-1 self-start">
-            <h2 className="text-base font-semibold text-relaive-navy">Appearance</h2>
-            <p className="mt-1 text-sm text-relaive-gray">
-              Choose how Relaive looks and which language to use
-            </p>
-
-            <p className="mt-6 text-sm font-medium text-relaive-navy">Theme</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {THEME_OPTIONS.map((option) => (
-                <Button
-                  key={option.id}
-                  type="button"
-                  size="sm"
-                  variant={theme === option.id ? 'primary' : 'outline'}
-                  onClick={() => setTheme(option.id)}
-                >
-                  {option.label}
-                </Button>
-              ))}
-            </div>
-
-            <p className="mt-6 text-sm font-medium text-relaive-navy">Language</p>
-            <div className="mt-2 sm:max-w-xs">
-              <select
-                id="settings-language"
-                value={language}
-                onChange={(event) => setLanguage(event.target.value)}
-                className="w-full rounded-lg border border-black/10 bg-white px-4 py-2.5 text-sm text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
-              >
-                {LANGUAGE_OPTIONS.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <Button type="button" size="sm" className="mt-6 w-fit self-start">
-              Save
-            </Button>
           </Card>
         ) : activeSection === 'help-support' ? (
           <div className="flex w-full flex-1 flex-col gap-5 self-start">
