@@ -1,181 +1,182 @@
 # Backend
 
-Express + TypeScript API for the Relaive real-estate appraisal app. Designed to be tested directly with Postman even when the frontend is incomplete.
+Express + TypeScript API for Relaive. **Stack:** Node.js 22, Express, Prisma + PostgreSQL (Cloud SQL), Zod, JWT bearer auth, `bcryptjs`, SendGrid, Vitest. It can be exercised directly with Postman or `curl` even when the frontend isn't running.
 
-**Tech stack:** Node.js + Express, TypeScript, Prisma ORM, PostgreSQL (Cloud SQL), JWT bearer auth, bcryptjs, SendGrid (email), Vitest.
-
-## Folder Map
-
-Start here if you just cloned the repo — this is what each part of `src/` actually does:
+## Folder map
 
 | Path | What's there |
 | --- | --- |
-| `src/server.ts` | Process entrypoint — starts the HTTP server. |
-| `src/app.ts` | Express app wiring: middleware, CORS, mounting `apiRouter`. |
-| `src/routes/` | One file per domain (auth, clients, reports, comparable sales, geocode, places, ROI calc, ...), plus `index.ts` which mounts them all onto `/api/...`. See the route table below for the real, current paths. |
-| `src/controllers/` | HTTP handlers — parse the request, call a service, shape the response. One file per domain, matching `routes/`. |
-| `src/services/` | Business logic. Talks to Prisma / does calculations / calls external APIs. This is where to look for "how does X actually work." |
-| `src/validators/` | Zod schemas for request payload validation. |
-| `src/middleware/` | Cross-cutting request handling — `require-auth.ts` (bearer-token guard) and `require-role.ts` (per-role access control) run on almost every route. |
-| `src/config/` | Environment/config loading. |
-| `src/lib/` | Shared low-level utilities (e.g. the Prisma client instance). |
-| `src/types/` | Shared TypeScript types. |
-| `prisma/schema.prisma` | The data model. Datasource is PostgreSQL (Cloud SQL) — see `infra/terraform/README.md` for the instance. |
-| `prisma/seed.ts` | Fast, repeatable dev seed data (roles + one demo user) — **not** real property data. |
-| `scripts/` | One-off data-import scripts, run manually with `npx tsx`, not part of normal `npm run dev` — see "Data Import" below. |
+| `src/server.ts`, `src/app.ts` | Process entrypoint; Express wiring (CORS, JSON, `apiRouter`) |
+| `src/routes/` | One file per domain; `index.ts` mounts them all under `/api/...` |
+| `src/controllers/` | HTTP handlers: parse the request, call a service, shape the response |
+| `src/services/` | Business logic and external calls (database, SendGrid, Google Maps, Vertex AI, price model) |
+| `src/validators/` | Zod schemas for request bodies |
+| `src/middleware/` | `require-auth.ts` (JWT guard), `require-role.ts` (per-role access), error handling |
+| `src/config/env.ts` | Loads `.env` (`dotenv`) and exposes the settings |
+| `prisma/schema.prisma`, `prisma/migrations/` | The data model and its migrations (PostgreSQL) |
+| `prisma/seed.ts` | Roles + one demo user — **not** real property data |
+| `scripts/` | Manual data-import scripts (`npx tsx scripts/<name>.ts`) |
+| `Dockerfile` | Two-stage image; runs `prisma migrate deploy` then the server |
 
-## Prerequisites
+## Local
 
-- Node.js 22+, npm
-- Access to the project's Cloud SQL Postgres instance — see [`../infra/terraform/README.md`](../infra/terraform/README.md#connecting-from-your-local-machine) for how to get your IP allowlisted. There is no local-only fallback database anymore (this used to be SQLite; that changed — see "Database" below).
+**Prerequisites**
+- Node.js 22+ and npm.
+- Your public IPv4 address allow-listed on the Cloud SQL instance — there is **no local database**. Steps are in [`../infra/terraform/README.md`](../infra/terraform/README.md#connecting-from-your-local-machine).
+- The Cloud SQL connection string (ask the team, or `terraform output -raw database_url` from `infra/terraform`).
+- Optional: `gcloud auth application-default login`, so the backend can call the Vertex AI narrative model.
 
-## First-Time Setup
+**Steps**
+1. Install and create your env file (gitignored):
+   ```bash
+   cd backend
+   npm install
+   copy .env.example .env          # Windows;  cp .env.example .env  elsewhere
+   ```
+2. Edit `.env`: set `DATABASE_URL` (no quotes), and any optional keys from the table below.
+3. Generate the Prisma client and start the server:
+   ```bash
+   npm run prisma:generate
+   npm run dev                      # http://localhost:4000 (restarts on code changes)
+   ```
+   `.env` is read only at startup, and `npm run dev` does **not** restart when it changes — stop and restart after editing it.
+4. **Verify:**
+   ```bash
+   curl http://localhost:4000/api/health          # {"status":"ok"}
+   curl -X POST http://localhost:4000/api/auth/login -H "Content-Type: application/json" \
+        -d "{\"email\":\"postman.user@example.com\",\"password\":\"Password123\"}"
+   ```
+   The seeded demo account (`postman.user@example.com` / `Password123`) already exists in the shared database and has every role.
+5. Tests and build (the same ones CI runs):
+   ```bash
+   npm run build          # tsc
+   npm test               # vitest
+   ```
 
-1. `npm install`
-2. Copy the env file: `copy .env.example .env` (Windows) or `cp .env.example .env`
-3. Fill in `DATABASE_URL` in `.env` with the Cloud SQL connection string (see Prerequisites above) — the checked-in example won't work as-is.
-4. Generate the Prisma client: `npm run prisma:generate`
-5. Start the dev server: `npm run dev`
+### Database steps
 
-Server runs on `http://localhost:4000` by default.
+Only needed for a **brand-new database** — the shared instance already has everything.
+```bash
+npx prisma migrate deploy                       # create the schema
+npm run prisma:seed                             # roles + demo user
+npx tsx scripts/ingest-bronze-listings.ts       # data_ai/bronze_listings.csv → properties + comparable sales
+npx tsx scripts/build-suburb-market-intelligence.ts   # per-suburb market rows from those sales
+npx tsx scripts/load-external-market-data.ts    # enrich market rows (must run after the previous step)
+```
+Changing the schema: `npm run prisma:migrate` runs `prisma migrate dev` against the **shared** instance, so coordinate first. `scripts/export-narrative-training-inputs.ts` is unrelated to importing — it exports data for the AI fine-tuning dataset (see `data_ai/readme.md`).
 
-Seeded test login (already present in the shared dev database — no need to re-seed unless you're pointed at a fresh instance):
-- email: `postman.user@example.com`
-- password: `Password123`
+## Environment variables
 
-If you *are* setting up a brand-new database, also run `npm run prisma:seed` once after step 4.
+| Variable | Needed for | Notes |
+| --- | --- | --- |
+| `DATABASE_URL` | everything | Cloud SQL connection string. Local/Render: public IP form `postgresql://user:pass@host:5432/relaive`. Cloud Run: Terraform builds the `/cloudsql` socket form itself. |
+| `PORT` | — | Default 4000; Render and Cloud Run set it. |
+| `CORS_ORIGIN` | browser access | Comma-separated allowed origins. Local `http://localhost:5173`; deployed = the Vercel site. Any other origin gets a CORS error. |
+| `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` | auth | Use long random values (`openssl rand -hex 32`) anywhere real. The checked-in defaults are dev-only. The access secret also keys the sign-up code hashes. |
+| `JWT_ACCESS_EXPIRES_IN_SECONDS`, `JWT_REFRESH_EXPIRES_IN` | auth | Defaults 3600 and `7d`. |
+| `TRUST_PROXY` | deployed | `1` behind Render or Cloud Run, `0` locally — otherwise every visitor shares the proxy's IP in the risk scoring. |
+| `TURNSTILE_SECRET_KEY` | captcha | Optional. Adaptive captcha is currently switched off in code. |
+| `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL` | sign-up codes, report emails | The from-address must be a verified SendGrid sender. Locally, without them, sign-up still works because the code is printed in the terminal (see below). |
+| `PUBLIC_APP_URL` | share links | The frontend origin; used to build `/shared-report/:token` links. |
+| `GOOGLE_MAPS_SERVER_KEY` | address search, amenities | **Server** key for Geocoding API + Places API (New), no referrer restriction. Without it: "Geocoding is not configured on the server". The browser key is a frontend variable. |
+| `ML_PRICE_PREDICTION_URL`, `ML_PRICE_PREDICTION_API_KEY` | price model | URL of the price service (called exactly as given — `/` and `/predict` both work). Blank → falls back to the comparable-sales average. |
+| `VERTEX_PROJECT_ID`, `VERTEX_REGION`, `VERTEX_ENDPOINT_ID` | narrative model | Project **number** `393439107077`, `us-central1`, and the endpoint ID. Blank/unreachable → templated text. |
+| `NODE_ENV` | — | The Docker image sets `production`, which turns off the terminal code print. |
 
-## Database
+`GROQ_*` variables still exist in `config/env.ts` but nothing reads them — ignore them.
 
-Postgres on Cloud SQL, not SQLite. This changed partway through the project — see [`../infra/terraform/README.md`](../infra/terraform/README.md) for the full migration story and how to connect locally. In short:
+## Features
 
-- `schema.prisma`'s datasource is `postgresql`, reading `DATABASE_URL` from `.env`.
-- Migrations run against the shared Cloud SQL instance, not a local file — `npm run prisma:migrate` (which runs `prisma migrate dev`) affects the database everyone else is using too. Coordinate before running it.
-- The production Docker image runs `prisma migrate deploy` automatically at container boot (see "Docker / Deployment" below) — you don't need to do that manually for a deploy, only for local schema changes during development.
+### Auth and roles
+- `/api/auth/*` is public; everything else requires a valid JWT (`requireAuth`).
+- Role-prefixed routes (`/api/agent/*`, `/api/buyer/*`, `/api/investor/*`, `/api/valuer/*`) also need `requireRole(...)` → `403` otherwise.
+- User-owned data (clients, reports, saved properties) is always filtered by the owner.
+- `GET /api/public/reports/:token` is the one deliberate exception (see report sharing).
 
-## Data Import
+### Sign-up with an emailed code
+`POST /api/auth/send-otp` `{ email }` emails a 6-digit code; `POST /api/auth/register` then requires it as `otp`.
+- Only an HMAC-SHA256 hash is stored (`email_otps` table), the code expires after 10 minutes, and it's consumed only after the account is created.
+- Limits: 60 s between sends per email, 5 sends per hour, 5 wrong guesses per code. An already-registered email gets `409`.
+- **Local testing without SendGrid:** when `NODE_ENV` isn't `production`, the code is also printed in the terminal as `[dev] OTP for <email>: <code>`.
 
-Seeding (above) only gives you fast dev data (roles + one demo user) — no real properties. Real reference data (33k+ properties/comparable sales, 800+ suburb market-intelligence rows) is already loaded into the shared Cloud SQL instance. You only need to re-run these if you're setting up a fresh database:
+### Clients and reports
+- A report belongs to **zero or one client**, linked by an explicit `clientId` (checked against the owner). Names and emails are never guessed.
+- Link at creation (`POST /api/reports` with `clientId`), or at share time: `POST /api/reports/:id/share-link` and `/send-email` accept an optional `clientId`, name and email that get attached to the saved report.
+- Emailing a report moves the client forward from `prospecting`/`active` to `appraisal_sent` (never backwards). Copying a link doesn't.
+- `GET /api/clients` returns a real `reportCount`; `GET /api/clients/:id/reports` lists a client's reports.
+- A report's list status is `shared` once a share link exists.
 
-1. `npx tsx scripts/ingest-bronze-listings.ts` — reads `data_ai/bronze_listings.csv` (real scraped NSW sold listings) and inserts them as `Property` + `ComparableSale` rows. Skips any row it can't confidently clean rather than guessing a value.
-2. `npx tsx scripts/build-suburb-market-intelligence.ts` — computes real per-suburb `MarketIntelligence` rows (median price, growth, trend) from the `ComparableSale` data step 1 just inserted.
-3. `npx tsx scripts/load-external-market-data.ts` — enriches those same `MarketIntelligence` rows with real `daysOnMarket`/`rentalYieldPct`/etc. from `data_ai/ingestion`'s scraped Domain/ABS/SQM CSVs. Must run **after** step 2 — it only updates existing rows, never creates new ones.
+### Report sharing and email
+`getOrCreateShareToken` (`report.service.ts`) issues a random token, separate from the internal `reportId`. The public page reads a **snapshot** saved with the report (price range, sections, comparables, strategy cards), so a client's copy doesn't change when market data does; its response is shaped explicitly and never leaks `ownerUserId`, `shareToken` or `clientEmail`. Email goes through SendGrid's **HTTP API** — SMTP hangs on Render, which blocks those ports.
 
-`scripts/export-narrative-training-inputs.ts` is unrelated to importing data — it's an export script for building the AI fine-tuning dataset (see `data_ai/readme.md`).
+### Geocoding and places
+`/api/geocode` and `/api/places/nearby` proxy Google server-side, because Google rejects referrer-restricted keys for those APIs. Two separate keys: `GOOGLE_MAPS_SERVER_KEY` (here) and `VITE_GOOGLE_MAPS_API_KEY` (frontend).
 
-## Auth Model
+### Price prediction
+`report-content.service.ts` calls `price-prediction.service.ts`, which POSTs to the FastAPI price service (`data_ai/`). Any failure falls back to the comparable-sales average.
 
-- Auth endpoints (`/api/auth/*`) are unauthenticated.
-- Every other domain route is protected by `requireAuth` (validates the JWT, populates `res.locals.userId`/`res.locals.roles`).
-- Role-prefixed routes (`/api/agent/*`, `/api/buyer/*`, `/api/investor/*`, `/api/valuer/*`) additionally require `requireRole(...)` — a 403 if the caller's JWT doesn't carry the matching role. See `src/middleware/require-role.ts`.
-- User-owned resources (clients, reports, saved properties) are scoped to the owning user — you can only see/modify your own.
-- Public share links (`/api/public/reports/:token`) are the one deliberate exception — see "Report Sharing & Email" below.
+### AI narrative (Vertex AI)
+`buildExecutiveSummary` first tries `vertex-narrative.service.ts` (the fine-tuned Gemma 2 2B on Vertex AI, `us-central1`) and falls back to templated text on **any** failure — timeout (10 s), missing credentials, no model deployed, unexpected reply. **The fallback is silent**: check the logs for `[vertex-narrative]` warnings to see whether a request really used the model.
+- **Works on:** your machine (via `gcloud auth application-default login`) and **Cloud Run** (its service account has `roles/aiplatform.user`). **Not on Render** — no Google credentials, and the organisation blocks service-account keys.
+- The endpoint is deployed only when wanted (it bills per GPU-hour). Deploy and undeploy steps are in [`../data_ai/readme.md`](../data_ai/readme.md).
+- Known gap: the prompt sent here is short and generic, while the model was trained on longer role-specific prompts, so live quality is below the evaluation score.
 
-## API Routes
+## API routes
 
-Base URL: `http://localhost:4000`
+Base URL `http://localhost:4000`.
 
 | Mount | Routes |
 | --- | --- |
-| `GET /api/health` | Liveness check, `{ status: "ok" }` — used as the deployment platform's health check. |
-| `/api/auth` | `POST /register`, `POST /login`, `POST /forgot-password` (prototype stub, always a generic ack), `GET /me`, `PATCH /me` (auth required), `POST /refresh-token` |
-| `/api/geocode` | `GET /?address=...` — server-side Google Geocoding proxy (see "Geocoding & Places" below) |
-| `/api/places` | `GET /nearby?lat=&lng=&radiusMeters=` — server-side Google Places nearby-search proxy |
-| `/api/clients` | `GET /`, `GET /:clientId`, `POST /`, `PATCH /:clientId`, `DELETE /:clientId` |
-| `/api/appraisal` | `GET /comparable-sales`, `GET /comparable-sales/search`, `GET /market-intelligence-overview`, `GET /steps`, `GET /property-types`, `GET /appraisal-summary`, `GET /report-templates`, `GET /executive-summary`, `GET /narrative-preview`, `GET /agent-recommendations`, `GET /growth-outlook`, `GET /affordability-outlook`, `GET /appraisal-disclaimer` |
-| `/api/agent/reports`, `/api/buyer/reports`, `/api/investor/reports` (role-gated) | `GET /` (investor also has `GET /summary`) |
-| `/api/valuer/cases` (role-gated) | `GET /`, `GET /summary`, `PATCH /:reportId` |
-| `/api/investor/roi-calculation` (role-gated) | `POST /` |
-| `/api/investor/market-comparison` (role-gated) | `GET /` |
-| `/api/buyer/affordability-calculation` (role-gated) | `POST /` |
-| `/api/agent/market-insights`, `/api/valuer/market-insights`, `/api/buyer/suburb-explorer`, `/api/investor/suburb-explorer` (role-gated) | `GET /` — same shared handler, mounted per role's expected path |
-| `/api/agent/properties/saved`, `/api/investor/properties/saved`, `/api/buyer/properties/saved`, `/api/valuer/evidence/saved` (role-gated) | `GET /` — shared read handler |
-| `/api/properties/saved` | `POST /`, `DELETE /:savedPropertyId` — shared write handler (not role-prefixed) |
-| `/api/buyer/inspections` (role-gated) | `GET /`, `POST /`, `PUT /:inspectionId` |
+| `GET /api/health` | `{ "status": "ok" }` — platform health check |
+| `/api/auth` | `POST /send-otp`, `POST /register` (needs `otp`), `POST /login`, `POST /forgot-password` (stub), `GET /me`, `PATCH /me`, `POST /refresh-token` |
+| `/api/geocode`, `/api/places` | `GET /?address=…`, `GET /nearby?lat=&lng=&radiusMeters=` |
+| `/api/clients` | `GET /`, `GET /:clientId`, `GET /:clientId/reports`, `POST /`, `PATCH /:clientId`, `DELETE /:clientId` |
+| `/api/appraisal` | `GET` comparable-sales (+`/search`), market-intelligence-overview, steps, property-types, appraisal-summary, report-templates, executive-summary, narrative-preview, agent-recommendations, growth-outlook, affordability-outlook, appraisal-disclaimer |
 | `/api/reports` | `GET /`, `GET /:reportId`, `POST /`, `POST /:reportId/share-link`, `POST /:reportId/send-email` |
-| `/api/public/reports` | `GET /:token` — **unauthenticated**, see "Report Sharing & Email" below |
+| `/api/public/reports` | `GET /:token` — **no auth** |
+| `/api/agent/reports`, `/api/buyer/reports`, `/api/investor/reports` (role-gated) | `GET /` (investor also `GET /summary`) |
+| `/api/valuer/cases` (role-gated) | `GET /`, `GET /summary`, `PATCH /:reportId` |
+| `/api/investor/roi-calculation`, `/api/buyer/affordability-calculation` (role-gated) | `POST /` |
+| `/api/investor/market-comparison` (role-gated) | `GET /` |
+| `/api/agent|valuer/market-insights`, `/api/buyer|investor/suburb-explorer` (role-gated) | `GET /` |
+| `…/properties/saved`, `/api/valuer/evidence/saved` (role-gated read); `/api/properties/saved` (write) | `GET /`; `POST /`, `DELETE /:savedPropertyId` |
+| `/api/buyer/inspections` (role-gated) | `GET /`, `POST /`, `PUT /:inspectionId` |
 
-## Report Sharing & Email
+## Deployed
 
-Agents can generate a public, read-only link for a report (`POST /api/reports/:reportId/share-link`) and/or email that link directly to a client (`POST /api/reports/:reportId/send-email`). Both reuse the same `getOrCreateShareToken` (`src/services/report.service.ts`) — a high-entropy random token, deliberately decoupled from the internal `reportId`, stored on the `Report` row.
+The image is built from the **repo root** (the Dockerfile copies `backend/` and `data_ai/*.csv`). It does not contain a database — `DATABASE_URL` is a runtime variable — and its `CMD` runs `npx prisma migrate deploy` (a no-op when nothing is pending) before starting the server. Seeding and data import are deliberately **not** part of startup.
 
-- The public view (`GET /api/public/reports/:token`, no auth) reads a **snapshot** persisted at save time (`priceRangeLow/High`, `sectionsJson`, `comparablesJson`, `strategyCardsJson` on the `Report` model) — not a live re-fetch. This is deliberate: a legal/financial document a client is looking at shouldn't silently change because the underlying comparable sales data changed later. Its response is explicitly shaped (never a raw Prisma row) so `ownerUserId`, `shareToken`, and `clientEmail` never leak.
-- Email sending goes through SendGrid (`src/services/email.service.ts`), via its HTTP API — not SMTP. This matters: an earlier attempt using Gmail SMTP worked locally but hung indefinitely on Render, because Render blocks outbound SMTP ports. SendGrid's Single Sender Verification lets sending from a plain Gmail address without owning a domain.
-- Required env vars: `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL` (must be a verified sender in SendGrid), `PUBLIC_APP_URL` (the deployed frontend origin — used to build the `/shared-report/:token` link).
-
-## Geocoding & Places
-
-The homepage's Property Intelligence Map calls two backend-proxied Google APIs — proxied specifically because Google rejects referrer-restricted keys for server-to-server Geocoding/Places calls, while the browser-side Maps JavaScript API key needs referrer restriction. Two separate keys:
-
-- `GOOGLE_MAPS_SERVER_KEY` (backend, this service) — unrestricted or IP-restricted, scoped to Geocoding API + Places API (New).
-- `VITE_GOOGLE_MAPS_API_KEY` (frontend, not this service) — referrer-restricted to the deployed domain.
-
-See `src/services/geocode.service.ts` and `src/services/places.service.ts` for the actual Google API calls.
-
-## ML Price Prediction
-
-`report-content.service.ts`'s `buildRealEvidence` calls `src/services/price-prediction.service.ts`, which hits a separately-deployed FastAPI model (see `data_ai/readme.md` and `data_ai/service/`) via `ML_PRICE_PREDICTION_URL`. Falls back to the comparable-sales average automatically if the env var is unset or the call fails — this is the normal, expected state until that service is actually deployed and configured.
-
-## AI Narrative Generation
-
-`buildExecutiveSummary` (in `report-content.service.ts`) is the only place AI-generated text is attempted. It first tries `src/services/vertex-narrative.service.ts`, which calls a Vertex AI endpoint hosting a Gemma 2 model (base or fine-tuned, depending what's deployed at the time — see `data_ai/readme.md`), and falls back to the existing templated content (built from real comparable sales + market data) on **any** failure — timeout, auth issue, endpoint not deployed, unexpected response shape.
-
-This is experimental and not continuously running: the Vertex endpoint isn't left deployed by default (it costs GPU-hours per hour while up), so most of the time this silently falls back. Check backend logs for a `[vertex-narrative]` warning to see whether a given request actually hit the model or fell back. To make it actually call the model, redeploy the endpoint first — steps are in `data_ai/readme.md`, not duplicated here.
-
-## Docker / Deployment
-
-Two-stage `Dockerfile` (`node:22-slim`). The database is **not** baked into the image — `DATABASE_URL` is a real runtime env var, pointing at Cloud SQL. The container's `CMD` runs `npx prisma migrate deploy` (idempotent — a no-op if nothing's pending) before starting the server, so pending schema migrations apply automatically on every deploy. This replaced an earlier design that baked a fully-migrated-and-seeded SQLite file into the image at build time; that approach meant a rebuild was needed for any data change and nothing written after boot survived a redeploy — neither limitation applies anymore.
-
-**Currently deployed on Render** (Docker image → Docker Hub → Render "Existing Image"):
-
-Build/push is automated via [`../.github/workflows/docker-deploy.yml`](../.github/workflows/docker-deploy.yml) on every push to `main` touching `backend/**` or `data_ai/*.csv`. Manual build, if needed (must run from the **repo root**, since the Dockerfile reads `data_ai/*.csv`):
-
+### Build and push the image
+CI does this on every push to `main` touching `backend/**` (`.github/workflows/docker-deploy.yml`). Manually, from the repo root:
 ```bash
-docker build -f backend/Dockerfile -t <dockerhub-username>/relaive-backend:latest .
-docker push <dockerhub-username>/relaive-backend:latest
+docker build -f backend/Dockerfile -t <dockerhub-user>/relaive-backend:latest .
+docker push <dockerhub-user>/relaive-backend:latest
 ```
+Nothing deploys automatically from the pushed image.
 
-Render service settings: Image URL `docker.io/<dockerhub-username>/relaive-backend:latest`, Health Check Path `/api/health`. Render doesn't auto-pull — a new image on Docker Hub requires triggering "Manual Deploy" in the Render dashboard.
-
-**Environment variables required on Render:**
-
-| Variable | Notes |
-| --- | --- |
-| `DATABASE_URL` | Cloud SQL connection string. **Not yet configured on Render as of this writing** — see `infra/terraform/README.md`'s "Next steps" for what's still needed (a real value here, plus adding Render's outbound IPs to the Cloud SQL allowlist) before a redeploy with the current image is safe. |
-| `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` | Generate real random values (`openssl rand -hex 32`) — never reuse the checked-in dev defaults. |
-| `CORS_ORIGIN` | The deployed frontend's origin (comma-separate multiple, e.g. to also allow a Vercel preview URL). |
-| `TURNSTILE_SECRET_KEY` | Optional — only demanded on risky login/register attempts. |
-| `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL` | See "Report Sharing & Email" above. |
-| `PUBLIC_APP_URL` | The deployed frontend origin — used to build share-report links. |
-| `GOOGLE_MAPS_SERVER_KEY` | See "Geocoding & Places" above. |
-| `ML_PRICE_PREDICTION_URL`, `ML_PRICE_PREDICTION_API_KEY` | See "ML Price Prediction" above — leave blank if that service isn't deployed. |
-| `TRUST_PROXY` | `1` — Render sits in front as a proxy; without this, `req.ip` in the adaptive-captcha risk scoring sees Render's proxy IP for every visitor. |
-| `PORT` | Supplied automatically — don't set it. |
-
-**Cloud Run migration in progress** — Terraform config for a Cloud Run deployment of this same image, wired to the same Cloud SQL instance via its built-in connector, lives in [`../infra/terraform/`](../infra/terraform/README.md). Not yet cut over from Render; see that doc's "Status" and "Next steps" for where things stand.
-
-**AI price-prediction service** (`data_ai/service/`) deploys the same way — its own Docker image/Docker Hub repo/Render service, automated via [`../.github/workflows/docker-deploy-ai.yml`](../.github/workflows/docker-deploy-ai.yml). See `data_ai/readme.md` for details; the only thing this backend needs is that service's URL in `ML_PRICE_PREDICTION_URL` once it's live.
-
-## Postman Smoke Test
-
-1. **Login** — `POST http://localhost:4000/api/auth/login`, body:
-   ```json
-   { "email": "postman.user@example.com", "password": "Password123" }
+### Deployed: Cloud Run (target)
+Infrastructure and settings live in Terraform — see [`../infra/terraform/README.md`](../infra/terraform/README.md) (permissions, `terraform apply`, secrets). The service reaches Cloud SQL over the built-in socket and needs no IP allow-list.
+1. **Deploy a new image** (Cloud Run doesn't re-pull `:latest` on its own):
+   ```bash
+   gcloud run services update relaive-backend --region australia-southeast1 --image docker.io/<dockerhub-user>/relaive-backend:latest
    ```
+2. **Verify:**
+   ```bash
+   curl <cloud_run_url>/api/health            # terraform output cloud_run_url
+   gcloud run services logs read relaive-backend --region australia-southeast1 --limit 50
+   ```
+3. **Change settings or secrets:** edit `infra/terraform/variables.tf` (non-secret `backend_env`) or `terraform.tfvars` (`backend_secrets`), then `terraform apply`.
+
+### Deployed: Render (current live backend)
+Docker image from Docker Hub as an "Existing Image" web service: image `docker.io/<dockerhub-user>/relaive-backend:latest`, health check path `/api/health`. Render doesn't auto-pull — use **Manual Deploy** after each push. Set these variables in Render → Environment: `DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ORIGIN`, `TRUST_PROXY=1`, `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL`, `PUBLIC_APP_URL`, `GOOGLE_MAPS_SERVER_KEY`, `ML_PRICE_PREDICTION_URL`, optionally `TURNSTILE_SECRET_KEY`. Don't set `PORT`. Render reaches Cloud SQL over its public IP, so Render's outbound ranges must be in the instance's `authorized_ips`. It **cannot** use the Vertex narrative model.
+
+## Postman / curl smoke test
+1. `POST /api/auth/login` with `{ "email": "postman.user@example.com", "password": "Password123" }`.
 2. Copy `accessToken` from the response.
-3. Call a protected endpoint with header `Authorization: Bearer <accessToken>` — e.g. `GET http://localhost:4000/api/clients`.
+3. Send `Authorization: Bearer <accessToken>` on a protected call, e.g. `GET /api/clients`.
 
-## Testing
-
-```bash
-npm run build   # tsc -p tsconfig.json
-npm test        # vitest run --passWithNoTests
-```
-
-## Notes for Contributors
-
-- Keep responses consistent: success → `{ success: true, data | message }`; failure → `{ success: false, message, errors? }`.
-- Validate request payloads with a Zod schema in `src/validators/`.
-- Filter user-owned resources by `ownerUserId`.
-- Schema change → run `npm run prisma:migrate` against the shared Cloud SQL instance (coordinate with the team first) and regenerate the Prisma client.
-- A public, unauthenticated endpoint (like `/api/public/reports/:token`) should always explicitly shape its response — never spread a raw Prisma row — so nothing beyond what's intended ever leaks.
+## Contributing
+- Responses: success → `{ success: true, data | message }`; failure → `{ success: false, message, errors? }`.
+- Validate bodies with a Zod schema in `src/validators/`; filter user-owned rows by `ownerUserId`.
+- A public endpoint must shape its response explicitly — never return a raw Prisma row.
+- Schema change → `npm run prisma:migrate` against the shared instance (coordinate first), commit the new migration folder, and regenerate the client.

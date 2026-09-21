@@ -21,10 +21,14 @@ the supported dev flow; ignore that folder.
 ## Auth Flow
 
 **Sign up** — `sign-up-form.tsx` collects full name, email, password, and a
-required role (`agent` / `valuer` / `investor` / `buyer`), then calls
-`register()` from `useAuth`. The backend's `registrationSchema`
+required role (`agent` / `valuer` / `investor` / `buyer`). The email must be
+verified first: **Send OTP** calls `sendOtp()` (`POST /api/auth/send-otp`),
+which emails a 6-digit code and starts a 60-second resend countdown; the code
+is typed into the OTP field. Submitting then calls `register()` from `useAuth`
+with the `otp` included. The backend's `registrationSchema`
 (`backend/src/validators/registration.validator.ts`) enforces the real
-rules: 8+ char password with a letter and a number, role required.
+rules: 8+ char password with a letter and a number, role required, 6-digit
+code. (Locally, without SendGrid, the code is printed in the backend terminal.)
 
 **Sign in** — `sign-in-form.tsx` calls `login(credentials, { rememberMe })`.
 On success, the backend returns a JWT access token + refresh token; `useAuth`
@@ -69,6 +73,7 @@ const { user, isAuthenticated, login } = useAuth()
 
 | Endpoint | Used by |
 |---|---|
+| `POST /api/auth/send-otp` | `sendOtp()` (sign-up form's Send OTP button) |
 | `POST /api/auth/register` | `register()` |
 | `POST /api/auth/login` | `login()` |
 | `GET /api/auth/me` | — (not currently called on load; session comes from localStorage) |
