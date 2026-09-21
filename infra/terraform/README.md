@@ -109,6 +109,18 @@ backend locally requires your IP to be in `authorized_ips`. Anyone else on
 the team who wants to run this locally needs their own IP added the same
 way.
 
+## Loading data into a fresh instance
+
+Only needed after creating a brand-new instance (or after `terraform destroy` + `apply`) — the shared instance already has all of this. With your IP allowlisted and `backend/.env`'s `DATABASE_URL` pointing at the instance, run from `backend/`:
+
+1. `npx prisma migrate deploy` — creates the schema
+2. `npm run prisma:seed` — roles + demo user
+3. `npx tsx scripts/ingest-bronze-listings.ts` — properties + comparable sales
+4. `npx tsx scripts/build-suburb-market-intelligence.ts` — per-suburb market rows
+5. `npx tsx scripts/load-external-market-data.ts` — enrich market rows (must run after step 4)
+
+Details on each script: [`backend/README.md`](../../backend/README.md#data-import).
+
 ## Configuration
 
 All defaults live in `variables.tf` and are fine for dev/course-project use

@@ -19,3 +19,7 @@ output "database_url" {
   value       = "postgresql://${google_sql_user.app.name}:${random_password.db_password.result}@${google_sql_database_instance.relaive.public_ip_address}:5432/${google_sql_database.relaive.name}"
   sensitive   = true
 }
+
+output "cloud_run_url" {
+  value = google_cloud_run_v2_service.backend.uri
+}

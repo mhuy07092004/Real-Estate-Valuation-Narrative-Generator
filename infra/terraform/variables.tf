@@ -33,3 +33,26 @@ variable "authorized_ips" {
   type        = list(string)
   default     = []
 }
+
+variable "backend_image" {
+  description = "Full Docker Hub image reference for the backend (e.g. docker.io/<username>/relaive-backend:latest)"
+  type        = string
+}
+
+variable "backend_env" {
+  description = "Non-secret env vars for the Cloud Run backend service"
+  type        = map(string)
+  default = {
+    CORS_ORIGIN             = "https://real-estate-valuation-narrative-gen.vercel.app"
+    PUBLIC_APP_URL          = "https://real-estate-valuation-narrative-gen.vercel.app"
+    ML_PRICE_PREDICTION_URL = ""
+    TRUST_PROXY             = "1"
+  }
+}
+
+variable "backend_secrets" {
+  description = "Secret env vars for the Cloud Run backend service (JWT secrets, SendGrid key, DB password piece, etc.) — set via terraform.tfvars, never committed"
+  type        = map(string)
+  sensitive   = true
+  default     = {}
+}
