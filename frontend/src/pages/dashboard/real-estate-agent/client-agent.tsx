@@ -15,6 +15,7 @@ import {
   createClient,
   CreateClientError,
   getClientListMockData,
+  updateClient,
   type ClientItem,
   type ClientStatus,
 } from '../../../services/agent'
@@ -163,6 +164,7 @@ function lastContactLabel(iso: string): string {
 }
 
 type AddClientModalProps = {
+  mode: 'add' | 'edit'
   form: NewClientForm
   isValid: boolean
   isSubmitting: boolean
@@ -173,6 +175,7 @@ type AddClientModalProps = {
 }
 
 function AddClientModal({
+  mode,
   form,
   isValid,
   isSubmitting,
@@ -191,7 +194,9 @@ function AddClientModal({
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex shrink-0 items-center justify-between">
-          <h2 className="text-base font-semibold tracking-tight text-[#1C2A38]">New Client</h2>
+          <h2 className="text-base font-semibold tracking-tight text-[#1C2A38]">
+            {mode === 'add' ? 'New Client' : 'Edit Client'}
+          </h2>
           <button
             type="button"
             onClick={onCancel}
@@ -289,8 +294,14 @@ function AddClientModal({
             disabled={!isValid || isSubmitting}
             onClick={onSubmit}
           >
-            <PlusIcon />
-            {isSubmitting ? 'Adding…' : 'Add Client'}
+            {mode === 'add' ? <PlusIcon /> : null}
+            {mode === 'add'
+              ? isSubmitting
+                ? 'Adding…'
+                : 'Add Client'
+              : isSubmitting
+                ? 'Saving…'
+                : 'Save Changes'}
           </Button>
         </div>
       </div>
@@ -300,9 +311,10 @@ function AddClientModal({
 
 type ClientDetailPanelProps = {
   client: ClientItem
+  onEdit: () => void
 }
 
-function ClientDetailPanel({ client }: ClientDetailPanelProps) {
+function ClientDetailPanel({ client, onEdit }: ClientDetailPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null)
 
   useGSAP(
@@ -374,6 +386,7 @@ function ClientDetailPanel({ client }: ClientDetailPanelProps) {
         <Button
           size="sm"
           className="mt-auto w-full rounded-full bg-[#5DA7AC] hover:bg-[#4E969B]"
+          onClick={onEdit}
         >
           Edit Client
         </Button>
@@ -392,6 +405,8 @@ export function ClientAgent() {
   const [isSubmittingClient, setIsSubmittingClient] = useState(false)
   const [addClientError, setAddClientError] = useState<string | null>(null)
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
+  // Set while the shared Add/Edit modal is editing an existing client.
+  const [editingClientId, setEditingClientId] = useState<string | null>(null)
 
   useEffect(() => {
     if (data) setClients(data)
@@ -408,11 +423,26 @@ export function ClientAgent() {
 
   function closeAddClientModal() {
     setIsAddOpen(false)
+    setEditingClientId(null)
     setNewClientForm(EMPTY_NEW_CLIENT_FORM)
     setAddClientError(null)
   }
 
-  async function handleAddClient() {
+  function openEditClientModal(client: ClientItem) {
+    setNewClientForm({
+      fullName: client.name,
+      email: client.email,
+      phone: client.phone,
+      stage: client.status,
+      address: client.address ?? '',
+      notes: client.notes,
+    })
+    setEditingClientId(client.id)
+    setAddClientError(null)
+    setIsAddOpen(true)
+  }
+
+  async function handleSubmitClient() {
     if (!isNewClientValid || isSubmittingClient) return
 
     const parsedAddress = parseClientAddress(newClientForm.address)
@@ -426,23 +456,33 @@ export function ClientAgent() {
     setIsSubmittingClient(true)
     setAddClientError(null)
 
-    try {
-      const created = await createClient({
-        fullName: newClientForm.fullName.trim(),
-        email: newClientForm.email.trim(),
-        phone: newClientForm.phone.trim(),
-        status: newClientForm.stage,
-        notes: newClientForm.notes.trim(),
-        ...parsedAddress,
-      })
+    const fields = {
+      fullName: newClientForm.fullName.trim(),
+      email: newClientForm.email.trim(),
+      phone: newClientForm.phone.trim(),
+      status: newClientForm.stage,
+      notes: newClientForm.notes.trim(),
+      ...parsedAddress,
+    }
 
-      setClients((current) => [created, ...current])
+    try {
+      if (editingClientId) {
+        const updated = await updateClient(editingClientId, fields)
+        setClients((current) => current.map((item) => (item.id === updated.id ? updated : item)))
+      } else {
+        const created = await createClient(fields)
+        setClients((current) => [created, ...current])
+      }
       closeAddClientModal()
     } catch (error) {
       if (error instanceof CreateClientError) {
         setAddClientError(error.errors?.email ?? error.message)
       } else {
-        setAddClientError('Something went wrong adding this client. Please try again.')
+        setAddClientError(
+          editingClientId
+            ? 'Something went wrong saving this client. Please try again.'
+            : 'Something went wrong adding this client. Please try again.',
+        )
       }
     } finally {
       setIsSubmittingClient(false)
@@ -604,7 +644,10 @@ export function ClientAgent() {
 
           {selectedClient ? (
             <div className="lg:flex-[3] lg:shrink-0">
-              <ClientDetailPanel client={selectedClient} />
+              <ClientDetailPanel
+                client={selectedClient}
+                onEdit={() => openEditClientModal(selectedClient)}
+              />
             </div>
           ) : null}
         </div>
@@ -618,13 +661,14 @@ export function ClientAgent() {
             // around the app, which affects how descendant fixed elements
             // are positioned.
             <AddClientModal
+              mode={editingClientId ? 'edit' : 'add'}
               form={newClientForm}
               isValid={isNewClientValid}
               isSubmitting={isSubmittingClient}
               errorMessage={addClientError}
               onChange={handleNewClientChange}
               onCancel={closeAddClientModal}
-              onSubmit={handleAddClient}
+              onSubmit={handleSubmitClient}
             />,
             document.body,
           )

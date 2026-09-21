@@ -1,6 +1,6 @@
 // Agent types + HTTP service — CRM client list, reports, notifications.
 
-import { API_BASE_URL, fetchJson } from './api-client'
+import { API_BASE_URL, fetchJson, getAccessToken } from './api-client'
 import type { InboxNotification } from './common'
 
 export type ClientStatus =
@@ -48,26 +48,6 @@ type StoredClientRow = {
   reportCount?: number
   createdAt: string
   updatedAt: string
-}
-
-type StoredReportRow = {
-  reportId: string
-  clientId: string | null
-  propertyAddressLine: string
-  propertySuburb: string
-  propertyState: string
-  propertyPostcode: string
-  propertyType: string
-  narrativeText: string
-  pdfStoragePath: string | null
-  updatedAt: string
-  clientName: string | null
-  clientEmail: string | null
-}
-
-type StoredReportResponse = {
-  success: boolean
-  data: StoredReportRow[]
 }
 
 function toInitials(name: string): string {
@@ -165,44 +145,24 @@ export function getClientListPageMockData(): Promise<ClientItem[]> {
 }
 
 export function getClientListMockData(): Promise<ClientItem[]> {
-  // /api/reports doesn't exist until the Report feature is built (Level 2,
-  // depends on Client/ComparableSale). Using allSettled so a missing/failed
-  // reports endpoint only degrades reportCount to its fallback instead of
-  // wiping out otherwise-successful client data via Promise.all's fail-fast
-  // behavior.
-  return Promise.allSettled([
-    fetchJson<ApiSuccess<StoredClientRow[]>>('/api/clients'),
-    fetchJson<StoredReportResponse>('/api/reports'),
-  ]).then(([clientsResult, reportsResult]) => {
-    if (clientsResult.status === 'rejected') throw clientsResult.reason
+  return fetchJson<ApiSuccess<StoredClientRow[]>>('/api/clients').then((response) =>
+    response.data.map((row) => toClientItem(row, row.reportCount ?? 0)),
+  )
+}
 
-    const countByClientId = new Map<string, number>()
-    const countByClientEmail = new Map<string, number>()
+export type ClientReportItem = {
+  reportId: string
+  propertyAddressLine: string
+  propertySuburb: string
+  estimatedValue: number
+  shared: boolean
+  createdAt: string
+}
 
-    const reports = reportsResult.status === 'fulfilled' ? reportsResult.value.data ?? [] : []
-
-    for (const report of reports) {
-      if (report.clientId) {
-        countByClientId.set(report.clientId, (countByClientId.get(report.clientId) ?? 0) + 1)
-      }
-
-      const reportClientEmail = report.clientEmail?.trim().toLowerCase()
-      if (reportClientEmail) {
-        countByClientEmail.set(
-          reportClientEmail,
-          (countByClientEmail.get(reportClientEmail) ?? 0) + 1,
-        )
-      }
-    }
-
-    return clientsResult.value.data.map((row) => {
-      const emailKey = row.email.trim().toLowerCase()
-      const reportCount =
-        countByClientId.get(row.clientId) ?? countByClientEmail.get(emailKey) ?? row.reportCount ?? 0
-
-      return toClientItem(row, reportCount)
-    })
-  })
+export function getClientReports(clientId: string): Promise<ClientReportItem[]> {
+  return fetchJson<ApiSuccess<ClientReportItem[]>>(`/api/clients/${clientId}/reports`).then(
+    (response) => response.data,
+  )
 }
 
 export function getClientListSummary(): Promise<ClientListSummary> {
@@ -253,21 +213,26 @@ export type CreateClientInput = {
 // Bypasses fetchJson so a failed request's real message/errors body can be
 // read (fetchJson only throws a generic "failed with status N") — but unlike
 // auth.ts, this call is authenticated, so the bearer token is attached here.
-export async function createClient(input: CreateClientInput): Promise<ClientItem> {
-  const headers = new Headers({ 'Content-Type': 'application/json' })
-  const rawSession = window.localStorage.getItem('relaive_auth')
-  if (rawSession) {
-    try {
-      const parsed = JSON.parse(rawSession) as { accessToken?: string }
-      if (parsed.accessToken) headers.set('Authorization', `Bearer ${parsed.accessToken}`)
-    } catch {
-      // Ignore malformed session values; the request proceeds unauthenticated
-      // and the backend will reject it with 401.
-    }
-  }
+export function createClient(input: CreateClientInput): Promise<ClientItem> {
+  return saveClient('POST', '/api/clients', input)
+}
 
-  const response = await fetch(`${API_BASE_URL}/api/clients`, {
-    method: 'POST',
+// Partial: send only the fields that should change.
+export function updateClient(id: string, input: Partial<CreateClientInput>): Promise<ClientItem> {
+  return saveClient('PATCH', `/api/clients/${id}`, input)
+}
+
+async function saveClient(
+  method: 'POST' | 'PATCH',
+  path: string,
+  input: Partial<CreateClientInput>,
+): Promise<ClientItem> {
+  const headers = new Headers({ 'Content-Type': 'application/json' })
+  const token = getAccessToken()
+  if (token) headers.set('Authorization', `Bearer ${token}`)
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method,
     headers,
     body: JSON.stringify(input),
   })

@@ -41,6 +41,7 @@ const strategyCardSchema = z.object({
 
 export const createReportSchema = z.object({
     role: z.enum(reportRoleValues),
+    clientId: z.string().uuid().optional(),
     clientName: z.string().trim().min(1).optional(),
     clientEmail: z.string().trim().email().optional(),
     propertyAddressLine: z.string().trim().min(1, 'Address is required.'),
@@ -75,7 +76,16 @@ export const createReportSchema = z.object({
 
 export type CreateReportInput = z.infer<typeof createReportSchema>
 
+// Optional on both share-link and send-email: attaches the report to a client
+// (and/or records who it went to) at send time.
+export const recipientSchema = z.object({
+    clientId: z.string().uuid().optional(),
+    clientName: z.string().trim().min(1).optional(),
+    clientEmail: z.string().trim().email().optional(),
+})
+
 export const sendReportEmailSchema = z.object({
+    clientId: z.string().uuid().optional(),
     clientName: z.string().trim().min(1, 'Client name is required.'),
     clientEmail: z.string().trim().email('A valid client email is required.'),
     note: z.string().trim().max(2000).optional(),

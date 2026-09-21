@@ -206,6 +206,7 @@ export type ReportRole = 'agent' | 'valuer' | 'buyer' | 'investor'
 
 export type PersistGeneratedReportInput = {
   role: ReportRole
+  clientId?: string
   reportTemplateId: string
   narrativeText: string
   estimatedValue: number
@@ -251,6 +252,7 @@ export async function persistGeneratedReport(
     input.role === 'buyer' ? (input.affordability !== undefined ? input.affordability : getAffordabilityResult()) : null
   const body = {
     role: input.role,
+    clientId: input.clientId,
     clientName: input.clientName?.trim() || undefined,
     clientEmail: input.clientEmail?.trim() || undefined,
     propertyAddressLine: address.streetLine,
@@ -292,9 +294,14 @@ export async function persistGeneratedReport(
   return response.data
 }
 
-export async function createShareLink(reportId: string): Promise<string> {
+export async function createShareLink(
+  reportId: string,
+  recipient?: { clientId?: string; clientName?: string; clientEmail?: string },
+): Promise<string> {
   const response = await fetchJson<ApiResponse<{ shareToken: string }>>(`/api/reports/${reportId}/share-link`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(recipient ?? {}),
   })
 
   if (!response.success) {
@@ -305,7 +312,7 @@ export async function createShareLink(reportId: string): Promise<string> {
 
 export async function sendReportEmail(
   reportId: string,
-  payload: { clientName: string; clientEmail: string; note?: string },
+  payload: { clientId?: string; clientName: string; clientEmail: string; note?: string },
 ): Promise<string> {
   const response = await fetchJson<ApiResponse<{ shareUrl: string }>>(`/api/reports/${reportId}/send-email`, {
     method: 'POST',

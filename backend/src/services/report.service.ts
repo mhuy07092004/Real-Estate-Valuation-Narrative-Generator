@@ -30,40 +30,16 @@ export async function getReportById(reportId: string, ownerUserId: string) {
     })
 }
 
-// Matches an existing client by name or email — never creates one, since a
-// report only ever carries a name/email, not the phone/address a Client
-// row requires. No match just means the report keeps clientName/clientEmail
-// as free text with no clientId link.
-async function findMatchingClientId(
-    ownerUserId: string,
-    clientName?: string,
-    clientEmail?: string,
-): Promise<string | null> {
-    if (!clientName && !clientEmail) return null
-
-    const candidates = await prisma.client.findMany({ where: { ownerUserId } })
-    const name = clientName?.trim().toLowerCase()
-    const email = clientEmail?.trim().toLowerCase()
-
-    const match = candidates.find(
-        (client) =>
-            (name && client.fullName.trim().toLowerCase() === name) ||
-            (email && client.email.trim().toLowerCase() === email),
-    )
-
-    return match?.clientId ?? null
-}
-
 // isValuer decides caseStatus: valuer-created reports start as a 'draft'
-// case; every other role leaves caseStatus null.
+// case; every other role leaves caseStatus null. A report is linked to a
+// client only when the caller names one explicitly (clientId, ownership
+// already checked by the controller) — no guessing by name or email.
 export async function createReport(ownerUserId: string, input: CreateReportInput, isValuer: boolean) {
-    const clientId = await findMatchingClientId(ownerUserId, input.clientName, input.clientEmail)
-
     return prisma.report.create({
         data: {
             ownerUserId,
             role: input.role,
-            clientId,
+            clientId: input.clientId ?? null,
             clientName: input.clientName,
             clientEmail: input.clientEmail,
             propertyAddressLine: input.propertyAddressLine,
@@ -108,6 +84,24 @@ export async function getOrCreateShareToken(reportId: string, ownerUserId: strin
     const shareToken = crypto.randomBytes(24).toString('base64url')
     await prisma.report.update({ where: { reportId }, data: { shareToken } })
     return shareToken
+}
+
+/** Attaches (or updates) who this report is for. Ownership of clientId is
+ *  checked by the caller; this only writes what it's given. */
+export async function attachRecipient(
+    reportId: string,
+    ownerUserId: string,
+    recipient: { clientId?: string; clientName?: string; clientEmail?: string },
+) {
+    if (!recipient.clientId && !recipient.clientName && !recipient.clientEmail) return
+    await prisma.report.updateMany({
+        where: { reportId, ownerUserId },
+        data: {
+            clientId: recipient.clientId,
+            clientName: recipient.clientName,
+            clientEmail: recipient.clientEmail,
+        },
+    })
 }
 
 /** Public lookup by share token — deliberately NOT scoped by ownerUserId,

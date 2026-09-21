@@ -7,6 +7,7 @@ import {
     createClient,
     deleteClient,
     getClient,
+    listClientReports,
     listClients,
     updateClient,
 } from '../controllers/client.controller.js'
@@ -15,6 +16,7 @@ export const clientRouter = Router()
 
 clientRouter.get('/', requireAuth, asyncHandler(listClients))
 clientRouter.get('/:clientId', requireAuth, asyncHandler(getClient))
+clientRouter.get('/:clientId/reports', requireAuth, asyncHandler(listClientReports))
 clientRouter.post('/', requireAuth, asyncHandler(createClient))
 clientRouter.patch('/:clientId', requireAuth, asyncHandler(updateClient))
 clientRouter.delete('/:clientId', requireAuth, asyncHandler(deleteClient))
