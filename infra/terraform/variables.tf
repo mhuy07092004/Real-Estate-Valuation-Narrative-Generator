@@ -45,8 +45,14 @@ variable "backend_env" {
   default = {
     CORS_ORIGIN             = "https://real-estate-valuation-narrative-gen.vercel.app"
     PUBLIC_APP_URL          = "https://real-estate-valuation-narrative-gen.vercel.app"
-    ML_PRICE_PREDICTION_URL = ""
+    ML_PRICE_PREDICTION_URL = "https://relaive-ai-service-latest.onrender.com"
     TRUST_PROXY             = "1"
+    # Fine-tuned narrative model on Vertex AI (us-central1: the L4 serving GPU
+    # isn't offered in Sydney). Not secret. Defined here, not in tfvars, because
+    # setting backend_env in tfvars would replace this whole map.
+    VERTEX_PROJECT_ID  = "393439107077" # project NUMBER, as the Vertex REST path expects
+    VERTEX_REGION      = "us-central1"
+    VERTEX_ENDPOINT_ID = "365693719107600384"
   }
 }
 
