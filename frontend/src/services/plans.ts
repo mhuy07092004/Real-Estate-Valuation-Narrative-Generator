@@ -21,12 +21,42 @@ export type PlanTier = {
   description: string
   price: string
   priceSuffix?: string
+  bestFor: string
   features: string[]
   primaryCta: PlanCta
   secondaryCta: PlanCta
   primaryCtaStyle?: 'primary' | 'soft' | 'gold'
   highlighted?: boolean
   variant?: 'light' | 'dark'
+}
+
+// Every plan includes every feature below; plans differ only by monthly
+// report limit. Shown once in the comparison table, and summarised as "All
+// features included" on the cards and in Settings > Subscription.
+export const INCLUDED_FEATURES = [
+  'Automated valuation summaries',
+  'Comparable sales with similarity ranking',
+  'Market insights & suburb explorer',
+  'AI price prediction',
+  'Shareable report link',
+  'Email reports to clients',
+  'ROI calculator & market comparison',
+  'Buyer affordability calculator',
+]
+
+// The only thing that differs between plans. Not yet enforced by the backend.
+export const REPORT_LIMITS: Record<PlanId, number> = { free: 5, plus: 50, pro: 100 }
+
+function planFeatures(id: PlanId): string[] {
+  return [`${REPORT_LIMITS[id]} AI reports / month`, 'All features included']
+}
+
+export const ANNUAL_DISCOUNT = 0.2
+export const ANNUAL_DISCOUNT_LABEL = `Save ${ANNUAL_DISCOUNT * 100}%`
+
+/** "$79" -> "$63.2" (per-month price when billed annually). */
+export function annualMonthlyPrice(price: string): string {
+  return `$${(parseFloat(price.replace('$', '')) * (1 - ANNUAL_DISCOUNT)).toFixed(1)}`
 }
 
 export const PLAN_TIERS: PlanTier[] = [
@@ -38,14 +68,10 @@ export const PLAN_TIERS: PlanTier[] = [
     description:
       'Get started with AI-powered real estate reporting and property valuation workflows.',
     price: 'Free',
-    features: [
-      '5 appraisal reports /month',
-      'Automated valuation summaries',
-      'Basic comparable sales overview',
-      'Limited PDF export',
-    ],
+    bestFor: 'Beginners',
+    features: planFeatures('free'),
     primaryCta: { label: 'Start Free', href: '/signin' },
-    secondaryCta: { label: 'Try Demo', href: '/signin' },
+    secondaryCta: { label: 'Sign In', href: '/signin' },
     primaryCtaStyle: 'primary',
   },
   {
@@ -54,40 +80,28 @@ export const PLAN_TIERS: PlanTier[] = [
     badge: 'Most Popular',
     badgeTone: 'popular',
     title: 'Plus',
-    description:
-      'Unlock deeper market intelligence with advanced analytics, branded reports, and customizable AI insights.',
+    description: 'Every feature, with room for regular client work.',
     price: '$79',
     priceSuffix: '/month',
-    features: [
-      '50 monthly reports',
-      'Advanced comparable sales analysis',
-      'Create branded client-ready reports',
-      'Flexible report templates',
-      'AI confidence insights',
-    ],
+    bestFor: 'Valuers, agents & consultants',
+    features: planFeatures('plus'),
     primaryCta: { label: 'Upgrade to Plus', href: '/signin' },
-    secondaryCta: { label: 'Start Free Trial', href: '/signin' },
+    secondaryCta: { label: 'Sign Up', href: '/signup' },
     primaryCtaStyle: 'primary',
     highlighted: true,
   },
   {
     id: 'pro',
     iconKey: 'chart',
-    badge: 'Predictive Analytics',
+    badge: 'Highest Volume',
     title: 'Pro',
-    description: 'Predictive market intelligence and investment-focused analytics powered by AI.',
+    description: 'Every feature, with the highest report allowance for busy practices and investors.',
     price: '$129',
     priceSuffix: '/month',
-    features: [
-      '100 AI-generated reports/month',
-      'ROI & cash flow forecasting',
-      'Investment opportunity scoring',
-      'Suburb growth prediction insights',
-      'Risk & market trend analysis',
-      'All features in Plus Plan',
-    ],
+    bestFor: 'Property investors & analysts',
+    features: planFeatures('pro'),
     primaryCta: { label: 'Upgrade to Pro', href: '/signin' },
-    secondaryCta: { label: 'Start Free Trial', href: '/signin' },
+    secondaryCta: { label: 'Sign Up', href: '/signup' },
     primaryCtaStyle: 'primary',
   },
 ]

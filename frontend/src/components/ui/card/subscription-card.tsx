@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Button } from '../button/button'
 import { Card, CardDescription, CardTitle } from './card'
+import { ANNUAL_DISCOUNT_LABEL, annualMonthlyPrice } from '../../../services/plans'
 
 type BadgeTone = 'default' | 'popular' | 'enterprise'
 type CardVariant = 'light' | 'dark'
@@ -175,11 +176,11 @@ export function SubscriptionCard({
             <div className="flex items-center gap-2">
               <span className="text-lg text-relaive-gray line-through decoration-1">{price}</span>
               <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs font-semibold text-green-700">
-                Save 20%
+                {ANNUAL_DISCOUNT_LABEL}
               </span>
             </div>
             <p className={`text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-relaive-navy'}`}>
-              ${(parseFloat(price.replace('$', '')) * 0.8).toFixed(1)}
+              {annualMonthlyPrice(price)}
               {priceSuffix ? (
                 <span className={`ml-1 text-base font-medium ${isDark ? 'text-white/60' : 'text-relaive-gray'}`}>
                   {priceSuffix}

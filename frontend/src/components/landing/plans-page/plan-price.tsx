@@ -122,8 +122,8 @@ export function PlanPrice() {
           Flexible Plans for Modern Property Intelligence
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-relaive-gray">
-          Choose a plan tailored to your workflow, valuation needs, investment goals, or
-          enterprise operations.
+          Every plan includes every feature. Pick the monthly report allowance that fits your
+          workload.
         </p>
         <a
           href="#plan-comparison"
