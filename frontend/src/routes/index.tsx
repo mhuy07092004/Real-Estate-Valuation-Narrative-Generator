@@ -32,8 +32,9 @@ import { NotificationPage } from '../pages/dashboard/notification'
 import { GenerateReport } from '../pages/dashboard/generate-report'
 import { ComparableSales } from '../pages/dashboard/comparable-sales'
 import { MarketComparison } from '../pages/dashboard/investor/market-comparision'
-import { ProtectedRoute } from '../features/auth/components/protected-route'
+import { ProtectedRoute, SelectRoleRoute } from '../features/auth/components/protected-route'
 import SharedReportPage from '../pages/shared-report'
+import SelectRolePageRoute from '../pages/select-role'
 
 function DashboardReport() {
   const { role } = useParams<{ role: string }>()
@@ -67,6 +68,14 @@ export function AppRoutes() {
       <Route path="/signin" element={<SignInPageRoute />} />
       <Route path="/signup" element={<SignUpPageRoute />} />
       <Route path="/forgot-password" element={<ForgotPasswordPageRoute />} />
+      <Route
+        path="/select-role"
+        element={
+          <SelectRoleRoute>
+            <SelectRolePageRoute />
+          </SelectRoleRoute>
+        }
+      />
       <Route path="/shared-report/:token" element={<SharedReportPage />} />
       <Route
         path="/dashboard"

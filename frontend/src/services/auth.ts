@@ -8,7 +8,7 @@ import {
   type RegisterCredentials,
   type User,
 } from '../types/auth'
-import { API_BASE_URL, fetchJson } from './api-client'
+import { API_BASE_URL, fetchJson, getAccessToken } from './api-client'
 
 // Not routed through fetchJson (api-client.ts) because these calls must never
 // attach a stale Authorization header before a session exists — but they still
@@ -169,5 +169,25 @@ export async function register(credentials: RegisterCredentials): Promise<AuthSe
   const session = toSession(body)
 
   persistSession(session)
+  return session
+}
+
+export async function selectRole(
+  role: 'agent' | 'valuer' | 'investor' | 'buyer',
+): Promise<AuthSession> {
+  const token = getAccessToken()
+  const response = await fetch(`${API_BASE}/select-role`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ role }),
+  })
+
+  const body = (await response.json()) as ApiResponse<LoginResponseData>
+  const session = toSession(body)
+
+  persistSession(session, resolveActiveStorage() !== sessionStorage)
   return session
 }

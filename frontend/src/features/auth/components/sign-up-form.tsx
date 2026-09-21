@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '../../../components/ui/button/button'
 import { Input } from '../../../components/ui/input/input'
 import { TurnstileWidget } from '../../../components/ui/turnstile/turnstile-widget'
-import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-role'
 import { useAuth } from '../hooks/use-auth'
 import { useCaptchaGate } from '../hooks/use-captcha-gate'
 import { AuthError } from '../../../types/auth'
@@ -138,13 +137,6 @@ const SOCIAL_PROVIDERS = [
   { id: 'microsoft', label: 'Microsoft', icon: MicrosoftIcon },
 ] as const
 
-const ROLE_OPTIONS: { value: DashboardRole; label: string }[] = [
-  { value: 'buyer', label: 'Buyer' },
-  { value: 'investor', label: 'Investor' },
-  { value: 'valuer', label: 'Property Valuer' },
-  { value: 'agent', label: 'Agent' },
-]
-
 function SocialLoginDivider() {
   return (
     <div className="flex items-center gap-3">
@@ -180,7 +172,6 @@ export function SignUpForm() {
     resetToken: resetCaptcha,
     clear: clearCaptcha,
   } = useCaptchaGate('signup')
-  const [role, setRole] = useState<DashboardRole | ''>('')
   const [showPassword, setShowPassword] = useState(false)
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -237,7 +228,6 @@ export function SignUpForm() {
         fullName,
         email,
         password,
-        role: role || undefined,
         turnstileToken: captchaToken || undefined,
         otp,
       })
@@ -327,34 +317,6 @@ export function SignUpForm() {
             required
           />
           {fieldErrors.otp ? <p className="text-xs text-red-600">{fieldErrors.otp}</p> : null}
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="role" className="text-sm font-medium text-relaive-navy">
-            Role
-          </label>
-          <div className="relative flex items-center">
-            <span className="pointer-events-none absolute left-3 flex items-center text-relaive-gray">
-              <UserIcon />
-            </span>
-            <select
-              id="role"
-              name="role"
-              required
-              value={role}
-              onChange={(event) => setRole(event.target.value as DashboardRole)}
-              className="w-full rounded-lg border border-black/10 bg-white py-2.5 pl-10 pr-4 text-sm text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
-            >
-              <option value="" disabled>
-                Select your role
-              </option>
-              {ROLE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
 
         <div className="flex flex-col gap-1.5">

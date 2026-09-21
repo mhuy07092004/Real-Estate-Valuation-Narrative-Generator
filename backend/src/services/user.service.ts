@@ -15,7 +15,7 @@ function toStoredUserWithPassword(user: {
   company: string | null
   passwordHash: string | null
   createdAt: Date
-  role: { roleName: string }
+  role: { roleName: string } | null
 }): StoredUserWithPassword {
   return {
     userId: user.userId,
@@ -23,7 +23,7 @@ function toStoredUserWithPassword(user: {
     email: user.email,
     phone: user.phone,
     company: user.company,
-    roleName: user.role.roleName,
+    roleName: user.role?.roleName ?? null,
     createdAt: user.createdAt,
     passwordHash: user.passwordHash,
   }
@@ -91,26 +91,29 @@ export async function createUser(params: {
   fullName: string
   email: string
   passwordHash: string
-  roleId: number
+  roleId?: number | null
 }): Promise<StoredUser> {
   const user = await prisma.user.create({
     data: {
       fullName: params.fullName,
       email: params.email,
       passwordHash: params.passwordHash,
-      roleId: params.roleId,
+      roleId: params.roleId ?? null,
       authProvider: 'local',
     },
     include: { role: true },
   })
 
-  return {
-    userId: user.userId,
-    fullName: user.fullName,
-    email: user.email,
-    phone: user.phone,
-    company: user.company,
-    roleName: user.role.roleName,
-    createdAt: user.createdAt,
-  }
+  return toStoredUserWithPassword(user)
+}
+
+/** Assigns a dashboard role after sign-up (or any other role-null account). */
+export async function updateUserRole(userId: string, roleId: number): Promise<StoredUser> {
+  const user = await prisma.user.update({
+    where: { userId },
+    data: { roleId },
+    include: { role: true },
+  })
+
+  return toStoredUserWithPassword(user)
 }

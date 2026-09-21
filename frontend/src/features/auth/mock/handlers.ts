@@ -196,7 +196,7 @@ export const authHandlers = [
         email,
         fullName,
         password,
-        roles: ['user'],
+        roles: [],
         avatar: null,
         phone: null,
         company: null,
@@ -220,6 +220,162 @@ export const authHandlers = [
           },
         },
         { status: 201 }
+      )
+    }
+  ),
+
+  http.post<never, { role?: string }>(
+    '/api/auth/select-role',
+    async ({ request }) => {
+      await simulateLatency()
+
+      const authHeader = request.headers.get('Authorization')
+      const token = extractBearerToken(authHeader)
+      const payload = token ? decodeToken(token) : null
+
+      if (!token || !payload || !activeTokens.has(token)) {
+        return HttpResponse.json(
+          {
+            success: false,
+            message: 'Authentication required. Please provide a valid token.',
+          },
+          { status: 401 }
+        )
+      }
+
+      const body = await request.json()
+      const role = body.role
+      const allowedRoles: UserRole[] = ['agent', 'valuer', 'investor', 'buyer']
+
+      if (!role || !allowedRoles.includes(role as UserRole)) {
+        return HttpResponse.json(
+          {
+            success: false,
+            message: 'Validation failed.',
+            errors: { role: 'Please select a role' },
+          },
+          { status: 400 }
+        )
+      }
+
+      const user = registeredUsers.find((u) => u.id === payload.userId)
+
+      if (!user) {
+        return HttpResponse.json(
+          {
+            success: false,
+            message: 'User not found.',
+          },
+          { status: 404 }
+        )
+      }
+
+      if (user.roles.some((existing) => allowedRoles.includes(existing))) {
+        return HttpResponse.json(
+          {
+            success: false,
+            message: 'A role has already been selected for this account.',
+          },
+          { status: 409 }
+        )
+      }
+
+      user.roles = [role as UserRole]
+      activeTokens.delete(token)
+
+      const accessToken = generateMockToken(user)
+      const refreshToken = generateRefreshToken()
+
+      return HttpResponse.json(
+        {
+          success: true,
+          message: 'Role selected successfully.',
+          data: {
+            user: sanitizeUser(user),
+            accessToken,
+            refreshToken,
+            expiresIn: 3600,
+          },
+        },
+        { status: 200 }
+      )
+    }
+  ),
+
+  http.post<never, { role?: string }>(
+    '/api/auth/select-role',
+    async ({ request }) => {
+      await simulateLatency()
+
+      const authHeader = request.headers.get('Authorization')
+      const token = extractBearerToken(authHeader)
+      const payload = token ? decodeToken(token) : null
+
+      if (!token || !payload || !activeTokens.has(token)) {
+        return HttpResponse.json(
+          {
+            success: false,
+            message: 'Authentication required. Please provide a valid token.',
+          },
+          { status: 401 }
+        )
+      }
+
+      const body = await request.json()
+      const role = body.role
+      const allowedRoles: UserRole[] = ['agent', 'valuer', 'investor', 'buyer']
+
+      if (!role || !allowedRoles.includes(role as UserRole)) {
+        return HttpResponse.json(
+          {
+            success: false,
+            message: 'Validation failed.',
+            errors: { role: 'Please select a role' },
+          },
+          { status: 400 }
+        )
+      }
+
+      const user = registeredUsers.find((u) => u.id === payload.userId)
+
+      if (!user) {
+        return HttpResponse.json(
+          {
+            success: false,
+            message: 'User not found.',
+          },
+          { status: 404 }
+        )
+      }
+
+      if (user.roles.some((existing) => allowedRoles.includes(existing))) {
+        return HttpResponse.json(
+          {
+            success: false,
+            message: 'A role has already been selected for this account.',
+          },
+          { status: 409 }
+        )
+      }
+
+      user.roles = [role as UserRole]
+      activeTokens.delete(token)
+
+      const accessToken = generateMockToken(user)
+      const refreshToken = generateRefreshToken()
+
+      return HttpResponse.json(
+        {
+          success: true,
+          message: 'Role selected successfully.',
+          data: {
+            user: sanitizeUser(user),
+            accessToken,
+            refreshToken,
+            expiresIn: 3600,
+          },
+        },
+        { status: 200 }
       )
     }
   ),

@@ -1,9 +1,10 @@
 import bcrypt from 'bcryptjs'
 import { env } from '../config/env.js'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from './jwt.service.js'
-import { toFrontendUser, type AuthResponseData, type StoredUser, InvalidCredentialsError } from '../types/auth.types.js'
+import { toFrontendUser, type AuthResponseData, type StoredUser, InvalidCredentialsError, RoleAlreadySetError } from '../types/auth.types.js'
 import { loginSchema, refreshTokenSchema, updateProfileSchema, type LoginInput } from '../validators/auth.validator.js'
-import { findUserByEmail, findUserById, updateUserProfile } from './user.service.js'
+import { selectRoleSchema } from '../validators/registration.validator.js'
+import { ensureRoleIdByName, findUserByEmail, findUserById, updateUserProfile, updateUserRole } from './user.service.js'
 import { CaptchaRequiredError, verifyTurnstileToken } from './turnstile.service.js'
 import {
   isLoginCaptchaRequired,
@@ -92,4 +93,23 @@ export async function refreshSession(input: unknown): Promise<AuthResponseData> 
   }
 
   return buildAuthResponse(user)
+}
+
+/**
+ * Assigns the user's first dashboard role and reissues tokens so the JWT
+ * roles claim matches the updated profile. Rejects if a role is already set.
+ */
+export async function selectUserRole(userId: string, input: unknown): Promise<AuthResponseData> {
+  const { role } = selectRoleSchema.parse(input)
+  const user = await findUserById(userId)
+  if (!user) {
+    throw new InvalidCredentialsError()
+  }
+  if (user.roleName) {
+    throw new RoleAlreadySetError()
+  }
+
+  const roleId = await ensureRoleIdByName(role)
+  const updated = await updateUserRole(userId, roleId)
+  return buildAuthResponse(updated)
 }
