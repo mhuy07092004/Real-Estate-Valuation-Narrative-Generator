@@ -143,6 +143,21 @@ export async function updateProfile(input: UpdateProfileInput): Promise<User> {
   return body.data.user
 }
 
+export async function sendOtp(email: string): Promise<void> {
+  const response = await fetch(`${API_BASE}/send-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+
+  const body = (await response.json()) as
+    | { success: true }
+    | { success: false; message: string; errors?: Record<string, string>; retryAfterSeconds?: number }
+  if (!body.success) {
+    throw new AuthError(body.message, body.errors)
+  }
+}
+
 export async function register(credentials: RegisterCredentials): Promise<AuthSession> {
   const response = await fetch(`${API_BASE}/register`, {
     method: 'POST',

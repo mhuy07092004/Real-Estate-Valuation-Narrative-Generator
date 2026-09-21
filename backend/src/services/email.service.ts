@@ -14,6 +14,23 @@ if (process.env.SENDGRID_API_KEY) {
     sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 }
 
+export async function sendOtpEmail(params: { to: string; code: string }): Promise<void> {
+    if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_FROM_EMAIL) {
+        throw new Error('Email sending is not configured (missing SENDGRID_API_KEY/SENDGRID_FROM_EMAIL).')
+    }
+
+    await sgMail.send({
+        to: params.to,
+        from: process.env.SENDGRID_FROM_EMAIL,
+        subject: 'Your Relaive verification code',
+        html: `
+            <p>Your verification code is:</p>
+            <p style="font-size:24px;font-weight:bold;letter-spacing:4px">${params.code}</p>
+            <p>It expires in 10 minutes. If you didn't request this, you can ignore this email.</p>
+        `,
+    })
+}
+
 export async function sendReportEmail(params: {
     to: string
     clientName: string

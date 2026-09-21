@@ -3,6 +3,7 @@ import { env } from '../config/env.js'
 import { DuplicateEmailError, toFrontendUser, type AuthResponseData } from '../types/auth.types.js'
 import { registrationSchema, type RegistrationInput } from '../validators/registration.validator.js'
 import { createUser, findRoleIdByName, findUserByEmail } from './user.service.js'
+import { consumeOtp, verifyOtp } from './otp.service.js'
 import { signAccessToken, signRefreshToken } from './jwt.service.js'
 import { CaptchaRequiredError, verifyTurnstileToken } from './turnstile.service.js'
 import {
@@ -29,6 +30,7 @@ export async function registerUser(input: RegistrationInput, remoteIp?: string):
     password,
     role,
     turnstileToken,
+    otp,
   } = registrationSchema.parse(input)
   const risk = { ip: remoteIp }
 
@@ -43,6 +45,11 @@ export async function registerUser(input: RegistrationInput, remoteIp?: string):
     throw new DuplicateEmailError(email, isRegisterCaptchaRequired(risk))
   }
 
+  // Proves control of the email. Checked before hashing the password (bcrypt is
+  // the expensive step) and consumed only after the user row exists, so a
+  // failed insert doesn't burn the code.
+  const otpId = await verifyOtp(email, otp)
+
   const roleId = await findRoleIdByName(role)
   if (roleId === null) {
     // Seed data missing — this is a setup problem, not a user error.
@@ -51,6 +58,7 @@ export async function registerUser(input: RegistrationInput, remoteIp?: string):
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
   const stored = await createUser({ fullName, email, passwordHash, roleId })
+  await consumeOtp(otpId)
   recordRegisterSuccess(risk)
 
   const tokenPayload = { userId: stored.userId, email: stored.email, roles: [stored.roleName] }

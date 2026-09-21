@@ -30,6 +30,7 @@ export interface RegisterCredentials {
   password: string
   role?: UserRole
   turnstileToken?: string
+  otp: string
 }
 export interface AuthSession {
   user: User
