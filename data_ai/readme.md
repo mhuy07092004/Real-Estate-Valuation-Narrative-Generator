@@ -1,21 +1,37 @@
 # data_ai
 
-Data collection, dataset-building, and Gemma fine-tuning experiments supporting the main app. Not a standalone service — everything here either feeds real data into the backend's DB (`backend/prisma/schema.prisma`) or builds/trains an AI narrative model for it.
+Data collection, dataset-building, and Gemma fine-tuning experiments supporting the main app, plus a separate FastAPI service that serves a trained price-prediction model. Not one standalone thing — pieces here either feed real data into the backend's DB (`backend/prisma/schema.prisma`, Postgres on Cloud SQL), build/train the AI narrative model, or serve the price-prediction model the backend calls over HTTP.
 
 ## Folder map
 
 | Path | What's there |
 | --- | --- |
-| `ingestion/` | Scraping scripts for external data: `bronze_listing_ingest.py` (property listings), `domain_suburb_insights_ingest.py`, `sqm_vacancy_rate_ingest.py`, `abs_sa2_raw_ingest.py`, plus `suburb_source.py` (shared helper — reads the real suburb list from the backend's live SQLite DB rather than re-deriving it). |
+| `ingestion/` | Scraping scripts for external data: `bronze_listing_ingest.py` (property listings), `domain_suburb_insights_ingest.py`, `sqm_vacancy_rate_ingest.py`, `abs_sa2_raw_ingest.py`, plus `suburb_source.py` (shared helper — reads the real suburb list from the backend's live database rather than re-deriving it). |
 | `run_full_scrape.py` | Orchestrates the three external-data scripts (Domain/SQM/ABS) across every real suburb already in the backend DB, not just a test batch. |
 | `scripts/` | `prepare_finetune_dataset.py` and `split_narrative_dataset.py` (the narrative dataset pipeline — see below), plus one-off `probe_*.py` scripts used to inspect a scrape target's page structure before writing a real ingestion script against it. |
 | `docs/` | `scp425_plan.md` (the real, current narrative-dataset design), `scp419_plan.md` (historical baseline-eval plan), `gcp_provisioning_plan.md`, `fixtures/` (the actual dataset files at each pipeline stage — see below). |
 | `training/` | Vertex AI custom-training-job code: the `trainer/` Python package (`finetune_gemma.py`, `merge_adapter.py`), `setup.py` to package it, and job config YAML files (gitignored — they hold a plaintext Hugging Face token). |
 | `eval/` | `generate_baseline.py` (runs a deployed model against the held-out test set), `score_rouge.py` (ROUGE-L scoring against real reference text), `baseline-report.md`. |
+| `model/` | `train_price_model.py` — trains the RandomForest price-prediction model from `bronze_listings.csv` + `domain_suburb_insights.csv`. The trained `.joblib` artifacts are gitignored (reproducible from the CSVs, baked into the service's Docker image at build time — not committed). |
+| `service/` | The FastAPI app (`main.py`) that serves the trained price-prediction model over HTTP (`POST /predict`), plus its own `Dockerfile`/`requirements.txt`. This is what `backend/src/services/price-prediction.service.ts` calls via `ML_PRICE_PREDICTION_URL`. Deployed separately from everything else in this folder — see "Deploying the price-prediction service" below. |
+| `notebooks/` | `price_prediction_model.ipynb` — exploratory notebook for the price-prediction model (separate from the Vertex AI narrative fine-tuning below). |
 | `narrative_training_pairs.jsonl` | The actual dataset deliverable — role-conditioned narrative text paired with real property data. |
 | `Relaive_AI_Data_Service_Backlog.md` | Original ticket backlog (historical reference — some of it describes a simpler scheme than what's actually implemented; `docs/scp425_plan.md` has the real, current design). |
 | Root CSVs (`bronze_listings.csv`, `abs_*.csv`, `sqm_vacancy_rate_raw.csv`, `domain_suburb_insights.csv`) | Scraper outputs — real data pulled by `ingestion/`. |
-| `requirements.txt` | Scraping dependencies only (pandas, undetected_chromedriver, webdriver-manager, openpyxl). `training/` and `eval/` have their own separate, smaller dependency lists documented in their sections below. |
+| `requirements.txt` | Scraping dependencies only (pandas, undetected_chromedriver, webdriver-manager, openpyxl). `training/`, `eval/`, and `service/` have their own separate, smaller dependency lists documented in their sections below. |
+
+## Deploying the price-prediction service
+
+Docker image → Docker Hub → Render, same pattern as the backend. Build/push is automated via [`../.github/workflows/docker-deploy-ai.yml`](../.github/workflows/docker-deploy-ai.yml) on every push to `main` touching `data_ai/service/**`, `data_ai/model/**`, or `data_ai/*.csv`.
+
+```bash
+docker build -f data_ai/service/Dockerfile -t <dockerhub-username>/relaive-ai-service:latest .
+docker push <dockerhub-username>/relaive-ai-service:latest
+```
+
+Render service settings: Image URL `docker.io/<dockerhub-username>/relaive-ai-service:latest`, Health Check Path `/health`. No env vars required — the trained model is baked into the image at build time. Set `ML_API_KEY` only to require a bearer token on `/predict`.
+
+Once live, point the backend at it: set `ML_PRICE_PREDICTION_URL` (and `ML_PRICE_PREDICTION_API_KEY` if `ML_API_KEY` was set) on the backend's deployment — see `backend/README.md`. Free-tier Render cold-sleeps after ~15 min idle; the first prediction after a gap is slower.
 
 ## First-time setup (scraping/dataset tooling)
 
