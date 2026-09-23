@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '../../../components/ui/button/button'
 import { Input } from '../../../components/ui/input/input'
 import { TurnstileWidget } from '../../../components/ui/turnstile/turnstile-widget'
+import { GoogleSignInButton } from '../../../components/ui/google-signin/google-signin-button'
+import { MicrosoftSignInButton } from '../../../components/ui/microsoft-signin/microsoft-signin-button'
 import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-role'
 import { useAuth } from '../hooks/use-auth'
 import { useCaptchaGate } from '../hooks/use-captcha-gate'
@@ -155,22 +157,48 @@ function SocialLoginDivider() {
   )
 }
 
-function SocialLoginButtons() {
+function SocialLoginButtons({
+  role,
+  onGoogleCredential,
+  onGoogleError,
+  onMicrosoftCredential,
+  onMicrosoftError,
+}: {
+  role: DashboardRole | ''
+  onGoogleCredential: (credential: string) => void
+  onGoogleError: () => void
+  onMicrosoftCredential: (credential: string) => void
+  onMicrosoftError: () => void
+}) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      {SOCIAL_PROVIDERS.map(({ id, label, icon: Icon }) => (
-        <Button key={id} type="button" variant="outline" size="md" className="gap-2">
-          <Icon />
-          {label}
-        </Button>
-      ))}
+      {SOCIAL_PROVIDERS.map(({ id, label, icon: Icon }) => {
+        // Both Google and Microsoft sign-up create a brand-new account when
+        // this email hasn't signed up before, and role isn't something
+        // either provider can tell us — same requirement the plain sign-up
+        // form above enforces.
+        if (!role) {
+          return (
+            <Button key={id} type="button" variant="outline" size="md" className="gap-2" disabled title="Select a role first">
+              <Icon />
+              {label}
+            </Button>
+          )
+        }
+
+        return id === 'google' ? (
+          <GoogleSignInButton key={id} onCredential={onGoogleCredential} onError={onGoogleError} />
+        ) : (
+          <MicrosoftSignInButton key={id} onCredential={onMicrosoftCredential} onError={onMicrosoftError} />
+        )
+      })}
     </div>
   )
 }
 
 export function SignUpForm() {
   const navigate = useNavigate()
-  const { register } = useAuth()
+  const { register, loginWithGoogle, loginWithMicrosoft } = useAuth()
   const {
     isRequired: captchaRequired,
     token: captchaToken,
@@ -194,6 +222,44 @@ export function SignUpForm() {
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
+  const [isMicrosoftSubmitting, setIsMicrosoftSubmitting] = useState(false)
+
+  async function handleGoogleCredential(credential: string) {
+    setError(null)
+    setIsGoogleSubmitting(true)
+    try {
+      // `role` is only used if this email is signing up for the first time —
+      // the backend ignores it and logs into the existing account otherwise.
+      await loginWithGoogle(credential, role || undefined)
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      if (err instanceof AuthError) {
+        setError(err.message)
+      } else {
+        setError('Google sign-up failed. Please try again.')
+      }
+    } finally {
+      setIsGoogleSubmitting(false)
+    }
+  }
+
+  async function handleMicrosoftCredential(credential: string) {
+    setError(null)
+    setIsMicrosoftSubmitting(true)
+    try {
+      await loginWithMicrosoft(credential, role || undefined)
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      if (err instanceof AuthError) {
+        setError(err.message)
+      } else {
+        setError('Microsoft sign-up failed. Please try again.')
+      }
+    } finally {
+      setIsMicrosoftSubmitting(false)
+    }
+  }
 
   useEffect(() => {
     if (cooldown <= 0) return
@@ -444,7 +510,16 @@ export function SignUpForm() {
       </form>
 
       <SocialLoginDivider />
-      <SocialLoginButtons />
+      <SocialLoginButtons
+        role={role}
+        onGoogleCredential={handleGoogleCredential}
+        onGoogleError={() => setError('Google sign-in failed to load. Please try again.')}
+        onMicrosoftCredential={handleMicrosoftCredential}
+        onMicrosoftError={() => setError('Microsoft sign-in failed to load. Please try again.')}
+      />
+      {isGoogleSubmitting || isMicrosoftSubmitting ? (
+        <p className="text-center text-xs text-relaive-gray">Signing up…</p>
+      ) : null}
     </div>
   )
 }

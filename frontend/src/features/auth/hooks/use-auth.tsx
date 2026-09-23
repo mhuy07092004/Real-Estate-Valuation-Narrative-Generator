@@ -12,6 +12,8 @@ import {
   clearSession,
   getStoredSession,
   login as loginRequest,
+  loginWithGoogle as loginWithGoogleRequest,
+  loginWithMicrosoft as loginWithMicrosoftRequest,
   register as registerRequest,
   updateProfile as updateProfileRequest,
   type UpdateProfileInput,
@@ -26,6 +28,8 @@ interface AuthContextValue {
     options?: { rememberMe?: boolean },
   ) => Promise<AuthSession>
   register: (credentials: RegisterCredentials) => Promise<AuthSession>
+  loginWithGoogle: (credential: string, role?: RegisterCredentials['role']) => Promise<AuthSession>
+  loginWithMicrosoft: (credential: string, role?: RegisterCredentials['role']) => Promise<AuthSession>
   updateProfile: (input: UpdateProfileInput) => Promise<User>
   logout: () => void
 }
@@ -56,6 +60,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(session.user)
     return session
   }, [])
+  const loginWithGoogle = useCallback(async (credential: string, role?: RegisterCredentials['role']) => {
+    const session = await loginWithGoogleRequest(credential, role)
+    setUser(session.user)
+    return session
+  }, [])
+  const loginWithMicrosoft = useCallback(async (credential: string, role?: RegisterCredentials['role']) => {
+    const session = await loginWithMicrosoftRequest(credential, role)
+    setUser(session.user)
+    return session
+  }, [])
   const updateProfile = useCallback(async (input: UpdateProfileInput) => {
     const updatedUser = await updateProfileRequest(input)
     setUser(updatedUser)
@@ -74,10 +88,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       login,
       register,
+      loginWithGoogle,
+      loginWithMicrosoft,
       updateProfile,
       logout,
     }),
-    [user, isLoading, login, register, updateProfile, logout]
+    [user, isLoading, login, register, loginWithGoogle, loginWithMicrosoft, updateProfile, logout]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

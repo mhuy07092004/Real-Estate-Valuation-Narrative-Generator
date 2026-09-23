@@ -171,3 +171,41 @@ export async function register(credentials: RegisterCredentials): Promise<AuthSe
   persistSession(session)
   return session
 }
+
+/**
+ * Exchanges a Google Identity Services ID token for a session. `role` is
+ * only needed the first time this email signs in (new-account path) — the
+ * backend ignores it and logs into the existing account otherwise, whether
+ * that account was created locally or via a previous Google sign-in.
+ */
+export async function loginWithGoogle(credential: string, role?: RegisterCredentials['role']): Promise<AuthSession> {
+  const response = await fetch(`${API_BASE}/google`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ credential, role }),
+  })
+
+  const body = (await response.json()) as ApiResponse<LoginResponseData>
+  const session = toSession(body)
+
+  persistSession(session)
+  return session
+}
+
+/**
+ * Exchanges an MSAL ID token for a session. Same `role`-only-needed-once
+ * contract as loginWithGoogle above.
+ */
+export async function loginWithMicrosoft(credential: string, role?: RegisterCredentials['role']): Promise<AuthSession> {
+  const response = await fetch(`${API_BASE}/microsoft`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ credential, role }),
+  })
+
+  const body = (await response.json()) as ApiResponse<LoginResponseData>
+  const session = toSession(body)
+
+  persistSession(session)
+  return session
+}

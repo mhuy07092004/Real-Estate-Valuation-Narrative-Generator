@@ -13,15 +13,21 @@
   now that frontend (Vercel) and backend (Render) are separate origins in prod.
 - Also bundled in: swap `bcrypt` → `bcryptjs` (native bcrypt's install script
   gets blocked by npm 12+ by default; bcryptjs is pure JS, no native build step).
+- For Google/Microsoft Oauth: semi working, currently only at local and only for sign in,
+not sign up. Will need another push at the nearest future. Woowee
 
 ## Environment variables required for this to work once deployed
-New config needed specifically for the map/geocoding feature — nothing else changes.
+New config needed for the map/geocoding feature and Google OAuth — nothing
+else changes.
 
 **Vercel (frontend project)**
 - `VITE_GOOGLE_MAPS_API_KEY` — Maps JavaScript API key, HTTP-referrer-restricted
   to the production domain(s). Team credentials sheet.
 - `VITE_API_BASE_URL` — the deployed backend's origin (Render URL). Also now
   required for geocode/places, not just auth/reports.
+- `VITE_GOOGLE_OAUTH_CLIENT_ID` — the OAuth 2.0 Client ID (not a secret, but
+  still tied to authorized origins — see below). Same value as the backend's
+  `GOOGLE_OAUTH_CLIENT_ID`. Team credentials sheet.
 
 **Render (backend service)**
 - `GOOGLE_MAPS_SERVER_KEY` — a *separate* key from the Maps JS one above. Must
@@ -29,9 +35,10 @@ New config needed specifically for the map/geocoding feature — nothing else ch
   Geocoding/Places calls) — restrict by IP instead, or leave unrestricted.
   Team credentials sheet.
 
-> Note: OAuth sign-in (Google/Microsoft) is planned next — see the
-> `authProvider` comment in `schema.prisma`. That'll need its own client
-> ID/secret env vars on both sides; not part of this PR.
+> Before this works in prod, add the Vercel production URL (and any preview
+> domains you want it to work on) to that OAuth Client ID's **Authorized
+> JavaScript origins** in Google Cloud Console — Google's button silently
+> fails to issue a credential from an unlisted origin.
 
 ## Test plan
 - [ ] `npm install` in both `frontend/` and `backend/`
@@ -40,5 +47,14 @@ New config needed specifically for the map/geocoding feature — nothing else ch
 - [ ] `npm run dev` in both, load the homepage, confirm the map renders
 - [ ] Search an address (Enter key or the magnifier icon) — map recenters,
       amenity markers + legend appear
-- [ ] Before merging: confirm `GOOGLE_MAPS_SERVER_KEY` and `VITE_API_BASE_URL`
-      are actually set in Render/Vercel, not just locally
+- [ ] Set `VITE_GOOGLE_OAUTH_CLIENT_ID` (frontend) and `GOOGLE_OAUTH_CLIENT_ID`
+      (backend), confirm `http://localhost:5173` is in the Client ID's
+      Authorized JavaScript origins
+- [ ] Sign in with Google on the sign-in page, both for an email that already
+      has a local-password account (should log straight in) and one that
+      doesn't (should show the "sign up instead" message)
+- [ ] Sign up with Google on the sign-up page after picking a role
+- [ ] Before merging: confirm `GOOGLE_MAPS_SERVER_KEY`, `VITE_API_BASE_URL`,
+      `VITE_GOOGLE_OAUTH_CLIENT_ID`, and `GOOGLE_OAUTH_CLIENT_ID` are actually
+      set in Render/Vercel, not just locally, and that the prod domain is in
+      the OAuth Client ID's Authorized JavaScript origins

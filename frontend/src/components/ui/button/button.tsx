@@ -6,7 +6,12 @@ export type ButtonSize = 'sm' | 'md' | 'lg'
 /** Google Sans Code — add to any clickable element that is not a native `<button>`. */
 export const BUTTON_FONT_CLASS = 'font-button'
 
-const BASE = `inline-flex items-center justify-center ${BUTTON_FONT_CLASS} font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary disabled:opacity-50 disabled:pointer-events-none`
+// cursor-pointer is explicit because native <button> defaults to the plain
+// arrow cursor, not a hand — unlike <a>, which is why this wasn't noticed
+// on link-style usages. disabled:cursor-not-allowed is harmless alongside
+// disabled:pointer-events-none (which already blocks hover/click) since it
+// only matters if something upstream re-enables pointer events.
+const BASE = `inline-flex items-center justify-center ${BUTTON_FONT_CLASS} font-medium rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed`
 
 const VARIANT_MAP: Record<ButtonVariant, string> = {
   primary:
