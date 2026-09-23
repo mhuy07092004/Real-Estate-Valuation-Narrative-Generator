@@ -4,8 +4,9 @@
 // and dashboard.ts.
 import type { Request, Response } from 'express'
 import { ZodError } from 'zod'
-import { createReportSchema, sendReportEmailSchema } from '../validators/report.validator.js'
+import { createReportSchema, recipientSchema, sendReportEmailSchema } from '../validators/report.validator.js'
 import {
+    attachRecipient,
     createReport as createReportInDb,
     getOrCreateShareToken,
     getReportById,
@@ -14,6 +15,7 @@ import {
 } from '../services/report.service.js'
 import { getReportTemplateForRole, type ReportRole } from '../services/report-content.service.js'
 import { findUserById } from '../services/user.service.js'
+import { advanceClientToAppraisalSent, getClientById } from '../services/client.service.js'
 import { sendReportEmail as sendReportEmailViaResend } from '../services/email.service.js'
 
 function zodErrors(err: ZodError): Record<string, string> {
@@ -23,6 +25,10 @@ function zodErrors(err: ZodError): Record<string, string> {
         if (messages?.[0]) errors[field] = messages[0]
     }
     return errors
+}
+
+function unknownClient(res: Response) {
+    res.status(400).json({ success: false, message: 'Validation failed.', errors: { clientId: 'Client not found.' } })
 }
 
 export async function listReports(_req: Request, res: Response) {
@@ -46,13 +52,30 @@ export async function getReport(req: Request, res: Response) {
 /** Agent-only: mints (or returns the existing) public share link for a
  *  report they own. */
 export async function createShareLink(req: Request, res: Response) {
+    let recipient
+    try {
+        recipient = recipientSchema.parse(req.body ?? {})
+    } catch (error) {
+        if (error instanceof ZodError) {
+            res.status(400).json({ success: false, message: 'Validation failed.', errors: zodErrors(error) })
+            return
+        }
+        throw error
+    }
+
     const ownerUserId = String(res.locals.userId)
+    if (recipient.clientId && !(await getClientById(recipient.clientId, ownerUserId))) {
+        return unknownClient(res)
+    }
+
     const shareToken = await getOrCreateShareToken(req.params.reportId, ownerUserId)
 
     if (!shareToken) {
         res.status(404).json({ success: false, message: 'Report not found.' })
         return
     }
+
+    await attachRecipient(req.params.reportId, ownerUserId, recipient)
 
     res.json({ success: true, data: { shareToken } })
 }
@@ -72,11 +95,17 @@ export async function sendReportEmail(req: Request, res: Response) {
     }
 
     const ownerUserId = String(res.locals.userId)
+    if (input.clientId && !(await getClientById(input.clientId, ownerUserId))) {
+        return unknownClient(res)
+    }
+
     const shareToken = await getOrCreateShareToken(req.params.reportId, ownerUserId)
     if (!shareToken) {
         res.status(404).json({ success: false, message: 'Report not found.' })
         return
     }
+
+    await attachRecipient(req.params.reportId, ownerUserId, input)
 
     const owner = await findUserById(ownerUserId)
     const shareUrl = `${process.env.PUBLIC_APP_URL ?? 'http://localhost:5173'}/shared-report/${shareToken}`
@@ -96,6 +125,10 @@ export async function sendReportEmail(req: Request, res: Response) {
         })
         return
     }
+
+    // Only a real email moves the client's stage; copying a link doesn't.
+    const report = await getReportById(req.params.reportId, ownerUserId)
+    if (report?.clientId) await advanceClientToAppraisalSent(report.clientId, ownerUserId)
 
     res.json({ success: true, message: 'Report emailed to client.', data: { shareUrl } })
 }
@@ -153,8 +186,15 @@ export async function createReport(req: Request, res: Response) {
     try {
         const input = createReportSchema.parse(req.body)
         const ownerUserId = String(res.locals.userId)
+        const client = input.clientId ? await getClientById(input.clientId, ownerUserId) : null
+        if (input.clientId && !client) return unknownClient(res)
+
         const isValuer = input.role === 'valuer'
-        const row = await createReportInDb(ownerUserId, input, isValuer)
+        const row = await createReportInDb(
+            ownerUserId,
+            { ...input, clientName: input.clientName ?? client?.fullName, clientEmail: input.clientEmail ?? client?.email },
+            isValuer,
+        )
         res.status(201).json({ success: true, data: { reportId: row.reportId } })
     } catch (error) {
         if (error instanceof ZodError) {

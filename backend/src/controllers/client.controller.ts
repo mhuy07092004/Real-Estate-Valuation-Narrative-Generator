@@ -10,6 +10,7 @@ import {
     deleteClient as deleteClientInDb,
     getClientById,
     listClientsByOwner,
+    listReportsForClient,
     updateClient as updateClientInDb,
 } from '../services/client.service.js'
 
@@ -38,6 +39,16 @@ export async function getClient(req: Request, res: Response) {
     }
 
     res.json({ success: true, data: row })
+}
+
+export async function listClientReports(req: Request, res: Response) {
+    const ownerUserId = String(res.locals.userId)
+    if (!(await getClientById(req.params.clientId, ownerUserId))) {
+        res.status(404).json({ success: false, message: 'Client not found.' })
+        return
+    }
+
+    res.json({ success: true, data: await listReportsForClient(req.params.clientId, ownerUserId) })
 }
 
 export async function createClient(req: Request, res: Response) {

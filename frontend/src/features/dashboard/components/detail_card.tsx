@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '../../../components/ui/button/button'
 import { ClientStatusBadge } from '../../../components/ui/table/status-badge'
-import { updateClientNotes, type ClientItem } from '../../../services/agent'
+import { useAsyncData } from '../../../hooks/use-async-data'
+import { getClientReports, updateClientNotes, type ClientItem } from '../../../services/agent'
 
 function EmailIcon() {
   return (
@@ -52,6 +54,11 @@ type DetailCardProps = {
 }
 
 export function DetailCard({ client, className = '', onNotesUpdated }: DetailCardProps) {
+  const navigate = useNavigate()
+  const { data: reports } = useAsyncData(
+    () => getClientReports(client.id),
+    [client.id, client.reportCount],
+  )
   const [isEditing, setIsEditing] = useState(false)
   const [draftNotes, setDraftNotes] = useState(client.notes)
   const [isSaving, setIsSaving] = useState(false)
@@ -174,8 +181,40 @@ export function DetailCard({ client, className = '', onNotesUpdated }: DetailCar
         )}
       </div>
 
+      <div className="mt-5">
+        <h3 className="text-sm font-semibold text-relaive-navy">
+          Reports ({reports?.length ?? client.reportCount})
+        </h3>
+        <ul className="mt-2 flex flex-col gap-1.5">
+          {(reports ?? []).map((report) => (
+            <li key={report.reportId}>
+              <button
+                type="button"
+                className="w-full truncate text-left text-sm text-relaive-primary hover:underline"
+                onClick={() =>
+                  navigate(
+                    `/dashboard/agent/generate-report?step=5&ready=1&reportId=${encodeURIComponent(report.reportId)}`,
+                  )
+                }
+              >
+                {report.propertyAddressLine}, {report.propertySuburb}
+                {report.shared ? ' · shared' : ''}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
       <div className="mt-auto flex flex-col gap-3 pt-8">
-        <Button type="button" variant="primary" size="md" className="w-full rounded-xl">
+        <Button
+          type="button"
+          variant="primary"
+          size="md"
+          className="w-full rounded-xl"
+          onClick={() =>
+            navigate(`/dashboard/agent/generate-report?clientId=${encodeURIComponent(client.id)}`)
+          }
+        >
           Generate Report
         </Button>
         <div className="grid grid-cols-2 gap-3">

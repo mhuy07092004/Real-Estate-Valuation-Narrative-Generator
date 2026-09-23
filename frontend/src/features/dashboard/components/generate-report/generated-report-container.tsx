@@ -26,6 +26,7 @@ import {
   type ReportRole,
   type RoiPersistResult,
 } from '../../../../services/common'
+import { getClientListMockData, type ClientItem } from '../../../../services/agent'
 import { getAgentRecommendationIcon, ReportDocumentIcon } from './generate-report-icons'
 import {
   GeneratedReportPanel,
@@ -46,6 +47,7 @@ type GeneratedReportContainerProps = {
   onBack: () => void
   onGenerateAnother: () => void
   savedReport: PersistedReport | null
+  clientId: string | null
 }
 
 // A reopened report uses its own persisted ROI values (the wizard's Step 3
@@ -115,10 +117,18 @@ export function GeneratedReportContainer({
   onBack,
   onGenerateAnother,
   savedReport,
+  clientId,
 }: GeneratedReportContainerProps) {
   const { role } = useParams<{ role?: string }>()
   const { user } = useAuth()
   const reportRole = toReportRole(role)
+  const initialClientId = clientId ?? savedReport?.clientId ?? null
+  // Save once: every Save / Share / Email reuses this id instead of creating a new row.
+  const savedReportIdRef = useRef<string | null>(savedReport?.reportId ?? null)
+  const { data: clients } = useAsyncData(
+    () => (reportRole === 'agent' ? getClientListMockData() : Promise.resolve<ClientItem[]>([])),
+    [reportRole],
+  )
   const roiForDisplay = reportRole === 'investor' ? resolveRoiForDisplay(savedReport) : null
   const affordabilityForDisplay = reportRole === 'buyer' ? resolveAffordabilityForDisplay(savedReport) : null
 
@@ -129,7 +139,7 @@ export function GeneratedReportContainer({
     [selectedTemplate?.id],
   )
   const { data: appraisalSummary } = useAsyncData(getAppraisalSummary, [])
-  const { data: executiveSummary } = useAsyncData(getExecutiveSummary, [])
+  const { data: executiveSummary } = useAsyncData(() => getExecutiveSummary(reportRole), [reportRole])
   const { data: agentRecommendations } = useAsyncData(getAgentRecommendations, [])
   const { data: appraisalDisclaimer } = useAsyncData(getAppraisalDisclaimer, [])
   const { data: comparableSales } = useAsyncData(getComparableSales, [])
@@ -181,19 +191,29 @@ export function GeneratedReportContainer({
     })),
   })
 
+  const ensureSaved = async (): Promise<string> => {
+    if (savedReportIdRef.current) return savedReportIdRef.current
+    if (!selectedTemplate || !appraisalSummary) throw new Error('Report is still loading.')
+
+    const { reportId } = await persistGeneratedReport({
+      role: reportRole,
+      clientId: initialClientId ?? undefined,
+      reportTemplateId: selectedTemplate.id,
+      narrativeText: buildNarrative(),
+      estimatedValue: parseCurrency(appraisalSummary.midpointEstimate),
+      roi: roiForDisplay,
+      affordability: affordabilityForDisplay,
+      ...buildSnapshotFields(),
+    })
+    savedReportIdRef.current = reportId
+    return reportId
+  }
+
   const handleSave = async () => {
     if (!selectedTemplate || !appraisalSummary) return
     setIsSaving(true)
     try {
-      await persistGeneratedReport({
-        role: reportRole,
-        reportTemplateId: selectedTemplate.id,
-        narrativeText: buildNarrative(),
-        estimatedValue: parseCurrency(appraisalSummary.midpointEstimate),
-        roi: roiForDisplay,
-        affordability: affordabilityForDisplay,
-        ...buildSnapshotFields(),
-      })
+      await ensureSaved()
       setSavedJustNow(true)
       setTimeout(() => setSavedJustNow(false), 2500)
     } finally {
@@ -345,34 +365,21 @@ export function GeneratedReportContainer({
             <div ref={sharePanelRef}>
               <SendReportCard
                 onClose={() => setShareOpen(false)}
+                clients={clients ?? []}
+                initialClientId={initialClientId}
                 onSend={async (payload) => {
-                  const { reportId } = await persistGeneratedReport({
-                    role: reportRole,
-                    reportTemplateId: selectedTemplate.id,
-                    narrativeText: buildNarrative(),
-                    estimatedValue: parseCurrency(appraisalSummary.midpointEstimate),
-                    clientName: payload.clientName,
-                    clientEmail: payload.clientEmail,
-                    roi: roiForDisplay,
-                    affordability: affordabilityForDisplay,
-                    ...buildSnapshotFields(),
+                  const reportId = await ensureSaved()
+                  const shareUrl = await createShareLink(reportId, {
+                    clientId: payload.clientId,
+                    clientName: payload.clientName || undefined,
+                    clientEmail: payload.clientEmail || undefined,
                   })
-                  const shareUrl = await createShareLink(reportId)
                   return { shareUrl }
                 }}
                 onSendEmail={async (payload) => {
-                  const { reportId } = await persistGeneratedReport({
-                    role: reportRole,
-                    reportTemplateId: selectedTemplate.id,
-                    narrativeText: buildNarrative(),
-                    estimatedValue: parseCurrency(appraisalSummary.midpointEstimate),
-                    clientName: payload.clientName,
-                    clientEmail: payload.clientEmail,
-                    roi: roiForDisplay,
-                    affordability: affordabilityForDisplay,
-                    ...buildSnapshotFields(),
-                  })
+                  const reportId = await ensureSaved()
                   const shareUrl = await sendReportEmail(reportId, {
+                    clientId: payload.clientId,
                     clientName: payload.clientName,
                     clientEmail: payload.clientEmail,
                     note: payload.note,

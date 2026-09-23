@@ -53,6 +53,7 @@ function readSubjectQuery(req: Request) {
 
 export async function getExecutiveSummary(req: Request, res: Response) {
     const { address, propertyType, bedrooms, bathrooms, parking, landSizeSqm } = readSubjectQuery(req)
+    const role = req.query.role
     const parsed = parseAddress(address)
 
     if (!parsed) {
@@ -65,7 +66,10 @@ export async function getExecutiveSummary(req: Request, res: Response) {
         return
     }
 
-    const summary = await buildExecutiveSummary({ ...parsed, propertyType, bedrooms, bathrooms, parking, landSizeSqm })
+    const summary = await buildExecutiveSummary(
+        { ...parsed, propertyType, bedrooms, bathrooms, parking, landSizeSqm },
+        isReportRole(role) ? role : 'agent',
+    )
     res.json(summary)
 }
 

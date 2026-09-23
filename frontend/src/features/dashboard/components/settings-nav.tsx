@@ -35,15 +35,6 @@ function BillingIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
-function AppearanceIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...iconProps(props)}>
-      <circle cx="12" cy="12" r="8.5" />
-      <path d="M12 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor" stroke="none" />
-    </svg>
-  )
-}
-
 function TrashIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...iconProps(props)}>
@@ -59,7 +50,6 @@ export type SettingsSectionId =
   | 'subscription'
   | 'billing'
   | 'notifications'
-  | 'appearance'
   | 'help-support'
 
 type SettingsNavItem = {
@@ -73,9 +63,12 @@ export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
   { id: 'subscription', label: 'Subscription', icon: SubscriptionIcon },
   { id: 'billing', label: 'Billing & Invoices', icon: BillingIcon },
   { id: 'notifications', label: 'Notifications', icon: BellIcon },
-  { id: 'appearance', label: 'Appearance', icon: AppearanceIcon },
   { id: 'help-support', label: 'Help & Support', icon: HelpCircleIcon },
 ]
+
+export function isSettingsSectionId(value: string | null): value is SettingsSectionId {
+  return SETTINGS_NAV_ITEMS.some((item) => item.id === value)
+}
 
 type SettingsNavProps = {
   activeSection: SettingsSectionId

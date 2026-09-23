@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../../../components/ui/button/button'
 import { Input } from '../../../components/ui/input/input'
@@ -9,6 +9,7 @@ import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-
 import { useAuth } from '../hooks/use-auth'
 import { useCaptchaGate } from '../hooks/use-captcha-gate'
 import { AuthError } from '../../../types/auth'
+import { sendOtp } from '../../../services/auth'
 
 function MailIcon() {
   return (
@@ -46,6 +47,28 @@ function ShieldIcon() {
         stroke="currentColor"
         strokeWidth="1.3"
         strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function OtpIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <rect
+        x="2.5"
+        y="4"
+        width="11"
+        height="8"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.3"
+      />
+      <path
+        d="M5.5 8h.01M8 8h.01M10.5 8h.01"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
       />
     </svg>
   )
@@ -198,7 +221,13 @@ export function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
+  const [otp, setOtp] = useState('')
+  const [otpSending, setOtpSending] = useState(false)
+  const [otpNotice, setOtpNotice] = useState<string | null>(null)
+  const [cooldown, setCooldown] = useState(0)
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -241,6 +270,33 @@ export function SignUpForm() {
     }
   }
 
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const timer = setTimeout(() => setCooldown((s) => s - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [cooldown])
+
+  async function handleSendOtp() {
+    setError(null)
+    setFieldErrors({})
+    setOtpNotice(null)
+    setOtpSending(true)
+    try {
+      await sendOtp(email)
+      setOtpNotice(`Code sent to ${email}`)
+      setCooldown(60)
+    } catch (err) {
+      if (err instanceof AuthError) {
+        setError(err.message)
+        if (err.errors) setFieldErrors(err.errors)
+      } else {
+        setError('Could not send the code. Please try again.')
+      }
+    } finally {
+      setOtpSending(false)
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
@@ -248,6 +304,12 @@ export function SignUpForm() {
 
     if (captchaRequired && !captchaToken) {
       setError('Please complete the security check below.')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setFieldErrors({ confirmPassword: 'Passwords do not match.' })
+      setError('Please make sure both passwords match.')
       return
     }
 
@@ -260,6 +322,7 @@ export function SignUpForm() {
         password,
         role: role || undefined,
         turnstileToken: captchaToken || undefined,
+        otp,
       })
       clearCaptcha()
       navigate('/dashboard', { replace: true })
@@ -303,18 +366,50 @@ export function SignUpForm() {
         </div>
 
         <div className="flex flex-col gap-1.5">
+          <div className="flex items-end gap-2">
+            <div className="min-w-0 flex-1">
+              <Input
+                id="email"
+                type="email"
+                label="Email"
+                placeholder="Enter your email"
+                startIcon={<MailIcon />}
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-[42px] shrink-0 whitespace-nowrap"
+              onClick={handleSendOtp}
+              disabled={!email || otpSending || cooldown > 0}
+            >
+              {otpSending ? 'Sending…' : cooldown > 0 ? `Resend in ${cooldown}s` : 'Send OTP'}
+            </Button>
+          </div>
+          {fieldErrors.email ? <p className="text-xs text-red-600">{fieldErrors.email}</p> : null}
+          {otpNotice ? <p className="text-xs text-green-700">{otpNotice}</p> : null}
+        </div>
+
+        <div className="flex flex-col gap-1.5">
           <Input
-            id="email"
-            type="email"
-            label="Email"
-            placeholder="Enter your email"
-            startIcon={<MailIcon />}
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            id="otp"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            label="OTP"
+            placeholder="Enter OTP code"
+            startIcon={<OtpIcon />}
+            value={otp}
+            onChange={(event) => setOtp(event.target.value.replace(/\D/g, '').slice(0, 6))}
+            maxLength={6}
             required
           />
-          {fieldErrors.email ? <p className="text-xs text-red-600">{fieldErrors.email}</p> : null}
+          {fieldErrors.otp ? <p className="text-xs text-red-600">{fieldErrors.otp}</p> : null}
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -368,6 +463,33 @@ export function SignUpForm() {
             }
           />
           {fieldErrors.password ? <p className="text-xs text-red-600">{fieldErrors.password}</p> : null}
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Input
+            id="confirm-password"
+            type={showConfirmPassword ? 'text' : 'password'}
+            label="Confirm password"
+            placeholder="Re-enter your password"
+            startIcon={<ShieldIcon />}
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            required
+            endIcon={
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="pointer-events-auto focus-visible:outline-none"
+                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              >
+                <EyeIcon visible={showConfirmPassword} />
+              </button>
+            }
+          />
+          {fieldErrors.confirmPassword ? (
+            <p className="text-xs text-red-600">{fieldErrors.confirmPassword}</p>
+          ) : null}
         </div>
 
         {error ? <p className="text-sm text-red-600">{error}</p> : null}

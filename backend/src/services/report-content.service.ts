@@ -11,6 +11,24 @@ import { generateNarrativeViaVertex } from './vertex-narrative.service.js'
 
 export type ReportRole = 'agent' | 'valuer' | 'buyer' | 'investor'
 
+// Mirrors data_ai/scripts/prepare_finetune_dataset.py's ROLE_LABEL /
+// REPORT_TYPE_LABEL exactly — the fine-tune learned to change tone and
+// content based on these two sentences, so production has to send the
+// same wording or the model is off-distribution from training.
+const ROLE_LABEL: Record<ReportRole, string> = {
+    agent: 'real estate agent',
+    valuer: 'certified practising valuer',
+    buyer: "buyer's advocate",
+    investor: 'property investment advisor',
+}
+
+const REPORT_TYPE_LABEL: Record<ReportRole, string> = {
+    agent: 'Vendor Appraisal',
+    valuer: 'Bank Valuation',
+    buyer: 'Buyer Report',
+    investor: 'Investment Report',
+}
+
 export type ReportTemplate = {
     id: string
     title: string
@@ -154,7 +172,7 @@ async function buildRealEvidence(subject: SubjectInput) {
     }
 }
 
-export async function buildExecutiveSummary(subject: SubjectInput) {
+export async function buildExecutiveSummary(subject: SubjectInput, role: ReportRole) {
     const evidence = await buildRealEvidence(subject)
 
     if (evidence.comparables.length === 0) {
@@ -176,7 +194,7 @@ export async function buildExecutiveSummary(subject: SubjectInput) {
         ? `The primary comparable — ${evidence.primaryComparable.property.addressLine} (sold ${formatCurrency(evidence.primaryComparable.soldPrice)}) — is the strongest evidence for this estimate given its similarity to the subject property.`
         : 'No single comparable stands out as a primary anchor for this estimate.'
 
-    const vertexParagraphs = await tryVertexExecutiveSummary(subject, evidence, midpointText, growthText)
+    const vertexParagraphs = await tryVertexExecutiveSummary(subject, role, evidence, midpointText, growthText)
     if (vertexParagraphs) {
         return {
             title: '1. EXECUTIVE SUMMARY',
@@ -215,6 +233,7 @@ export async function buildExecutiveSummary(subject: SubjectInput) {
 // templated path is always the safety net.
 async function tryVertexExecutiveSummary(
     subject: SubjectInput,
+    role: ReportRole,
     evidence: Awaited<ReturnType<typeof buildRealEvidence>>,
     midpointText: string,
     growthText: string,
@@ -227,9 +246,9 @@ async function tryVertexExecutiveSummary(
         .join('\n')
 
     const prompt = [
-        `You are a professional real estate agent writing the Executive Summary section of a property appraisal report.`,
+        `You are a professional ${ROLE_LABEL[role]} preparing the narrative sections of a ${REPORT_TYPE_LABEL[role]} report.`,
         ``,
-        `Property: ${subject.street}, ${subject.suburb} ${subject.state ?? ''} — ${subject.propertyType ?? 'property'}, ${subject.bedrooms ?? '?'} bed / ${subject.bathrooms ?? '?'} bath / ${subject.parking ?? '?'} car`,
+        `Property: ${subject.street}, ${subject.suburb} ${subject.state ?? ''} — ${subject.propertyType ?? 'property'}, ${subject.bedrooms ?? '?'} bed / ${subject.bathrooms ?? '?'} bath / ${subject.parking ?? '?'} car, ${subject.landSizeSqm ?? 'unknown'} sqm`,
         `Estimated value: ${midpointText} (range ${evidence.priceRangeText})`,
         `Suburb annual growth: ${growthText}`,
         ``,

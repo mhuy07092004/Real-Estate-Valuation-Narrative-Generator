@@ -16,7 +16,7 @@ function toRoleReportItem(row: Awaited<ReturnType<typeof listReportsByOwnerAndRo
         address: row.propertyAddressLine,
         suburb: row.propertySuburb,
         clientName: row.clientName,
-        status: row.clientId || row.clientEmail ? 'shared' : 'generated',
+        status: row.shareToken ? 'shared' : 'generated',
         estimatedValue: row.estimatedValue,
         beds: row.bedrooms,
         baths: row.bathrooms,

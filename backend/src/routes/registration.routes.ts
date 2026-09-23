@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { register } from '../controllers/registration.controller.js'
+import { register, sendOtp } from '../controllers/registration.controller.js'
 import { forgotPassword, login, me, refreshToken, updateProfile } from '../controllers/auth.controller.js'
 import { googleAuth } from '../controllers/google-auth.controller.js'
 import { microsoftAuth } from '../controllers/microsoft-auth.controller.js'
@@ -9,6 +9,7 @@ import { requireAuth } from '../middleware/require-auth.js'
 // Auth endpoints consumed by frontend sign-in/sign-up and session flows.
 export const registrationRouter = Router()
 
+registrationRouter.post('/send-otp', asyncHandler(sendOtp))
 registrationRouter.post('/register', asyncHandler(register))
 registrationRouter.post('/login', asyncHandler(login))
 registrationRouter.post('/google', asyncHandler(googleAuth))

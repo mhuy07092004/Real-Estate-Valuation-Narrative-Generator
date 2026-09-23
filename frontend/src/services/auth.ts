@@ -39,36 +39,53 @@ function isValidSession(session: AuthSession): boolean {
   return decodeToken(session.accessToken) !== null
 }
 
-export function getStoredSession(): AuthSession | null {
-  const raw = localStorage.getItem(SESSION_KEY)
+function readValidSession(storage: Storage): AuthSession | null {
+  const raw = storage.getItem(SESSION_KEY)
   if (!raw) return null
 
   try {
     const session = JSON.parse(raw) as AuthSession
     if (!isValidSession(session)) {
-      localStorage.removeItem(SESSION_KEY)
+      storage.removeItem(SESSION_KEY)
       return null
     }
     return session
   } catch {
-    localStorage.removeItem(SESSION_KEY)
+    storage.removeItem(SESSION_KEY)
     return null
   }
 }
 
-export function persistSession(session: AuthSession): void {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+function resolveActiveStorage(): Storage | null {
+  if (readValidSession(localStorage)) return localStorage
+  if (readValidSession(sessionStorage)) return sessionStorage
+  return null
+}
+
+export function getStoredSession(): AuthSession | null {
+  const storage = resolveActiveStorage()
+  return storage ? readValidSession(storage) : null
+}
+
+export function persistSession(session: AuthSession, remember = true): void {
+  const target = remember ? localStorage : sessionStorage
+  const other = remember ? sessionStorage : localStorage
+  target.setItem(SESSION_KEY, JSON.stringify(session))
+  other.removeItem(SESSION_KEY)
 }
 
 /** Merges an updated user into the stored session (e.g. after a profile edit). */
 function persistSessionUser(user: AuthSession['user']): void {
-  const session = getStoredSession()
+  const storage = resolveActiveStorage()
+  if (!storage) return
+  const session = readValidSession(storage)
   if (!session) return
-  persistSession({ ...session, user })
+  storage.setItem(SESSION_KEY, JSON.stringify({ ...session, user }))
 }
 
 export function clearSession(): void {
   localStorage.removeItem(SESSION_KEY)
+  sessionStorage.removeItem(SESSION_KEY)
 }
 
 export function isAuthenticated(): boolean {
@@ -88,7 +105,10 @@ function toSession(body: ApiResponse<LoginResponseData>): AuthSession {
   }
 }
 
-export async function login(credentials: LoginCredentials): Promise<AuthSession> {
+export async function login(
+  credentials: LoginCredentials,
+  options?: { rememberMe?: boolean },
+): Promise<AuthSession> {
   const response = await fetch(`${API_BASE}/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -98,7 +118,7 @@ export async function login(credentials: LoginCredentials): Promise<AuthSession>
   const body = (await response.json()) as ApiResponse<LoginResponseData>
   const session = toSession(body)
 
-  persistSession(session)
+  persistSession(session, options?.rememberMe ?? true)
   return session
 }
 
@@ -121,6 +141,21 @@ export async function updateProfile(input: UpdateProfileInput): Promise<User> {
 
   persistSessionUser(body.data.user)
   return body.data.user
+}
+
+export async function sendOtp(email: string): Promise<void> {
+  const response = await fetch(`${API_BASE}/send-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+
+  const body = (await response.json()) as
+    | { success: true }
+    | { success: false; message: string; errors?: Record<string, string>; retryAfterSeconds?: number }
+  if (!body.success) {
+    throw new AuthError(body.message, body.errors)
+  }
 }
 
 export async function register(credentials: RegisterCredentials): Promise<AuthSession> {

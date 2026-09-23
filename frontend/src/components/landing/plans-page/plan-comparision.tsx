@@ -1,7 +1,15 @@
 import { useState, type ReactNode } from 'react'
 import { Button } from '../../ui/button/button'
+import {
+  ANNUAL_DISCOUNT_LABEL,
+  INCLUDED_FEATURES,
+  PLAN_TIERS,
+  REPORT_LIMITS,
+  annualMonthlyPrice,
+  type PlanTier,
+} from '../../../services/plans'
 
-const PLAN_NAMES = ['Free', 'Plus', 'Pro'] as const
+const PLAN_NAMES = PLAN_TIERS.map((tier) => tier.title)
 
 type CellValue =
   | { type: 'text'; value: ReactNode }
@@ -132,100 +140,59 @@ function ComparisonCell({ cell }: { cell: CellValue }) {
   return <span className="text-sm text-relaive-navy">{cell.value}</span>
 }
 
+function priceCell(tier: PlanTier, billingPeriod: 'monthly' | 'annually'): CellValue {
+  if (tier.price === 'Free') return { type: 'text', value: 'Free' }
+  if (billingPeriod === 'monthly') {
+    return { type: 'text', value: `${tier.price}${tier.priceSuffix ?? ''}` }
+  }
+  return {
+    type: 'text',
+    value: (
+      <div className="flex flex-col items-center gap-0.5">
+        <span className="text-xs text-relaive-gray line-through">
+          {tier.price}
+          {tier.priceSuffix}
+        </span>
+        <div className="flex items-center gap-1">
+          <span>
+            {annualMonthlyPrice(tier.price)}
+            {tier.priceSuffix}
+          </span>
+          <span className="rounded bg-green-100 px-1 py-0.5 text-[10px] font-semibold text-green-700 whitespace-nowrap">
+            {ANNUAL_DISCOUNT_LABEL}
+          </span>
+        </div>
+      </div>
+    ),
+  }
+}
+
 const getComparisonRows = (billingPeriod: 'monthly' | 'annually'): ComparisonRow[] => [
+  { feature: 'Price', values: PLAN_TIERS.map((tier) => priceCell(tier, billingPeriod)) },
   {
-    feature: 'Price',
-    values: [
-      { type: 'text', value: 'Free' },
-      { type: 'text', value: billingPeriod === 'annually' ? (
-          <div className="flex flex-col items-center gap-0.5">
-            <span className="text-xs text-relaive-gray line-through">$79/month</span>
-            <div className="flex items-center gap-1">
-              <span>$63.2/month</span>
-              <span className="rounded bg-green-100 px-1 py-0.5 text-[10px] font-semibold text-green-700 whitespace-nowrap">Save 20%</span>
-            </div>
-          </div>
-        ) : '$79/month' },
-      { type: 'text', value: billingPeriod === 'annually' ? (
-          <div className="flex flex-col items-center gap-0.5">
-            <span className="text-xs text-relaive-gray line-through">$129/month</span>
-            <div className="flex items-center gap-1">
-              <span>$103.2/month</span>
-              <span className="rounded bg-green-100 px-1 py-0.5 text-[10px] font-semibold text-green-700 whitespace-nowrap">Save 20%</span>
-            </div>
-          </div>
-        ) : '$129/month' },
-    ],
+    feature: 'AI reports',
+    values: PLAN_TIERS.map((tier) => ({
+      type: 'text' as const,
+      value: `${REPORT_LIMITS[tier.id]} / month`,
+    })),
   },
-  {
-    feature: 'AI Report Generation',
-    values: [
-      { type: 'text', value: '5 reports/ month' },
-      { type: 'text', value: '50 reports/ month' },
-      { type: 'text', value: '100 reports/ month' },
-    ],
-  },
-  {
-    feature: 'Property Valuation Summary',
-    values: [{ type: 'check' }, { type: 'check' }, { type: 'check' }],
-  },
-  {
-    feature: 'Comparable Sales Analysis',
-    values: [
-      { type: 'text', value: 'Basic' },
-      { type: 'text', value: 'Advanced' },
-      { type: 'text', value: 'Advanced' },
-    ],
-  },
-  {
-    feature: 'Editable Report Builder',
-    values: [
-      { type: 'dash' },
-      { type: 'text', value: 'Basic' },
-      { type: 'text', value: 'Advanced' },
-    ],
-  },
-  {
-    feature: 'Customize report templates',
-    values: [{ type: 'dash' }, { type: 'check' }, { type: 'check' }],
-  },
-  {
-    feature: 'Export PDF / Word report',
-    values: [
-      { type: 'text', value: 'Limited' },
-      { type: 'text', value: 'Unlimited' },
-      { type: 'text', value: 'Unlimited' },
-    ],
-  },
-  {
-    feature: 'Investment Analytics',
-    values: [{ type: 'dash' }, { type: 'dash' }, { type: 'check' }],
-  },
-  {
-    feature: 'ROI & Cash Flow Forecasting',
-    values: [{ type: 'dash' }, { type: 'dash' }, { type: 'check' }],
-  },
+  ...INCLUDED_FEATURES.map((feature) => ({
+    feature,
+    values: PLAN_TIERS.map(() => ({ type: 'check' as const })),
+  })),
   {
     feature: 'Best for',
-    values: [
-      { type: 'text', value: 'Beginners' },
-      { type: 'text', value: 'Valuers, agents & consultants' },
-      { type: 'text', value: 'Property investors & analysts' },
-    ],
+    values: PLAN_TIERS.map((tier) => ({ type: 'text' as const, value: tier.bestFor })),
   },
 ]
 
-const PLAN_CTAS: PlanCta[] = [
-  { label: 'Start Free', href: '/signin' },
-  { label: 'Upgrade to Plus', href: '/signin' },
-  { label: 'Upgrade to Pro', href: '/signin' },
-]
+const PLAN_CTAS: PlanCta[] = PLAN_TIERS.map((tier) => tier.primaryCta)
 
 const VALUE_PROPS = [
   { icon: <LightningIcon />, text: 'Save hours on appraisal writing' },
-  { icon: <SparkleIcon />, text: 'Generate reports in under 30 seconds' },
+  { icon: <SparkleIcon />, text: 'Guided report wizard with AI-written summaries' },
   { icon: <BarChartIcon />, text: 'AI-assisted market analysis' },
-  { icon: <ShieldIcon />, text: 'Explainable valuation confidence' },
+  { icon: <ShieldIcon />, text: 'Comparable sales evidence behind every estimate' },
 ]
 
 export function PlanComparison() {
@@ -244,8 +211,8 @@ export function PlanComparison() {
             Feature Comparison Table
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-relaive-gray">
-            Choose a plan tailored to your workflow, valuation needs, investment goals, or
-            enterprise operations.
+            Every plan includes every feature. Pick the monthly report allowance that fits your
+            workload.
           </p>
         </div>
 

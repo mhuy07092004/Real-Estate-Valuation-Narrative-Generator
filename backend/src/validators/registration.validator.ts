@@ -16,6 +16,11 @@ export const registrationSchema = z.object({
   }),
   // Only sent once risk scoring has asked for a captcha (see auth-risk.service).
   turnstileToken: z.string().min(1).optional(),
+  otp: z.string().trim().regex(/^\d{6}$/, 'Enter the 6-digit code'),
 })
 
 export type RegistrationInput = z.infer<typeof registrationSchema>
+
+export const sendOtpSchema = z.object({
+  email: z.string().trim().toLowerCase().email('Invalid email address'),
+})

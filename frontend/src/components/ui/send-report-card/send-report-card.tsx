@@ -3,12 +3,15 @@ import { Input } from '../input/input'
 import { BUTTON_FONT_CLASS } from '../button/button'
 
 export type SendReportPayload = {
+  clientId?: string
   clientName: string
   clientEmail: string
 }
 
 type SendReportCardProps = {
   onClose: () => void
+  clients?: { id: string; name: string; email: string }[]
+  initialClientId?: string | null
   onSend?: (payload: SendReportPayload) => Promise<{ shareUrl: string }>
   onSendEmail?: (payload: SendReportPayload & { note?: string }) => Promise<{ shareUrl: string }>
 }
@@ -87,13 +90,21 @@ function LinkIcon() {
   )
 }
 
-export function SendReportCard({ onClose, onSend, onSendEmail }: SendReportCardProps) {
+export function SendReportCard({
+  onClose,
+  clients = [],
+  initialClientId = null,
+  onSend,
+  onSendEmail,
+}: SendReportCardProps) {
   const emailId = useId()
   const nameId = useId()
   const noteId = useId()
   const [includeNote, setIncludeNote] = useState(true)
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
+  const initialClient = clients.find((client) => client.id === initialClientId)
+  const [clientId, setClientId] = useState<string | null>(initialClient?.id ?? null)
+  const [name, setName] = useState(initialClient?.name ?? '')
+  const [email, setEmail] = useState(initialClient?.email ?? '')
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [emailedTo, setEmailedTo] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -106,11 +117,21 @@ export function SendReportCard({ onClose, onSend, onSendEmail }: SendReportCardP
 
   const trimmedEmail = email.trim()
 
+  const handleClientChange = (id: string) => {
+    const picked = clients.find((client) => client.id === id)
+    setClientId(picked?.id ?? null)
+    if (picked) {
+      setName(picked.name)
+      setEmail(picked.email)
+    }
+  }
+
   const handleSend = async () => {
     setIsSubmitting(true)
     setErrorMessage(null)
 
     const payload: SendReportPayload = {
+      clientId: clientId ?? undefined,
       clientName: name.trim(),
       clientEmail: trimmedEmail,
     }
@@ -130,6 +151,7 @@ export function SendReportCard({ onClose, onSend, onSendEmail }: SendReportCardP
     setErrorMessage(null)
 
     const payload = {
+      clientId: clientId ?? undefined,
       clientName: name.trim(),
       clientEmail: trimmedEmail,
       note: includeNote ? note.replace('{name}', name.trim() || 'there') : undefined,
@@ -225,6 +247,26 @@ export function SendReportCard({ onClose, onSend, onSendEmail }: SendReportCardP
               <CloseIcon />
             </button>
           </div>
+
+          {clients.length > 0 ? (
+            <div className="mt-5 flex flex-col gap-2">
+              <label className="text-[11px] font-semibold tracking-[0.08em] text-relaive-gray uppercase">
+                Client
+              </label>
+              <select
+                value={clientId ?? ''}
+                onChange={(event) => handleClientChange(event.target.value)}
+                className="rounded-xl border-0 bg-[#F3F4F6] px-4 py-2.5 text-sm text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-secondary"
+              >
+                <option value="">No client (enter details below)</option>
+                {clients.map((client) => (
+                  <option key={client.id} value={client.id}>
+                    {client.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
 
           <div className="mt-5 flex flex-col gap-2">
             <label

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import logoIcon from '../../../assets/icon.svg'
+import { useAuth } from '../../../features/auth/hooks/use-auth'
 import { usePlansMenuListener } from '../../../hooks/use-open-plans-menu'
 import { Button } from '../button/button'
 import { FeaturesDropdown } from './features-dropdown'
@@ -45,6 +46,7 @@ const MENU_SWITCH_DELAY = 200
 
 export function Navbar() {
   const location = useLocation()
+  const { isAuthenticated, isLoading } = useAuth()
   const headerRef = useRef<HTMLElement>(null)
   const [openMenu, setOpenMenu] = useState<OpenMenu>(null)
   const switchTimeoutRef = useRef<number | null>(null)
@@ -154,12 +156,20 @@ export function Navbar() {
 
         {/* Actions */}
         <div className="flex items-center gap-4">
-          <Button variant="primary" size="sm" href="/signin">
-            Sign in
-          </Button>
-          <Button variant="link" href="/signup" className="text-sm font-semibold">
-            Sign up
-          </Button>
+          {isLoading ? null : isAuthenticated ? (
+            <Button variant="primary" size="sm" href="/dashboard">
+              Go to Dashboard
+            </Button>
+          ) : (
+            <>
+              <Button variant="primary" size="sm" href="/signin">
+                Sign in
+              </Button>
+              <Button variant="link" href="/signup" className="text-sm font-semibold">
+                Sign up
+              </Button>
+            </>
+          )}
         </div>
       </nav>
 

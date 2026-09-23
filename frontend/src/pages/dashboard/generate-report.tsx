@@ -86,6 +86,7 @@ export function GenerateReport() {
     return Math.min(Math.max(raw - 1, 0), lastStepIndex)
   }, [searchParams, openReadyView, lastStepIndex])
   const selectedReportId = searchParams.get('reportId')
+  const clientIdParam = searchParams.get('clientId')
   const { data: selectedReport } = useAsyncData(
     () =>
       selectedReportId
@@ -211,6 +212,7 @@ export function GenerateReport() {
                 onBack={() => goToStep(reportTypeIndex)}
                 onGenerateAnother={() => goToStep(0)}
                 savedReport={selectedReport ?? null}
+                clientId={clientIdParam}
               />
             ) : (
               <div className="rounded-2xl border border-black/5 bg-white px-5 py-8 text-sm text-relaive-gray">

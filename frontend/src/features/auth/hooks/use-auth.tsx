@@ -23,7 +23,10 @@ interface AuthContextValue {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (credentials: LoginCredentials) => Promise<AuthSession>
+  login: (
+    credentials: LoginCredentials,
+    options?: { rememberMe?: boolean },
+  ) => Promise<AuthSession>
   register: (credentials: RegisterCredentials) => Promise<AuthSession>
   loginWithGoogle: (credential: string, role?: RegisterCredentials['role']) => Promise<AuthSession>
   loginWithMicrosoft: (credential: string, role?: RegisterCredentials['role']) => Promise<AuthSession>
@@ -43,11 +46,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false)
   }, [])
 
-  const login = useCallback(async (credentials: LoginCredentials) => {
-    const session = await loginRequest(credentials)
-    setUser(session.user)
-    return session
-  }, [])
+  const login = useCallback(
+    async (credentials: LoginCredentials, options?: { rememberMe?: boolean }) => {
+      const session = await loginRequest(credentials, options)
+      setUser(session.user)
+      return session
+    },
+    [],
+  )
 
   const register = useCallback(async (credentials: RegisterCredentials) => {
     const session = await registerRequest(credentials)

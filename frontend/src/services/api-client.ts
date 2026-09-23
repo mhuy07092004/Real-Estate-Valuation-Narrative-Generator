@@ -7,21 +7,29 @@
 // origin, since there's no dev-proxy equivalent once both are deployed separately.
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 
+// Reads the access token from wherever "Remember me" put the session:
+// localStorage (remembered) or sessionStorage (this tab only).
+export function getAccessToken(): string | null {
+  if (typeof window === 'undefined') return null
+  for (const storage of [window.localStorage, window.sessionStorage]) {
+    const rawSession = storage.getItem('relaive_auth')
+    if (!rawSession) continue
+    try {
+      const parsed = JSON.parse(rawSession) as { accessToken?: string }
+      if (parsed.accessToken) return parsed.accessToken
+    } catch {
+      // Ignore malformed session values; caller will receive normal auth errors.
+    }
+  }
+  return null
+}
+
 export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers)
 
-  if (!headers.has('Authorization') && typeof window !== 'undefined') {
-    const rawSession = window.localStorage.getItem('relaive_auth')
-    if (rawSession) {
-      try {
-        const parsed = JSON.parse(rawSession) as { accessToken?: string }
-        if (parsed.accessToken) {
-          headers.set('Authorization', `Bearer ${parsed.accessToken}`)
-        }
-      } catch {
-        // Ignore malformed session values; caller will receive normal auth errors.
-      }
-    }
+  if (!headers.has('Authorization')) {
+    const token = getAccessToken()
+    if (token) headers.set('Authorization', `Bearer ${token}`)
   }
 
   const url = `${API_BASE_URL}${path}`

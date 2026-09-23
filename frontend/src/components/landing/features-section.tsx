@@ -116,14 +116,12 @@ const FEATURES: Feature[] = [
     icon: <BrainIcon />,
     title: 'AI Valuation Engine',
     description:
-      'Advanced machine learning models trained on millions of Australian property transactions to generate explainable and professional appraisal narratives.',
+      'Machine learning and AI-written narratives built on real NSW sold-listing data to produce clear, professional appraisal summaries.',
     features: [
       'AI-generated valuation narratives',
-      'Automated market interpretation',
-      'Investor-grade reporting',
-      'Explainable confidence scoring',
+      'AI price prediction',
       'Dynamic comparable sales analysis',
-      'AI reasoning transparency',
+      'Automated valuation summaries',
     ],
     tags: ['Vendor Appraisals', 'Bank Valuations', 'Buyer Advisory'],
     className: 'md:col-span-2 md:row-span-2',
@@ -131,34 +129,32 @@ const FEATURES: Feature[] = [
   {
     icon: <BarChartIcon />,
     title: 'Market Insights',
-    description: 'Suburb analytics, demographic intelligence, and rental yield trends.',
-    features: ['Suburb analytics', 'Demographic intelligence', 'Demand indicators'],
+    description: 'Suburb analytics, price trends, and rental yield data.',
+    features: ['Suburb analytics', 'Median price & growth trends', 'Rental yield & days on market'],
   },
   {
     icon: <TrendIcon />,
-    title: 'Trend Forecasting',
-    description: 'Predictive analytics and AI market prediction for investment opportunities.',
-    features: ['Predictive analytics', 'Future suburb growth', 'Investment forecasting'],
+    title: 'Investment & Affordability Tools',
+    description: 'ROI and market comparison for investors, and an affordability calculator for buyers.',
+    features: ['ROI calculation', 'Market comparison', 'Affordability calculator'],
   },
   {
     icon: <MapPinIcon />,
     title: 'Comparable Sales Intelligence',
-    description:
-      'AI-powered similarity scoring and property clustering with interactive map overlays.',
-    features: ['Nearby comparable sales', 'AI similarity scoring', 'Property clustering'],
+    description: 'Comparable sales ranked by similarity to your subject property.',
+    features: ['Nearby comparable sales', 'Similarity ranking', 'Address lookup & nearby amenities'],
   },
   {
     icon: <DocumentIcon />,
     title: 'Professional Reports',
-    description:
-      'Editable appraisal reports with AI-generated summaries and luxury editorial layouts.',
-    features: ['Editable appraisal reports', 'PDF/DOCX export', 'Report templates'],
+    description: 'AI-generated appraisal reports you can share with clients by link or email.',
+    features: ['AI-generated appraisal summaries', 'Shareable report link', 'Email reports to clients'],
   },
   {
     icon: <LightningIcon />,
-    title: 'Instant Generation',
-    description: 'AI-generated reports in under 30 seconds with ready-to-export outputs.',
-    features: ['Reports under 30 seconds', 'Automated workflows', 'AI-assisted productivity'],
+    title: 'Guided Report Wizard',
+    description: 'Step-by-step report creation with AI-written summaries, ready to share.',
+    features: ['Step-by-step wizard', 'AI-written summaries', 'Role-specific report templates'],
   },
 ]
 

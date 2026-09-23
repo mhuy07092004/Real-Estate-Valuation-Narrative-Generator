@@ -14,7 +14,7 @@ import {
 
 const ACCOUNT_MENU_ITEMS = [
   { label: 'Account Settings', icon: SettingsIcon, to: 'settings' },
-  { label: 'Help & Support', icon: HelpCircleIcon },
+  { label: 'Help & Support', icon: HelpCircleIcon, to: 'settings', tab: 'help-support' },
 ] as const
 
 type DashboardTopbarProps = {
@@ -153,32 +153,25 @@ export function DashboardTopbar({
               </div>
 
               <ul className="border-b border-black/5 py-1.5">
-                {ACCOUNT_MENU_ITEMS.map(({ label, icon: Icon, ...item }) => {
+                {ACCOUNT_MENU_ITEMS.map(({ label, icon: Icon, to, ...item }) => {
                   const itemClassName =
                     'flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-relaive-navy transition-colors hover:bg-relaive-navy/5'
-
-                  if ('to' in item && item.to === 'settings') {
-                    return (
-                      <li key={label}>
-                        <Link
-                          to={`/dashboard/${resolvedRole}/settings`}
-                          role="menuitem"
-                          onClick={onNavigateToSettings}
-                          className={itemClassName}
-                        >
-                          <Icon className="shrink-0 text-relaive-gray" />
-                          <span>{label}</span>
-                        </Link>
-                      </li>
-                    )
-                  }
+                  const tab = 'tab' in item ? item.tab : undefined
+                  const href = tab
+                    ? `/dashboard/${resolvedRole}/${to}?tab=${tab}`
+                    : `/dashboard/${resolvedRole}/${to}`
 
                   return (
                     <li key={label}>
-                      <button type="button" role="menuitem" className={itemClassName}>
+                      <Link
+                        to={href}
+                        role="menuitem"
+                        onClick={onNavigateToSettings}
+                        className={itemClassName}
+                      >
                         <Icon className="shrink-0 text-relaive-gray" />
                         <span>{label}</span>
-                      </button>
+                      </Link>
                     </li>
                   )
                 })}

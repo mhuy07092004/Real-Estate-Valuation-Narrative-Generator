@@ -59,7 +59,7 @@ const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
         { label: 'Generate Appraisal', icon: PlusIcon },
         { label: 'Comparable Sales', icon: ComparableSalesIcon },
         { label: 'Saved Properties', icon: HeartIcon },
-        { label: 'Client Report', icon: ReportDocIcon, badge: 3 },
+        { label: 'Client Report', icon: ReportDocIcon },
       ],
     },
   ],
@@ -67,7 +67,7 @@ const ROLE_NAV_SECTIONS: Record<DashboardRole, SidebarNavSection[]> = {
     {
       title: 'Valuation Workflow',
       items: [
-        { label: 'Valuation Cases', icon: BriefcaseIcon, badge: 5 },
+        { label: 'Valuation Cases', icon: BriefcaseIcon },
         { label: 'New Valuation', icon: PlusIcon },
         { label: 'Evidence Centre', icon: DatabaseIcon },
         { label: 'Saved Evidence', icon: HeartIcon },

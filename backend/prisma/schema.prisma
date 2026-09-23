@@ -1,11 +1,13 @@
-// Local dev database. Swapping to production Postgres later is a
-// datasource change only — provider + url — nothing in src/ changes.
+// Migrated from SQLite to Postgres (Cloud SQL) — see infra/terraform/ for
+// the instance this now targets. Migration history before this point lives
+// in prisma/migrations-sqlite-archive/ (not replayable against Postgres;
+// kept for reference only).
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -47,6 +49,21 @@ model User {
   reports Report[]
 
   @@map("users")
+}
+
+// One-time email verification codes for sign-up. Only a keyed hash of the
+// code is stored, never the code itself.
+model EmailOtp {
+  id         String    @id @default(uuid())
+  email      String
+  codeHash   String    @map("code_hash")
+  expiresAt  DateTime  @map("expires_at")
+  attempts   Int       @default(0)
+  consumedAt DateTime? @map("consumed_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([email, createdAt])
+  @@map("email_otps")
 }
 
 model Client {
