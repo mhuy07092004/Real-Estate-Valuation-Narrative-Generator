@@ -1,22 +1,25 @@
 import { useEffect, useState } from 'react'
-import { Marker } from '@vis.gl/react-google-maps'
+import { InfoWindow, Marker } from '@vis.gl/react-google-maps'
 import { getNearbyAmenities, type Amenity, type AmenityCategory } from '../../../services/places'
 
+// Single source of truth for both the map markers and the Map Layers panel's
+// toggle rows (layers-panel.tsx imports these directly) — they used to keep
+// separate color/label choices and drifted out of sync with each other.
 export const CATEGORY_COLOR: Record<AmenityCategory, string> = {
-  school: '#2563eb',
-  grocery: '#16a34a',
-  park: '#65a30d',
-  transit: '#7c3aed',
-  healthcare: '#dc2626',
-  dining: '#ea580c',
+  school: '#16a34a', // Education — green
+  grocery: '#2563eb', // Grocery — blue
+  park: '#7c3aed', // purple — was going to be teal, but that read as "another green" next to Education; not user-facing (no toggle)
+  transit: '#6b7280', // Transport — gray
+  healthcare: '#dc2626', // Healthcare — red
+  dining: '#ea580c', // Dining — orange
   other: '#64748b',
 }
 
 export const CATEGORY_LABEL: Record<AmenityCategory, string> = {
-  school: 'Schools',
-  grocery: 'Groceries',
+  school: 'Education',
+  grocery: 'Grocery',
   park: 'Parks',
-  transit: 'Transit',
+  transit: 'Transport',
   healthcare: 'Healthcare',
   dining: 'Dining',
   other: 'Other',
@@ -25,13 +28,28 @@ export const CATEGORY_LABEL: Record<AmenityCategory, string> = {
 type AmenityMarkersProps = {
   center: google.maps.LatLngLiteral
   radiusMeters: number
-  /** Lets the parent (outside <Map>) keep a legend / count in sync. */
+  /**
+   * Restricts which categories render as markers on the map — used by the
+   * Map Layers panel's toggles. Omit to render every fetched category
+   * (unchanged default behaviour for any other caller).
+   */
+  visibleCategories?: Set<AmenityCategory>
+  /**
+   * Lets the parent (outside <Map>) keep a legend / count in sync. Always
+   * receives the full fetched list, not filtered by `visibleCategories` —
+   * the parent decides what to do with categories that are toggled off.
+   */
   onAmenitiesChange?: (amenities: Amenity[]) => void
 }
 
 /** Fetches amenities around `center` and renders one colored dot marker per result. */
-export function AmenityMarkers({ center, radiusMeters, onAmenitiesChange }: AmenityMarkersProps) {
+export function AmenityMarkers({ center, radiusMeters, visibleCategories, onAmenitiesChange }: AmenityMarkersProps) {
   const [amenities, setAmenities] = useState<Amenity[]>([])
+  // Which marker's InfoWindow is open — the dots looked clickable (round,
+  // colored, cursor: pointer by default) but had no onClick at all before
+  // this, so clicking one did nothing. `title` alone only ever gave a
+  // native hover tooltip, which is easy to miss and doesn't work on touch.
+  const [selectedAmenity, setSelectedAmenity] = useState<Amenity | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -48,6 +66,9 @@ export function AmenityMarkers({ center, radiusMeters, onAmenitiesChange }: Amen
         setAmenities([])
         onAmenitiesChange?.([])
       })
+    // A new search/radius means the old marker set (and whatever InfoWindow
+    // was open on it) no longer applies.
+    setSelectedAmenity(null)
 
     return () => {
       cancelled = true
@@ -55,13 +76,22 @@ export function AmenityMarkers({ center, radiusMeters, onAmenitiesChange }: Amen
     // onAmenitiesChange intentionally excluded: only re-fetch when the location/radius actually changes, not on every parent re-render*/
   }, [center.lat, center.lng, radiusMeters])
 
+  const visibleAmenities = visibleCategories
+    ? amenities.filter((amenity) => visibleCategories.has(amenity.category))
+    : amenities
+
+  // Close the InfoWindow if its category gets toggled off in the Map Layers
+  // panel while it's open, rather than leaving it floating over a hidden dot.
+  const openAmenity = selectedAmenity && visibleAmenities.some((a) => a.id === selectedAmenity.id) ? selectedAmenity : null
+
   return (
     <>
-      {amenities.map((amenity) => (
+      {visibleAmenities.map((amenity) => (
         <Marker
           key={amenity.id}
           position={{ lat: amenity.lat, lng: amenity.lng }}
           title={`${amenity.name} (${CATEGORY_LABEL[amenity.category]})`}
+          onClick={() => setSelectedAmenity(amenity)}
           icon={{
             path: google.maps.SymbolPath.CIRCLE,
             scale: 6,
@@ -72,6 +102,20 @@ export function AmenityMarkers({ center, radiusMeters, onAmenitiesChange }: Amen
           }}
         />
       ))}
+      {openAmenity && (
+        <InfoWindow
+          position={{ lat: openAmenity.lat, lng: openAmenity.lng }}
+          onCloseClick={() => setSelectedAmenity(null)}
+        >
+          <div className="min-w-[160px] px-1 py-0.5">
+            <p className="text-sm font-medium text-relaive-navy">{openAmenity.name}</p>
+            <p className="text-xs text-relaive-gray">
+              {CATEGORY_LABEL[openAmenity.category]}
+              {typeof openAmenity.rating === 'number' ? ` · ★ ${openAmenity.rating.toFixed(1)}` : ''}
+            </p>
+          </div>
+        </InfoWindow>
+      )}
     </>
   )
 }

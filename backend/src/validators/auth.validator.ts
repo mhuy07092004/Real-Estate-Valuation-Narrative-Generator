@@ -16,6 +16,22 @@ export const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required'),
 })
 
+// `credential` is the ID token Google Identity Services hands back to the
+// frontend. `role` is only required the first time this email signs in —
+// see loginOrRegisterWithGoogle in google-auth.service.ts.
+export const googleAuthSchema = z.object({
+  credential: z.string().min(1, 'Missing Google credential'),
+  role: z.enum(['agent', 'valuer', 'investor', 'buyer']).optional(),
+})
+
+// `credential` is the ID token MSAL hands back to the frontend. `role` is
+// only required the first time this email signs in — see
+// loginOrRegisterWithMicrosoft in microsoft-auth.service.ts.
+export const microsoftAuthSchema = z.object({
+  credential: z.string().min(1, 'Missing Microsoft credential'),
+  role: z.enum(['agent', 'valuer', 'investor', 'buyer']).optional(),
+})
+
 // Empty string means "clear this field" — normalized to null before hitting
 // the DB (see updateUserProfile), since these columns are nullable, not
 // required, unlike fullName.

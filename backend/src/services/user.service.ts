@@ -86,20 +86,27 @@ export async function updateUserProfile(
   return toStoredUserWithPassword(user)
 }
 
-/** Persists a new local-auth user and returns frontend-safe profile fields. */
+/**
+ * Persists a new user and returns frontend-safe profile fields. `passwordHash`
+ * is omitted for OAuth-only accounts (schema.prisma's User.passwordHash is
+ * nullable specifically for this) — `authProvider` defaults to 'local' to
+ * match every existing call site, and is passed explicitly as 'google' by
+ * google-auth.service.ts's first-time-signup path.
+ */
 export async function createUser(params: {
   fullName: string
   email: string
-  passwordHash: string
+  passwordHash?: string | null
   roleId: number
+  authProvider?: string
 }): Promise<StoredUser> {
   const user = await prisma.user.create({
     data: {
       fullName: params.fullName,
       email: params.email,
-      passwordHash: params.passwordHash,
+      passwordHash: params.passwordHash ?? null,
       roleId: params.roleId,
-      authProvider: 'local',
+      authProvider: params.authProvider ?? 'local',
     },
     include: { role: true },
   })

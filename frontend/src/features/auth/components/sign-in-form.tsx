@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '../../../components/ui/button/button'
 import { Input } from '../../../components/ui/input/input'
 import { TurnstileWidget } from '../../../components/ui/turnstile/turnstile-widget'
+import { GoogleSignInButton } from '../../../components/ui/google-signin/google-signin-button'
+import { MicrosoftSignInButton } from '../../../components/ui/microsoft-signin/microsoft-signin-button'
 import { useAuth } from '../hooks/use-auth'
 import { useCaptchaGate } from '../hooks/use-captcha-gate'
 import { AuthError } from '../../../types/auth'
@@ -111,22 +113,40 @@ function SocialLoginDivider() {
   )
 }
 
-function SocialLoginButtons() {
+function SocialLoginButtons({
+  onGoogleCredential,
+  onGoogleError,
+  onMicrosoftCredential,
+  onMicrosoftError,
+}: {
+  onGoogleCredential: (credential: string) => void
+  onGoogleError: () => void
+  onMicrosoftCredential: (credential: string) => void
+  onMicrosoftError: () => void
+}) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      {SOCIAL_PROVIDERS.map(({ id, label, icon: Icon }) => (
-        <Button key={id} type="button" variant="outline" size="md" className="gap-2">
-          <Icon />
-          {label}
-        </Button>
-      ))}
+      {SOCIAL_PROVIDERS.map(({ id, label, icon: Icon }) => {
+        if (id === 'google') {
+          return <GoogleSignInButton key={id} onCredential={onGoogleCredential} onError={onGoogleError} />
+        }
+        if (id === 'microsoft') {
+          return <MicrosoftSignInButton key={id} onCredential={onMicrosoftCredential} onError={onMicrosoftError} />
+        }
+        return (
+          <Button key={id} type="button" variant="outline" size="md" className="gap-2">
+            <Icon />
+            {label}
+          </Button>
+        )
+      })}
     </div>
   )
 }
 
 export function SignInForm() {
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { login, loginWithGoogle, loginWithMicrosoft } = useAuth()
   const {
     isRequired: captchaRequired,
     token: captchaToken,
@@ -142,6 +162,47 @@ export function SignInForm() {
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
+  const [isMicrosoftSubmitting, setIsMicrosoftSubmitting] = useState(false)
+
+  async function handleGoogleCredential(credential: string) {
+    setError(null)
+    setIsGoogleSubmitting(true)
+    try {
+      await loginWithGoogle(credential)
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      if (err instanceof AuthError) {
+        // Most likely case: no account exists yet for this Google email —
+        // sign-in intentionally doesn't collect a role, so it can't create
+        // one (see google-auth.service.ts's 422 for the new-account path).
+        setError(err.message)
+      } else {
+        setError('Google sign-in failed. Please try again.')
+      }
+    } finally {
+      setIsGoogleSubmitting(false)
+    }
+  }
+
+  async function handleMicrosoftCredential(credential: string) {
+    setError(null)
+    setIsMicrosoftSubmitting(true)
+    try {
+      await loginWithMicrosoft(credential)
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      if (err instanceof AuthError) {
+        // Same "no account yet" 422 case as Google — see
+        // microsoft-auth.service.ts's new-account path.
+        setError(err.message)
+      } else {
+        setError('Microsoft sign-in failed. Please try again.')
+      }
+    } finally {
+      setIsMicrosoftSubmitting(false)
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -271,7 +332,15 @@ export function SignInForm() {
       </form>
 
       <SocialLoginDivider />
-      <SocialLoginButtons />
+      <SocialLoginButtons
+        onGoogleCredential={handleGoogleCredential}
+        onGoogleError={() => setError('Google sign-in failed to load. Please try again.')}
+        onMicrosoftCredential={handleMicrosoftCredential}
+        onMicrosoftError={() => setError('Microsoft sign-in failed to load. Please try again.')}
+      />
+      {isGoogleSubmitting || isMicrosoftSubmitting ? (
+        <p className="text-center text-xs text-relaive-gray">Signing in…</p>
+      ) : null}
     </div>
   )
 }
