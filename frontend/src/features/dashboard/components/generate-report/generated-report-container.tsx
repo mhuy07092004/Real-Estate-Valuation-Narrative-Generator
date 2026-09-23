@@ -139,7 +139,7 @@ export function GeneratedReportContainer({
     [selectedTemplate?.id],
   )
   const { data: appraisalSummary } = useAsyncData(getAppraisalSummary, [])
-  const { data: executiveSummary } = useAsyncData(getExecutiveSummary, [])
+  const { data: executiveSummary } = useAsyncData(() => getExecutiveSummary(reportRole), [reportRole])
   const { data: agentRecommendations } = useAsyncData(getAgentRecommendations, [])
   const { data: appraisalDisclaimer } = useAsyncData(getAppraisalDisclaimer, [])
   const { data: comparableSales } = useAsyncData(getComparableSales, [])

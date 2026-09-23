@@ -189,6 +189,8 @@ export function SignUpForm() {
   const [otpNotice, setOtpNotice] = useState<string | null>(null)
   const [cooldown, setCooldown] = useState(0)
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -227,6 +229,12 @@ export function SignUpForm() {
 
     if (captchaRequired && !captchaToken) {
       setError('Please complete the security check below.')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setFieldErrors({ confirmPassword: 'Passwords do not match.' })
+      setError('Please make sure both passwords match.')
       return
     }
 
@@ -380,6 +388,33 @@ export function SignUpForm() {
             }
           />
           {fieldErrors.password ? <p className="text-xs text-red-600">{fieldErrors.password}</p> : null}
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Input
+            id="confirm-password"
+            type={showConfirmPassword ? 'text' : 'password'}
+            label="Confirm password"
+            placeholder="Re-enter your password"
+            startIcon={<ShieldIcon />}
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            required
+            endIcon={
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="pointer-events-auto focus-visible:outline-none"
+                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              >
+                <EyeIcon visible={showConfirmPassword} />
+              </button>
+            }
+          />
+          {fieldErrors.confirmPassword ? (
+            <p className="text-xs text-red-600">{fieldErrors.confirmPassword}</p>
+          ) : null}
         </div>
 
         {error ? <p className="text-sm text-red-600">{error}</p> : null}

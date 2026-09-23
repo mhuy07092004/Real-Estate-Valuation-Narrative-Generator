@@ -666,8 +666,11 @@ export type ExecutiveSummary = {
   observationMessage: string
 }
 
-export function getExecutiveSummary(): Promise<ExecutiveSummary> {
-  return fetchJson(withAppraisalContext('/api/appraisal/executive-summary'))
+export function getExecutiveSummary(role?: string): Promise<ExecutiveSummary> {
+  const path = withAppraisalContext('/api/appraisal/executive-summary')
+  if (!role) return fetchJson(path)
+  const separator = path.includes('?') ? '&' : '?'
+  return fetchJson(`${path}${separator}role=${encodeURIComponent(role)}`)
 }
 
 export type AgentRecommendationIconKey = 'campaign' | 'presentation' | 'marketing'
