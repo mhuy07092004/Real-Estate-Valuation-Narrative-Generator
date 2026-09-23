@@ -173,15 +173,6 @@ function SocialLoginButtons({
   return (
     <div className="grid grid-cols-2 gap-3">
       {SOCIAL_PROVIDERS.map(({ id, label, icon: Icon }) => {
-        if (id !== 'google' && id !== 'microsoft') {
-          return (
-            <Button key={id} type="button" variant="outline" size="md" className="gap-2">
-              <Icon />
-              {label}
-            </Button>
-          )
-        }
-
         // Both Google and Microsoft sign-up create a brand-new account when
         // this email hasn't signed up before, and role isn't something
         // either provider can tell us — same requirement the plain sign-up
