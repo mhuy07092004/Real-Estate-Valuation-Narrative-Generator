@@ -28,7 +28,6 @@ export interface RegisterCredentials {
   fullName: string
   email: string
   password: string
-  role?: UserRole
   turnstileToken?: string
   otp: string
 }

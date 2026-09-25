@@ -2,9 +2,9 @@ import type { Request, Response } from 'express'
 import { ZodError } from 'zod'
 import { verifyAccessToken } from '../services/jwt.service.js'
 import { forgotPasswordSchema } from '../validators/auth.validator.js'
-import { getMe, loginUser, refreshSession, updateProfile as updateProfileService } from '../services/auth.service.js'
+import { getMe, loginUser, refreshSession, selectUserRole, updateProfile as updateProfileService } from '../services/auth.service.js'
 import { CaptchaRequiredError, TurnstileVerificationError } from '../services/turnstile.service.js'
-import { InvalidCredentialsError, type ApiResponse, type AuthResponseData, type FrontendUser } from '../types/auth.types.js'
+import { InvalidCredentialsError, RoleAlreadySetError, type ApiResponse, type AuthResponseData, type FrontendUser } from '../types/auth.types.js'
 
 /**
  * Converts Zod validation errors into the frontend's field-error response shape.
@@ -208,5 +208,45 @@ export async function refreshToken(req: Request, res: Response) {
       message: 'Refresh token is invalid or has expired.',
     }
     res.status(401).json(body)
+  }
+}
+
+/**
+ * Sets the user's dashboard role (first-time only) and returns a fresh session.
+ */
+export async function selectRole(req: Request, res: Response) {
+  try {
+    const data = await selectUserRole(res.locals.userId, req.body)
+    const body: ApiResponse<AuthResponseData> = {
+      success: true,
+      message: 'Role selected successfully.',
+      data,
+    }
+    res.status(200).json(body)
+  } catch (err) {
+    if (err instanceof ZodError) {
+      res.status(400).json(toFieldErrorResponse(err))
+      return
+    }
+
+    if (err instanceof RoleAlreadySetError) {
+      const body: ApiResponse<never> = {
+        success: false,
+        message: err.message,
+      }
+      res.status(409).json(body)
+      return
+    }
+
+    if (err instanceof InvalidCredentialsError) {
+      const body: ApiResponse<never> = {
+        success: false,
+        message: 'User not found.',
+      }
+      res.status(404).json(body)
+      return
+    }
+
+    throw err
   }
 }

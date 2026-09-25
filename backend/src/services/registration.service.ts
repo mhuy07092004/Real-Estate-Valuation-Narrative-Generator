@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs'
 import { env } from '../config/env.js'
 import { DuplicateEmailError, toFrontendUser, type AuthResponseData } from '../types/auth.types.js'
 import { registrationSchema, type RegistrationInput } from '../validators/registration.validator.js'
-import { createUser, findRoleIdByName, findUserByEmail } from './user.service.js'
+import { createUser, findUserByEmail } from './user.service.js'
 import { consumeOtp, verifyOtp } from './otp.service.js'
 import { signAccessToken, signRefreshToken } from './jwt.service.js'
 import { CaptchaRequiredError, verifyTurnstileToken } from './turnstile.service.js'
@@ -28,7 +28,6 @@ export async function registerUser(input: RegistrationInput, remoteIp?: string):
     fullName,
     email,
     password,
-    role,
     turnstileToken,
     otp,
   } = registrationSchema.parse(input)
@@ -50,21 +49,16 @@ export async function registerUser(input: RegistrationInput, remoteIp?: string):
   // failed insert doesn't burn the code.
   const otpId = await verifyOtp(email, otp)
 
-  const roleId = await findRoleIdByName(role)
-  if (roleId === null) {
-    // Seed data missing — this is a setup problem, not a user error.
-    throw new Error(`Role "${role}" not found — run "npm run prisma:seed"`)
-  }
-
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
-  const stored = await createUser({ fullName, email, passwordHash, roleId })
+  const stored = await createUser({ fullName, email, passwordHash })
   await consumeOtp(otpId)
   recordRegisterSuccess(risk)
 
-  const tokenPayload = { userId: stored.userId, email: stored.email, roles: [stored.roleName] }
+  const frontendUser = toFrontendUser(stored)
+  const tokenPayload = { userId: stored.userId, email: stored.email, roles: frontendUser.roles }
 
   return {
-    user: toFrontendUser(stored),
+    user: frontendUser,
     accessToken: signAccessToken(tokenPayload),
     refreshToken: signRefreshToken(tokenPayload),
     expiresIn: env.jwt.accessExpiresInSeconds,

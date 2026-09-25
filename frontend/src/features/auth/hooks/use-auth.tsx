@@ -13,6 +13,7 @@ import {
   getStoredSession,
   login as loginRequest,
   register as registerRequest,
+  selectRole as selectRoleRequest,
   updateProfile as updateProfileRequest,
   type UpdateProfileInput,
 } from '../../../services/auth'
@@ -26,6 +27,7 @@ interface AuthContextValue {
     options?: { rememberMe?: boolean },
   ) => Promise<AuthSession>
   register: (credentials: RegisterCredentials) => Promise<AuthSession>
+  selectRole: (role: 'agent' | 'valuer' | 'investor' | 'buyer') => Promise<AuthSession>
   updateProfile: (input: UpdateProfileInput) => Promise<User>
   logout: () => void
 }
@@ -56,6 +58,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(session.user)
     return session
   }, [])
+  const selectRole = useCallback(async (role: 'agent' | 'valuer' | 'investor' | 'buyer') => {
+    const session = await selectRoleRequest(role)
+    setUser(session.user)
+    return session
+  }, [])
   const updateProfile = useCallback(async (input: UpdateProfileInput) => {
     const updatedUser = await updateProfileRequest(input)
     setUser(updatedUser)
@@ -74,10 +81,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       login,
       register,
+      selectRole,
       updateProfile,
       logout,
     }),
-    [user, isLoading, login, register, updateProfile, logout]
+    [user, isLoading, login, register, selectRole, updateProfile, logout]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
