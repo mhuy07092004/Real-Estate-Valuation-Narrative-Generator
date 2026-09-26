@@ -271,14 +271,6 @@ export const DASHBOARD_COPY_BY_ROLE: Record<DashboardRole, DashboardRoleCopy> = 
         to: '/dashboard/buyer/report',
       },
       {
-        id: 'search-properties',
-        title: 'Search Properties',
-        subtitle: 'Find matches',
-        tone: 'blue',
-        iconKey: 'userPlus',
-        to: '/dashboard/buyer/search-properties',
-      },
-      {
         id: 'affordability',
         title: 'Affordability',
         subtitle: 'Check budget',

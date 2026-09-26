@@ -293,13 +293,6 @@ const BUYER_DATA: DashboardMockPayload = withRoleCopy('buyer', {
       tone: 'blue',
       iconKey: 'sparkle',
     },
-    {
-      id: '2',
-      title: 'Search Properties',
-      subtitle: 'Find matches',
-      tone: 'teal',
-      iconKey: 'document',
-    },
   ],
 })
 
