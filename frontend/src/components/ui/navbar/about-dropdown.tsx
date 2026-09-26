@@ -157,7 +157,7 @@ const ABOUT_CARDS: AboutCard[] = [
     features: [
       'Explainable reasoning',
       'Evidence-based valuation',
-      'Confidence indicators',
+      'Market comparison insights',
       'Comparables sales transparency',
     ],
   },
@@ -177,11 +177,23 @@ const ABOUT_CARDS: AboutCard[] = [
 
 const STEPS = [
   { n: 1, title: 'Input property', description: 'Enter property information' },
-  { n: 2, title: 'AI Analysis', description: 'Retrieve comparable sales & market data' },
-  { n: 3, title: 'Generate report', description: 'Create explainable appraisal narrative' },
-  { n: 4, title: 'Review Evidence', description: 'Check confidence and reasoning factors' },
-  { n: 5, title: 'Customize', description: 'Edit and personalize report' },
-  { n: 6, title: 'Export', description: 'Download professional output' },
+  {
+    n: 2,
+    title: 'Comparable Sales',
+    description: 'Retrieve similar property sales in the suburb',
+  },
+  {
+    n: 3,
+    title: 'Market Insights',
+    description: 'Retrieve market analytics and trends',
+  },
+  {
+    n: 4,
+    title: 'Affordability/ ROI Calculator',
+    description: 'Additional step for Buyer/ Investor role for financial estimation',
+  },
+  { n: 5, title: 'Report type', description: 'Preview of the final narrative report' },
+  { n: 6, title: 'Generate report', description: 'Create explainable appraisal narrative' },
 ]
 
 const TRUST_ITEMS = [
@@ -194,8 +206,8 @@ const TRUST_ITEMS = [
     subtitle: 'Comparable sales and market data transparency',
   },
   {
-    title: 'Historical transaction analysis',
-    subtitle: 'AI-assisted, professional judgment supported',
+    title: 'Market comparison insights',
+    subtitle: 'Compare market information across different suburbs for clearer context.',
   },
   {
     title: 'Suburb demographics & insights',
@@ -203,11 +215,13 @@ const TRUST_ITEMS = [
   },
   {
     title: 'AI-powered narrative generation',
-    subtitle: 'Complete workflow and reasoning logs',
+    subtitle:
+      'Turn property, comparable sales, and market information into a professional report.',
   },
   {
-    title: 'Predictive property analytics',
-    subtitle: 'Transparent assumptions and limitations',
+    title: 'Property price prediction',
+    subtitle:
+      "Use AI to estimate the property's price based on available property and market data.",
   },
 ]
 
@@ -216,7 +230,6 @@ const WORKFLOWS = [
   { title: 'Property Valuers', description: 'Evidence-based valuation analysis' },
   { title: 'Investors', description: 'ROI forecasting and market intelligence' },
   { title: 'Buyers', description: 'Simplified property context' },
-  { title: 'Teams & Agencies', description: 'Collaborative workflows' },
 ]
 
 function SectionHeading({ icon, children }: { icon: ReactNode; children: ReactNode }) {
@@ -314,7 +327,7 @@ export function AboutDropdown({ open }: { open: boolean }) {
 
         <section className="flex flex-col gap-5 border-t border-black/5 pt-8">
           <SectionHeading icon={<GridIcon />}>Built for Modern Property Workflows</SectionHeading>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {WORKFLOWS.map((item) => (
               <MiniWorkflowCard key={item.title} {...item} />
             ))}

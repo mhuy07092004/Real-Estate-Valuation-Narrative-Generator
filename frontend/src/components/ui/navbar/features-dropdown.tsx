@@ -252,11 +252,11 @@ const CATEGORIES: FeatureCategory[] = [
           'Generate professional property appraisal narratives in seconds using AI-powered valuation intelligence.',
         features: [
           'Automated appraisal generation',
-          'Editable report sections',
+          'Intelligent price prediction',
           'Comparable sales integration',
           'Professional narrative writing',
           'Suburb-aware valuation',
-          'Export-ready reports',
+          'Rapid report generation',
         ],
       },
       {
@@ -268,24 +268,10 @@ const CATEGORIES: FeatureCategory[] = [
         features: [
           'AI reasoning breakdown',
           'Evidence transparency',
-          'Confidence explanation',
+          'Property data analysis',
           'Comparable sales explanation',
           'Market factor analysis',
-          'Risk indicators',
-        ],
-      },
-      {
-        id: 'evidence-narrative',
-        icon: <TargetIcon />,
-        title: 'Confidence Radar',
-        summary: 'View valuation confidence, evidence strength, and risk signals in real time.',
-        features: [
-          'Confidence scoring',
-          'Data completeness',
-          'Risk detection',
-          'Evidence strength analysis',
-          'Market stability assessment',
-          'Valuation reliability indicators',
+          'Valuation factor summary',
         ],
       },
       {
@@ -300,7 +286,7 @@ const CATEGORIES: FeatureCategory[] = [
           'Narrative assembly tracking',
           'Valuation generation timeline',
           'Comparable retrieval progress',
-          'Template and export handoff',
+          'Email report delivery',
         ],
       },
     ],
@@ -320,8 +306,6 @@ const CATEGORIES: FeatureCategory[] = [
           'Attribute-based property clustering',
           'Interactive map overlays',
           'Evidence package builder',
-          'Distance vs similarity scoring',
-          'Comparable shortlist export',
         ],
       },
       {
@@ -332,8 +316,6 @@ const CATEGORIES: FeatureCategory[] = [
         features: [
           'Beds, baths and land attributes',
           'Zoning and planning context',
-          'Neighbourhood amenity scores',
-          'Historical sales on one card',
           'Listing attribute enrichment',
           'Less portal hopping',
         ],
@@ -359,9 +341,7 @@ const CATEGORIES: FeatureCategory[] = [
         summary: 'Organise valuation evidence in a structured, reusable workspace.',
         features: [
           'Pinned comparable sales',
-          'Case notes and attachments',
           'Consistent evidence trails',
-          'Team-ready case workspace',
           'Report version tracking',
           'Reusable evidence packages',
         ],
@@ -374,96 +354,50 @@ const CATEGORIES: FeatureCategory[] = [
     tabIcon: <ChartIcon />,
     items: [
       {
-        id: 'trend-forecasting',
+        id: 'market-comparable-sales',
+        icon: <MapPinIcon />,
+        title: 'Comparable Sales',
+        summary:
+          'Understand property values through similar recently sold properties.',
+        features: [
+          'Comparable sales analysis',
+          'Similar property comparison',
+          'Sales evidence',
+          'Save property easily',
+        ],
+      },
+      {
+        id: 'suburb-exploration',
+        icon: <FoldedMapIcon size={20} />,
+        title: 'Suburb Exploration',
+        summary:
+          'Compare different suburbs and understand how they perform relative to each other.',
+        features: [
+          'Compare up to 4 suburbs side by side',
+          'Suburb performance comparison',
+          'Market comparison',
+          'Report ready to export',
+        ],
+      },
+      {
+        id: 'investment-analysis',
         icon: <ChartIcon size={20} />,
-        title: 'Trend Forecasting',
-        summary: 'Predictive analytics for suburb growth and investment opportunity.',
+        title: 'Investment Analysis',
+        summary: 'Evaluate potential investment returns for selected properties.',
         features: [
-          'Suburb growth forecasts',
-          'Momentum suburb highlighting',
-          'Investment opportunity scoring',
-          'Pre-market pricing signals',
-          'Predictive analytics models',
-          'Advisor-ready growth briefs',
-        ],
-      },
-      {
-        id: 'yield-insights',
-        icon: <BarChartIcon />,
-        title: 'Yield & Cashflow Insights',
-        summary: 'Estimate rental yield and cashflow scenarios for target properties.',
-        features: [
-          'Rental yield estimates',
-          'Cashflow scenario modelling',
-          'Rent band assumptions',
-          'Vacancy and holding costs',
-          'Side-by-side option compare',
-          'Investor briefing outputs',
-        ],
-      },
-      {
-        id: 'demand-indicators',
-        icon: <TargetIcon />,
-        title: 'Demand Indicators',
-        summary: 'Monitor buyer and renter demand signals across key markets.',
-        features: [
-          'Enquiry volume tracking',
-          'Listing competition signals',
-          'Absorption rate monitoring',
-          'Buyer vs renter demand',
-          'Acquisition timing cues',
-          'Pricing advice context',
-        ],
-      },
-      {
-        id: 'portfolio-view',
-        icon: <LayersIcon />,
-        title: 'Portfolio Snapshot',
-        summary: 'Summarise exposure and performance across saved investment assets.',
-        features: [
-          'Saved asset grouping',
-          'Suburb exposure summary',
-          'Yield and risk overview',
-          'Client briefing snapshot',
-          'Performance at a glance',
-          'Lightweight portfolio view',
+          'ROI calculator',
+          'Affordability calculator',
+          'Investment return analysis',
+          'Comparable sales analysis',
         ],
       },
     ],
   },
   {
     id: 'workflow-collaboration',
-    label: 'Workflow & Collaboration',
+    label: 'Workflow',
     tabIcon: <UsersIcon />,
     items: [
-      {
-        id: 'team-workspace',
-        icon: <UsersIcon size={20} />,
-        title: 'Team Workspace',
-        summary: 'Share cases, notes, and drafts across agents, valuers, and advisors.',
-        features: [
-          'Shared cases and drafts',
-          'Ownership assignment',
-          'Comments on narratives',
-          'Aligned evidence packages',
-          'Cross-role collaboration',
-          'Latest-version visibility',
-        ],
-      },
-      {
-        id: 'client-reports',
-        icon: <DocumentIcon />,
-        title: 'Client-Ready Reports',
-        summary: 'Export polished appraisal packages your clients can actually use.',
-        features: [
-          'Brand report templates',
-          'Locked approved sections',
-          'Professional PDF delivery',
-          'Client-ready packages',
-          'No extra design work',
-          'Polished export layouts',
-        ],
-      },
       {
         id: 'shared-evidence',
         icon: <ShareIcon />,
@@ -535,9 +469,6 @@ export function FeaturesDropdown({ open }: { open: boolean }) {
     }
   }, [open])
 
-  const activeCategory =
-    CATEGORIES.find((category) => category.id === activeCategoryId) ?? CATEGORIES[0]
-
   return (
     <NavDropdownPanel open={open}>
       <div className="mx-auto flex max-w-5xl flex-col gap-8 px-6 py-10">
@@ -570,10 +501,23 @@ export function FeaturesDropdown({ open }: { open: boolean }) {
           })}
         </div>
 
-        <div className="flex flex-col divide-y divide-black/5" role="tabpanel">
-          {activeCategory.items.map((item) => (
-            <FeatureBlock key={item.id} item={item} />
-          ))}
+        <div className="grid [&>*]:col-start-1 [&>*]:row-start-1" role="tabpanel">
+          {CATEGORIES.map((category) => {
+            const active = category.id === activeCategoryId
+            return (
+              <div
+                key={category.id}
+                className={`flex flex-col divide-y divide-black/5 ${
+                  active ? 'z-10' : 'invisible pointer-events-none'
+                }`}
+                aria-hidden={!active}
+              >
+                {category.items.map((item) => (
+                  <FeatureBlock key={item.id} item={item} />
+                ))}
+              </div>
+            )
+          })}
         </div>
       </div>
     </NavDropdownPanel>
