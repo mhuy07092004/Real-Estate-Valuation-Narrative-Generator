@@ -15,11 +15,12 @@ import type { Request, Response } from 'express'
 import { findComparablesInSuburb } from '../services/comparable-sale.service.js'
 import { getMarketIntelligenceOverviewForSuburb } from '../services/market-intelligence.service.js'
 import { predictPropertyPrice } from '../services/price-prediction.service.js'
+import { parseAuAddress } from '../utils/au-address.js'
 
 function parseAddress(address: string): { street: string; suburb: string; state: string; postcode: string } | null {
-    const match = address.trim().match(/^(\d+\s+[^,]+),\s*([^,]+)\s+([A-Za-z]{2,3})\s+(\d{4})$/)
-    if (!match) return null
-    return { street: match[1].trim(), suburb: match[2].trim(), state: match[3].trim().toUpperCase(), postcode: match[4].trim() }
+    const parsed = parseAuAddress(address)
+    if (!parsed) return null
+    return { street: parsed.streetLine, suburb: parsed.suburb, state: parsed.state, postcode: parsed.postcode }
 }
 
 function formatCurrency(value: number): string {
