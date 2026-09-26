@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import { parseAuAddress } from '../../../lib/au-address'
 import { gsap, useGSAP } from '../../../lib/gsap'
 import { Button } from '../../../components/ui/button/button'
 import { Card } from '../../../components/ui/card/card'
@@ -69,17 +70,14 @@ const EMPTY_NEW_CLIENT_FORM: NewClientForm = {
 function parseClientAddress(
   address: string,
 ): { addressLine: string; suburb: string; state: string; postcode: string } | null {
-  const match = address
-    .trim()
-    .match(/^(\d+\s+[^,]+),\s*([^,]+)\s+([A-Za-z]{2,3})\s+(\d{4})$/)
-
-  if (!match) return null
+  const parsed = parseAuAddress(address)
+  if (!parsed?.postcode) return null
 
   return {
-    addressLine: match[1].trim(),
-    suburb: match[2].trim(),
-    state: match[3].trim().toUpperCase(),
-    postcode: match[4].trim(),
+    addressLine: parsed.streetLine,
+    suburb: parsed.suburb,
+    state: parsed.state,
+    postcode: parsed.postcode,
   }
 }
 

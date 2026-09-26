@@ -98,16 +98,6 @@ function SparklesIcon({ size = 20 }: { size?: number }) {
   )
 }
 
-function TargetIcon({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-    </svg>
-  )
-}
-
 function ClockIcon({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
