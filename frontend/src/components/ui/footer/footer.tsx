@@ -1,7 +1,7 @@
 const LEGAL_LINKS = [
-  { label: 'Terms of Service', href: '#terms' },
-  { label: 'Privacy Policy', href: '#privacy' },
-  { label: 'Refund Policy', href: '#refund' },
+  { label: 'Terms of Service', href: '/policy/terms' },
+  { label: 'Privacy Policy', href: '/policy/privacy' },
+  { label: 'Refund Policy', href: '/policy/refund' },
 ] as const
 
 const TEAM_MEMBERS = [
