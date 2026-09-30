@@ -34,6 +34,7 @@ import { ComparableSales } from '../pages/dashboard/comparable-sales'
 import { MarketComparison } from '../pages/dashboard/investor/market-comparision'
 import { ProtectedRoute } from '../features/auth/components/protected-route'
 import SharedReportPage from '../pages/shared-report'
+import ContactUsPage from '../pages/contactus'
 
 function DashboardReport() {
   const { role } = useParams<{ role: string }>()
@@ -64,6 +65,7 @@ export function AppRoutes() {
       <Route path="/about" element={<Navigate to="/" replace />} />
       <Route path="/features" element={<Navigate to="/" replace />} />
       <Route path="/plans" element={<Navigate to="/" replace />} />
+      <Route path="/contact-us" element={<ContactUsPage />} />
       <Route path="/signin" element={<SignInPageRoute />} />
       <Route path="/signup" element={<SignUpPageRoute />} />
       <Route path="/forgot-password" element={<ForgotPasswordPageRoute />} />
