@@ -37,12 +37,12 @@ model User {
   company      String?
   passwordHash String?   @map("password_hash") // null for OAuth-only accounts
   authProvider String    @default("local") @map("auth_provider")
-  roleId       Int       @map("role_id")
+  roleId       Int?      @map("role_id")
   isActive     Boolean   @default(true) @map("is_active")
   createdAt    DateTime  @default(now()) @map("created_at")
   lastLoginAt  DateTime? @map("last_login_at")
 
-  role Role @relation(fields: [roleId], references: [roleId])
+  role Role? @relation(fields: [roleId], references: [roleId])
   clients Client[]
   savedProperties SavedProperty[]
   inspections Inspection[]

@@ -15,7 +15,7 @@ function toStoredUserWithPassword(user: {
   company: string | null
   passwordHash: string | null
   createdAt: Date
-  role: { roleName: string }
+  role: { roleName: string } | null
 }): StoredUserWithPassword {
   return {
     userId: user.userId,
@@ -23,7 +23,7 @@ function toStoredUserWithPassword(user: {
     email: user.email,
     phone: user.phone,
     company: user.company,
-    roleName: user.role.roleName,
+    roleName: user.role?.roleName ?? null,
     createdAt: user.createdAt,
     passwordHash: user.passwordHash,
   }
@@ -91,26 +91,38 @@ export async function createUser(params: {
   fullName: string
   email: string
   passwordHash: string
-  roleId: number
+  roleId?: number | null
 }): Promise<StoredUser> {
   const user = await prisma.user.create({
     data: {
       fullName: params.fullName,
       email: params.email,
       passwordHash: params.passwordHash,
-      roleId: params.roleId,
+      roleId: params.roleId ?? null,
       authProvider: 'local',
     },
     include: { role: true },
   })
 
-  return {
-    userId: user.userId,
-    fullName: user.fullName,
-    email: user.email,
-    phone: user.phone,
-    company: user.company,
-    roleName: user.role.roleName,
-    createdAt: user.createdAt,
-  }
+  // Deliberately not toStoredUserWithPassword(user) — the one other caller
+  // (findUserByEmail/findUserById) needs the hash for login comparison, but
+  // createUser's result goes straight into the registration response path,
+  // so it must never carry passwordHash even internally.
+  const { passwordHash: _passwordHash, ...stored } = toStoredUserWithPassword(user)
+  return stored
+}
+
+// Only writes if the role is still unset (roleId: null is part of the WHERE,
+// not just a precondition checked earlier) — closes the race where two
+// concurrent requests both read "unset" and the second silently overwrites
+// the first's role. Returns null when the guard didn't match, so the caller
+// can tell "already set" apart from "user not found".
+export async function updateUserRole(userId: string, roleId: number): Promise<StoredUser | null> {
+  const { count } = await prisma.user.updateMany({
+    where: { userId, roleId: null },
+    data: { roleId },
+  })
+
+  if (count === 0) return null
+  return findUserById(userId)
 }
