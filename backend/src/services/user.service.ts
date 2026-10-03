@@ -107,13 +107,17 @@ export async function createUser(params: {
   return toStoredUserWithPassword(user)
 }
 
-/** Assigns a dashboard role after sign-up (or any other role-null account). */
-export async function updateUserRole(userId: string, roleId: number): Promise<StoredUser> {
-  const user = await prisma.user.update({
-    where: { userId },
+// Only writes if the role is still unset (roleId: null is part of the WHERE,
+// not just a precondition checked earlier) — closes the race where two
+// concurrent requests both read "unset" and the second silently overwrites
+// the first's role. Returns null when the guard didn't match, so the caller
+// can tell "already set" apart from "user not found".
+export async function updateUserRole(userId: string, roleId: number): Promise<StoredUser | null> {
+  const { count } = await prisma.user.updateMany({
+    where: { userId, roleId: null },
     data: { roleId },
-    include: { role: true },
   })
 
-  return toStoredUserWithPassword(user)
+  if (count === 0) return null
+  return findUserById(userId)
 }

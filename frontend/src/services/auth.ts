@@ -175,6 +175,13 @@ export async function register(credentials: RegisterCredentials): Promise<AuthSe
 export async function selectRole(
   role: 'agent' | 'valuer' | 'investor' | 'buyer',
 ): Promise<AuthSession> {
+  // Not routed through fetchJson: toSession needs the parsed body even on a
+  // non-2xx response (400 field errors, 409 "already selected"), but
+  // fetchJson throws a plain Error with only `message` on !response.ok,
+  // which would drop the structured errors/captchaRequired toSession relies
+  // on — same reason login/register above use raw fetch, just for a
+  // different field (here it's the body on failure, not avoiding a stale
+  // token).
   const token = getAccessToken()
   const response = await fetch(`${API_BASE}/select-role`, {
     method: 'POST',

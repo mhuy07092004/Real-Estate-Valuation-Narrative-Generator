@@ -105,11 +105,13 @@ export async function selectUserRole(userId: string, input: unknown): Promise<Au
   if (!user) {
     throw new InvalidCredentialsError()
   }
-  if (user.roleName) {
-    throw new RoleAlreadySetError()
-  }
 
   const roleId = await ensureRoleIdByName(role)
   const updated = await updateUserRole(userId, roleId)
+  if (!updated) {
+    // Either already set when this request was issued, or a concurrent
+    // request won the race — same result from the caller's perspective.
+    throw new RoleAlreadySetError()
+  }
   return buildAuthResponse(updated)
 }
