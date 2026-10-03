@@ -1,5 +1,6 @@
 // Shared types + HTTP service for notifications, AI copilot, generate-appraisal wizard.
 
+import { parseAuAddress } from '../lib/au-address'
 import { API_BASE_URL, fetchJson } from './api-client'
 
 export type AppraisalInputContext = {
@@ -129,32 +130,6 @@ export function getAffordabilityResult(): AffordabilityPersistResult | null {
   }
 }
 
-function parseAddressContext(address: string): {
-  streetLine: string
-  suburb: string
-  state: string
-  postcode: string
-} {
-  const fallback = {
-    streetLine: address,
-    suburb: 'Bonnyrigg',
-    state: 'NSW',
-    postcode: '2177',
-  }
-
-  const match = address
-    .trim()
-    .match(/^(\d+\s+[^,]+),\s*([^,]+)\s+([A-Za-z]{2,3})\s+(\d{4})$/)
-
-  if (!match) return fallback
-
-  return {
-    streetLine: match[1].trim(),
-    suburb: match[2].trim(),
-    state: match[3].trim().toUpperCase(),
-    postcode: match[4].trim(),
-  }
-}
 
 type ApiSuccess<T> = {
   success: true
@@ -246,7 +221,12 @@ export async function persistGeneratedReport(
     throw new Error('Property details are missing. Complete step 1 before saving report.')
   }
 
-  const address = parseAddressContext(context.address)
+  const address = parseAuAddress(context.address)
+  if (!address?.streetLine || !address.suburb || !address.state || !address.postcode) {
+    throw new Error(
+      'Property address could not be read. Re-enter the street, suburb, state, and postcode.',
+    )
+  }
   const roi = input.role === 'investor' ? (input.roi !== undefined ? input.roi : getRoiResult()) : null
   const affordability =
     input.role === 'buyer' ? (input.affordability !== undefined ? input.affordability : getAffordabilityResult()) : null

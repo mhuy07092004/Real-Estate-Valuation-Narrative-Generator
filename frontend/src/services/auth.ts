@@ -8,7 +8,7 @@ import {
   type RegisterCredentials,
   type User,
 } from '../types/auth'
-import { API_BASE_URL, fetchJson } from './api-client'
+import { API_BASE_URL, fetchJson, getAccessToken } from './api-client'
 
 // Not routed through fetchJson (api-client.ts) because these calls must never
 // attach a stale Authorization header before a session exists — but they still
@@ -173,21 +173,47 @@ export async function register(credentials: RegisterCredentials): Promise<AuthSe
 }
 
 /**
- * Exchanges a Google Identity Services ID token for a session. `role` is
- * only needed the first time this email signs in (new-account path) — the
- * backend ignores it and logs into the existing account otherwise, whether
- * that account was created locally or via a previous Google sign-in.
+ * Exchanges a Google Identity Services ID token for a session. New accounts
+ * are created role-less, same as local sign-up — ProtectedRoute redirects
+ * to /select-role afterward, so no role is collected here.
  */
-export async function loginWithGoogle(credential: string, role?: RegisterCredentials['role']): Promise<AuthSession> {
+export async function loginWithGoogle(credential: string): Promise<AuthSession> {
   const response = await fetch(`${API_BASE}/google`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ credential, role }),
+    body: JSON.stringify({ credential }),
   })
 
   const body = (await response.json()) as ApiResponse<LoginResponseData>
   const session = toSession(body)
 
   persistSession(session)
+  return session
+}
+
+export async function selectRole(
+  role: 'agent' | 'valuer' | 'investor' | 'buyer',
+): Promise<AuthSession> {
+  // Not routed through fetchJson: toSession needs the parsed body even on a
+  // non-2xx response (400 field errors, 409 "already selected"), but
+  // fetchJson throws a plain Error with only `message` on !response.ok,
+  // which would drop the structured errors/captchaRequired toSession relies
+  // on — same reason login/register above use raw fetch, just for a
+  // different field (here it's the body on failure, not avoiding a stale
+  // token).
+  const token = getAccessToken()
+  const response = await fetch(`${API_BASE}/select-role`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ role }),
+  })
+
+  const body = (await response.json()) as ApiResponse<LoginResponseData>
+  const session = toSession(body)
+
+  persistSession(session, resolveActiveStorage() !== sessionStorage)
   return session
 }

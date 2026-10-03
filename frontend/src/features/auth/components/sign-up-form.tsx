@@ -4,7 +4,6 @@ import { Button } from '../../../components/ui/button/button'
 import { Input } from '../../../components/ui/input/input'
 import { TurnstileWidget } from '../../../components/ui/turnstile/turnstile-widget'
 import { GoogleSignInButton } from '../../../components/ui/google-signin/google-signin-button'
-import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-role'
 import { useAuth } from '../hooks/use-auth'
 import { useCaptchaGate } from '../hooks/use-captcha-gate'
 import { AuthError } from '../../../types/auth'
@@ -100,36 +99,6 @@ function EyeIcon({ visible }: { visible: boolean }) {
   )
 }
 
-function GoogleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-      <path
-        d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.85 2.09-1.81 2.73v2.27h2.92c1.71-1.57 2.69-3.88 2.69-6.64Z"
-        fill="#4285F4"
-      />
-      <path
-        d="M9 18c2.43 0 4.47-.8 5.96-2.17l-2.92-2.27c-.81.55-1.85.87-3.04.87-2.34 0-4.32-1.58-5.03-3.7H.96v2.34A9 9 0 0 0 9 18Z"
-        fill="#34A853"
-      />
-      <path
-        d="M3.97 10.73a5.4 5.4 0 0 1 0-3.46V4.93H.96a9 9 0 0 0 0 8.14l3.01-2.34Z"
-        fill="#FBBC05"
-      />
-      <path
-        d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.59-2.59A9 9 0 0 0 9 0 9 9 0 0 0 .96 4.93l3.01 2.34C4.68 5.16 6.66 3.58 9 3.58Z"
-        fill="#EA4335"
-      />
-    </svg>
-  )
-}
-
-const ROLE_OPTIONS: { value: DashboardRole; label: string }[] = [
-  { value: 'buyer', label: 'Buyer' },
-  { value: 'investor', label: 'Investor' },
-  { value: 'valuer', label: 'Property Valuer' },
-  { value: 'agent', label: 'Agent' },
-]
-
 function SocialLoginDivider() {
   return (
     <div className="flex items-center gap-3">
@@ -141,28 +110,12 @@ function SocialLoginDivider() {
 }
 
 function SocialLoginButtons({
-  role,
   onGoogleCredential,
   onGoogleError,
 }: {
-  role: DashboardRole | ''
   onGoogleCredential: (credential: string) => void
   onGoogleError: () => void
 }) {
-  // Google sign-up creates a brand-new account when this email hasn't signed
-  // up before, and role isn't something the provider can tell us — same
-  // requirement the plain sign-up form above enforces.
-  if (!role) {
-    return (
-      <div className="grid grid-cols-1 gap-3">
-        <Button type="button" variant="outline" size="md" className="gap-2" disabled title="Select a role first">
-          <GoogleIcon />
-          Google
-        </Button>
-      </div>
-    )
-  }
-
   return (
     <div className="grid grid-cols-1 gap-3">
       <GoogleSignInButton onCredential={onGoogleCredential} onError={onGoogleError} />
@@ -182,7 +135,6 @@ export function SignUpForm() {
     resetToken: resetCaptcha,
     clear: clearCaptcha,
   } = useCaptchaGate('signup')
-  const [role, setRole] = useState<DashboardRole | ''>('')
   const [showPassword, setShowPassword] = useState(false)
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -202,9 +154,7 @@ export function SignUpForm() {
     setError(null)
     setIsGoogleSubmitting(true)
     try {
-      // `role` is only used if this email is signing up for the first time —
-      // the backend ignores it and logs into the existing account otherwise.
-      await loginWithGoogle(credential, role || undefined)
+      await loginWithGoogle(credential)
       navigate('/dashboard', { replace: true })
     } catch (err) {
       if (err instanceof AuthError) {
@@ -267,7 +217,6 @@ export function SignUpForm() {
         fullName,
         email,
         password,
-        role: role || undefined,
         turnstileToken: captchaToken || undefined,
         otp,
       })
@@ -360,34 +309,6 @@ export function SignUpForm() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="role" className="text-sm font-medium text-relaive-navy">
-            Role
-          </label>
-          <div className="relative flex items-center">
-            <span className="pointer-events-none absolute left-3 flex items-center text-relaive-gray">
-              <UserIcon />
-            </span>
-            <select
-              id="role"
-              name="role"
-              required
-              value={role}
-              onChange={(event) => setRole(event.target.value as DashboardRole)}
-              className="w-full rounded-lg border border-black/10 bg-white py-2.5 pl-10 pr-4 text-sm text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
-            >
-              <option value="" disabled>
-                Select your role
-              </option>
-              {ROLE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1.5">
           <Input
             id="password"
             type={showPassword ? 'text' : 'password'}
@@ -467,7 +388,6 @@ export function SignUpForm() {
 
       <SocialLoginDivider />
       <SocialLoginButtons
-        role={role}
         onGoogleCredential={handleGoogleCredential}
         onGoogleError={() => setError('Google sign-in failed to load. Please try again.')}
       />

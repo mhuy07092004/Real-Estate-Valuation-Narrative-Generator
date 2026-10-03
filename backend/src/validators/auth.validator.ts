@@ -17,11 +17,11 @@ export const refreshTokenSchema = z.object({
 })
 
 // `credential` is the ID token Google Identity Services hands back to the
-// frontend. `role` is only required the first time this email signs in —
-// see loginOrRegisterWithGoogle in google-auth.service.ts.
+// frontend. No role here — a new account is created role-less, same as
+// local OTP registration (see loginOrRegisterWithGoogle in
+// google-auth.service.ts, and ProtectedRoute's /select-role redirect).
 export const googleAuthSchema = z.object({
   credential: z.string().min(1, 'Missing Google credential'),
-  role: z.enum(['agent', 'valuer', 'investor', 'buyer']).optional(),
 })
 
 // Empty string means "clear this field" — normalized to null before hitting

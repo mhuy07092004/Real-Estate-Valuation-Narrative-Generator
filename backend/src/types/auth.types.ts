@@ -7,7 +7,7 @@ export type StoredUser = {
   email: string
   phone: string | null
   company: string | null
-  roleName: string
+  roleName: string | null
   createdAt: Date
 }
 
@@ -30,7 +30,11 @@ export type FrontendUser = {
 
 export function toFrontendUser(user: StoredUser): FrontendUser {
   const expandedRoles =
-    user.roleName === 'admin' ? ['admin', 'agent', 'valuer', 'investor', 'buyer'] : [user.roleName]
+    user.roleName === 'admin'
+      ? ['admin', 'agent', 'valuer', 'investor', 'buyer']
+      : user.roleName
+        ? [user.roleName]
+        : []
 
   return {
     id: user.userId,
@@ -79,5 +83,12 @@ export class InvalidCredentialsError extends Error {
     super('Invalid email or password.')
     this.name = 'InvalidCredentialsError'
     this.captchaRequired = captchaRequired
+  }
+}
+
+export class RoleAlreadySetError extends Error {
+  constructor() {
+    super('A role has already been selected for this account.')
+    this.name = 'RoleAlreadySetError'
   }
 }

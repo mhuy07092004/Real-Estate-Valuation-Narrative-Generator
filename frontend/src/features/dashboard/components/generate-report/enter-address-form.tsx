@@ -5,9 +5,13 @@ import { useAsyncData } from '../../../../hooks/use-async-data'
 import { getPropertyTypeOptions } from '../../../../services/common'
 import { getPropertyInputMethodIcon } from './generate-report-icons'
 
+export const AU_STATES = ['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'] as const
+
 export type EnterAddressFormState = {
   streetAddress: string
-  suburbState: string
+  suburb: string
+  state: string
+  postcode: string
   propertyType: string
   bedrooms: string
   bathrooms: string
@@ -17,7 +21,9 @@ export type EnterAddressFormState = {
 
 export const INITIAL_ENTER_ADDRESS_FORM_STATE: EnterAddressFormState = {
   streetAddress: '',
-  suburbState: '',
+  suburb: '',
+  state: '',
+  postcode: '',
   propertyType: 'House',
   bedrooms: '3',
   bathrooms: '2',
@@ -25,9 +31,12 @@ export const INITIAL_ENTER_ADDRESS_FORM_STATE: EnterAddressFormState = {
   landSize: '',
 }
 
+export type EnterAddressFieldErrors = Partial<Record<keyof EnterAddressFormState, string>>
+
 type EnterAddressFormProps = {
   value: EnterAddressFormState
   onChange: (next: EnterAddressFormState) => void
+  errors?: EnterAddressFieldErrors
 }
 
 const FIELD_LABEL =
@@ -36,6 +45,9 @@ const SURFACE_GREY = '!bg-[#E8EDF2]'
 const INPUT_CLASS = `rounded-xl border-black/5 ${SURFACE_GREY}`
 const COUNTER_BTN_CLASS =
   `size-8 rounded-full p-0 text-relaive-navy ${SURFACE_GREY} hover:!bg-[#DDE3EA]`
+const SELECT_CLASS =
+  `h-[42px] w-full appearance-none rounded-xl border border-black/5 py-2.5 pl-4 pr-9 text-sm text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary ${SURFACE_GREY}`
+const FIELD_ERROR = 'text-xs text-red-500'
 
 function BedIcon() {
   return (
@@ -129,12 +141,31 @@ function FeatureCounter({
   )
 }
 
-export function EnterAddressForm({ value, onChange }: EnterAddressFormProps) {
+function ChevronIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M6 9l6 6 6-6"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null
+  return <p className={FIELD_ERROR}>{message}</p>
+}
+
+export function EnterAddressForm({ value, onChange, errors }: EnterAddressFormProps) {
   const { data: propertyTypeOptions } = useAsyncData(getPropertyTypeOptions, [])
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[6fr_3fr_1.5fr_1.5fr]">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="street-address" className={FIELD_LABEL}>
             Street Address <span className="text-red-400">*</span>
@@ -145,24 +176,72 @@ export function EnterAddressForm({ value, onChange }: EnterAddressFormProps) {
             value={value.streetAddress}
             startIcon={getPropertyInputMethodIcon('address')}
             className={INPUT_CLASS}
+            aria-invalid={Boolean(errors?.streetAddress)}
             onChange={(event) =>
               onChange({ ...value, streetAddress: event.target.value })
             }
           />
+          <FieldError message={errors?.streetAddress} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="suburb-state" className={FIELD_LABEL}>
-            Suburb &amp; State <span className="text-red-400">*</span>
+          <label htmlFor="suburb" className={FIELD_LABEL}>
+            Suburb <span className="text-red-400">*</span>
           </label>
           <Input
-            id="suburb-state"
-            placeholder="e.g. South Yarra VIC 3141"
-            value={value.suburbState}
+            id="suburb"
+            placeholder="e.g. South Yarra"
+            value={value.suburb}
             className={INPUT_CLASS}
+            aria-invalid={Boolean(errors?.suburb)}
+            onChange={(event) => onChange({ ...value, suburb: event.target.value })}
+          />
+          <FieldError message={errors?.suburb} />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="state" className={FIELD_LABEL}>
+            State <span className="text-red-400">*</span>
+          </label>
+          <span className="relative">
+            <select
+              id="state"
+              value={value.state}
+              aria-invalid={Boolean(errors?.state)}
+              className={`${SELECT_CLASS} ${value.state ? '' : 'text-relaive-gray/70'}`}
+              onChange={(event) => onChange({ ...value, state: event.target.value })}
+            >
+              <option value="">State</option>
+              {AU_STATES.map((state) => (
+                <option key={state} value={state}>
+                  {state}
+                </option>
+              ))}
+            </select>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-relaive-gray">
+              <ChevronIcon />
+            </span>
+          </span>
+          <FieldError message={errors?.state} />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="postcode" className={FIELD_LABEL}>
+            Postcode <span className="text-red-400">*</span>
+          </label>
+          <Input
+            id="postcode"
+            inputMode="numeric"
+            maxLength={4}
+            placeholder="3141"
+            value={value.postcode}
+            className={INPUT_CLASS}
+            aria-invalid={Boolean(errors?.postcode)}
             onChange={(event) =>
-              onChange({ ...value, suburbState: event.target.value })
+              onChange({
+                ...value,
+                postcode: event.target.value.replace(/\D/g, '').slice(0, 4),
+              })
             }
           />
+          <FieldError message={errors?.postcode} />
         </div>
       </div>
 

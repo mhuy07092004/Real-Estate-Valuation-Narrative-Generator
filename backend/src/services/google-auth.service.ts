@@ -3,7 +3,7 @@ import { env } from '../config/env.js'
 import { signAccessToken, signRefreshToken } from './jwt.service.js'
 import { toFrontendUser, type AuthResponseData, type StoredUser } from '../types/auth.types.js'
 import { googleAuthSchema } from '../validators/auth.validator.js'
-import { createUser, findRoleIdByName, findUserByEmail } from './user.service.js'
+import { createUser, findUserByEmail } from './user.service.js'
 
 // Lazily constructed so a missing GOOGLE_OAUTH_CLIENT_ID doesn't crash the
 // process at import time — verifyGoogleIdToken below checks env first and
@@ -72,37 +72,24 @@ async function verifyGoogleIdToken(idToken: string): Promise<GoogleProfile> {
  * logs into that same account rather than erroring or creating a
  * duplicate. Google has already verified the email address, so a matching
  * email is treated as proof of ownership (team decision — see the map PR's
- * follow-up conversation). `role` is only required the first time we see
- * this email, since local registration requires a role too and the DB has
- * no way to guess one for a new Google signup.
+ * follow-up conversation).
+ *
+ * New accounts are created role-less, same as local OTP registration —
+ * ProtectedRoute redirects any role-less user to /select-role, so Google
+ * sign-up doesn't need to collect a role upfront either.
  */
 export async function loginOrRegisterWithGoogle(input: unknown, remoteIp?: string): Promise<AuthResponseData> {
-  const { credential, role } = googleAuthSchema.parse(input)
+  const { credential } = googleAuthSchema.parse(input)
   const profile = await verifyGoogleIdToken(credential)
 
   const existing = await findUserByEmail(profile.email)
-  let stored: StoredUser
-
-  if (existing) {
-    stored = existing
-  } else {
-    if (!role) {
-      throw new GoogleAuthError('Select a role to finish signing up with Google', 422)
-    }
-
-    const roleId = await findRoleIdByName(role)
-    if (roleId === null) {
-      // Seed data missing — this is a setup problem, not a user error.
-      throw new Error(`Role "${role}" not found — run "npm run prisma:seed"`)
-    }
-
-    stored = await createUser({
+  const stored: StoredUser =
+    existing ??
+    (await createUser({
       fullName: profile.fullName,
       email: profile.email,
-      roleId,
       authProvider: 'google',
-    })
-  }
+    }))
 
   const frontendUser = toFrontendUser(stored)
   const tokenPayload = { userId: stored.userId, email: stored.email, roles: frontendUser.roles }

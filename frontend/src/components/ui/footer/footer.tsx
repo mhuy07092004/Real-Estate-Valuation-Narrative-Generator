@@ -1,7 +1,6 @@
 const LEGAL_LINKS = [
-  { label: 'Terms of Service', href: '#terms' },
-  { label: 'Privacy Policy', href: '#privacy' },
-  { label: 'Refund Policy', href: '#refund' },
+  { label: 'Terms of Services', href: '/policy/terms' },
+  { label: 'Privacy Policy', href: '/policy/privacy' },
 ] as const
 
 const TEAM_MEMBERS = [
@@ -149,7 +148,7 @@ export function Footer() {
               Our Team
             </h3>
             <a
-              href="mailto:hello@relaive.com"
+              href="/contact-us"
               className="inline-flex shrink-0 items-center rounded-full border border-relaive-secondary/80 px-4 py-1.5 text-[13px] font-medium text-white/90 transition-colors hover:border-relaive-secondary hover:bg-white/5"
             >
               Contact Us

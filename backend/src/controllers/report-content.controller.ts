@@ -13,6 +13,7 @@ import {
     getReportTemplateForRole,
     type ReportRole,
 } from '../services/report-content.service.js'
+import { parseAuAddress } from '../utils/au-address.js'
 
 const VALID_ROLES: ReportRole[] = ['agent', 'valuer', 'buyer', 'investor']
 
@@ -21,13 +22,13 @@ function isReportRole(value: unknown): value is ReportRole {
 }
 
 function parseAddress(address: string): { street: string; suburb: string; state: string; postcode: string } | null {
-    const match = address.trim().match(/^(\d+\s+[^,]+),\s*([^,]+)\s+([A-Za-z]{2,3})\s+(\d{4})$/)
-    if (!match) return null
+    const parsed = parseAuAddress(address)
+    if (!parsed) return null
     return {
-        street: match[1].trim(),
-        suburb: match[2].trim(),
-        state: match[3].trim().toUpperCase(),
-        postcode: match[4].trim(),
+        street: parsed.streetLine,
+        suburb: parsed.suburb,
+        state: parsed.state,
+        postcode: parsed.postcode,
     }
 }
 

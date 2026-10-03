@@ -43,7 +43,7 @@ variable "backend_env" {
   description = "Non-secret env vars for the Cloud Run backend service"
   type        = map(string)
   default = {
-    CORS_ORIGIN             = "https://real-estate-valuation-narrative-gen.vercel.app"
+    CORS_ORIGIN             = "https://real-estate-valuation-narrative-gen.vercel.app,https://relaive.com.au,https://www.relaive.com.au"
     PUBLIC_APP_URL          = "https://real-estate-valuation-narrative-gen.vercel.app"
     ML_PRICE_PREDICTION_URL = "https://relaive-ai-service-latest.onrender.com"
     TRUST_PROXY             = "1"

@@ -20,6 +20,7 @@ export type SubscriptionCardProps = {
   description: string
   price: string
   priceSuffix?: string
+  promoPrice?: string
   features: string[]
   primaryCta: Cta
   secondaryCta: Cta
@@ -120,6 +121,7 @@ export function SubscriptionCard({
   description,
   price,
   priceSuffix,
+  promoPrice,
   features,
   primaryCta,
   secondaryCta,
@@ -171,7 +173,27 @@ export function SubscriptionCard({
       )}
 
       <div className="mt-5">
-        {billingPeriod === 'annually' && price !== 'Free' && price !== 'Contact Us' ? (
+        {promoPrice ? (
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <span className="text-lg text-relaive-gray line-through decoration-1">
+                {price}
+                {priceSuffix}
+              </span>
+              <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs font-semibold text-green-700">
+                Promotion
+              </span>
+            </div>
+            <p className={`text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-relaive-navy'}`}>
+              {promoPrice}
+              {priceSuffix ? (
+                <span className={`ml-1 text-base font-medium ${isDark ? 'text-white/60' : 'text-relaive-gray'}`}>
+                  {priceSuffix}
+                </span>
+              ) : null}
+            </p>
+          </div>
+        ) : billingPeriod === 'annually' && price !== 'Free' && price !== 'Contact Us' ? (
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <span className="text-lg text-relaive-gray line-through decoration-1">{price}</span>

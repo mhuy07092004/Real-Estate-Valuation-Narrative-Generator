@@ -4,13 +4,10 @@
 // { success, data } envelope, confirmed against common.ts's fetchJson usage.
 import type { Request, Response } from 'express'
 import { findComparablesInSuburb, type ComparableSubject } from '../services/comparable-sale.service.js'
+import { parseAuAddress } from '../utils/au-address.js'
 
-// Same street/suburb/state/postcode pattern used on the frontend
-// (parseAddressContext) — the subject address only ever arrives as one
-// raw string, never structured fields.
 function extractSuburbFromAddress(address: string): string | null {
-    const match = address.trim().match(/^(?:\d+\s+[^,]+),\s*([^,]+)\s+([A-Za-z]{2,3})\s+(\d{4})$/)
-    return match ? match[1].trim() : null
+    return parseAuAddress(address)?.suburb ?? null
 }
 
 function parseDateRangeMonths(dateRange: unknown): number | undefined {

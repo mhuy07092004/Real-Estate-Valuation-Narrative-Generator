@@ -66,7 +66,7 @@ export function DashboardRoleRedirect() {
   const role = resolveDashboardRole(userRoles)
 
   if (!role) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/select-role" replace />
   }
 
   setActiveDashboardRole(role)
@@ -85,7 +85,7 @@ export function DashboardRoleGuard() {
   }
 
   if (!active) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/select-role" replace />
   }
 
   if (!roleParam || !isDashboardRole(roleParam) || !userRoles.includes(roleParam)) {
