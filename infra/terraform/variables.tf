@@ -53,6 +53,9 @@ variable "backend_env" {
     VERTEX_PROJECT_ID  = "393439107077" # project NUMBER, as the Vertex REST path expects
     VERTEX_REGION      = "us-central1"
     VERTEX_ENDPOINT_ID = "365693719107600384"
+    # Not secret — same public Client ID the frontend uses as
+    # VITE_GOOGLE_OAUTH_CLIENT_ID, embedded in the browser bundle either way.
+    GOOGLE_OAUTH_CLIENT_ID = "393439107077-qllalk957k9h01l6i5061clg3dif62qf.apps.googleusercontent.com"
   }
 }
 
