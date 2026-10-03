@@ -4,6 +4,7 @@ import { AddressSearch } from '../search-bar/address-search'
 import { geocodeAddress } from '../../../services/geocode'
 import { getAddressSuggestions, type AddressSuggestion } from '../../../services/autocomplete'
 import type { AmenityCategory } from '../../../services/places'
+import { useDebouncedValue } from '../../../hooks/use-debounced-value'
 import { RadiusCircle } from './radius-circle'
 import { AmenityMarkers } from './amenity-markers'
 import {
@@ -15,6 +16,15 @@ import {
 } from './layers-panel'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined
+
+// Dragging the radius slider fires onChange continuously (LayersPanel's
+// <input type="range">, no step-quantized "change" event) and each change
+// now costs 6 Google Places requests (places.service.ts's
+// searchNearbyByCategory, one per category) instead of the old single
+// request — debounce the amenities fetch so a drag gesture costs one
+// search, not dozens. RadiusCircle keeps the live value so the circle on
+// the map still tracks the slider smoothly; only the fetch waits.
+const RADIUS_FETCH_DEBOUNCE_MS = 400
 
 //*default map loc being sydney cbd*/
 const DEFAULT_CENTER = { lat: -33.8688, lng: 151.2093 }
@@ -199,6 +209,11 @@ function AddressSearchBar({
 }) {
   const map = useMap()
   const [query, setQuery] = useState('')
+  // Set right before a programmatic setQuery (picking a suggestion) so the
+  // debounced suggestions effect below doesn't treat it as a fresh keystroke
+  // and reopen the dropdown ~300ms after it was just closed — see
+  // selectSuggestion.
+  const skipNextSuggestionFetchRef = useRef(false)
   const [error, setError] = useState<string | null>(null)
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([])
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false)
@@ -221,6 +236,10 @@ function AddressSearchBar({
 
   // Debounced suggestions fetch as the user types.
   useEffect(() => {
+    if (skipNextSuggestionFetchRef.current) {
+      skipNextSuggestionFetchRef.current = false
+      return
+    }
     if (query.trim().length < SUGGESTION_MIN_LENGTH) {
       setSuggestions([])
       setIsSuggestionsOpen(false)
@@ -287,6 +306,7 @@ function AddressSearchBar({
 
   const selectSuggestion = useCallback(
     (suggestion: AddressSuggestion) => {
+      skipNextSuggestionFetchRef.current = true
       setQuery(suggestion.description)
       closeSuggestions()
       endSession()
@@ -382,6 +402,7 @@ export function MapCard() {
   const [isExpanded, setIsExpanded] = useState(false)
   const [marker, setMarker] = useState<google.maps.LatLngLiteral | null>(null)
   const [radiusMeters, setRadiusMeters] = useState(DEFAULT_RADIUS_METERS)
+  const debouncedRadiusMeters = useDebouncedValue(radiusMeters, RADIUS_FETCH_DEBOUNCE_MS)
   const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>(DEFAULT_LAYER_VISIBILITY)
   const [isLayersPanelOpen, setIsLayersPanelOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -439,7 +460,7 @@ export function MapCard() {
           {marker && (
             <>
               <RadiusCircle center={marker} radiusMeters={radiusMeters} />
-              <AmenityMarkers center={marker} radiusMeters={radiusMeters} visibleCategories={visibleCategories} />
+              <AmenityMarkers center={marker} radiusMeters={debouncedRadiusMeters} visibleCategories={visibleCategories} />
             </>
           )}
           <AddressSearchBar

@@ -21,7 +21,11 @@ export const DEFAULT_LAYER_VISIBILITY: LayerVisibility = {
   grocery: true,
 }
 
-const MIN_RADIUS_METERS = 0
+// Not 0 — Google's Places Nearby Search rejects a zero-radius circle, which
+// made the slider's own minimum silently return a blank map (every category
+// fails, and the fetch's fail-quiet catch in amenity-markers.tsx swallows it
+// with no visible error). The smallest step is the smallest real search.
+const MIN_RADIUS_METERS = 500
 const MAX_RADIUS_METERS = 5000
 const RADIUS_STEP_METERS = 500
 
