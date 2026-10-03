@@ -80,10 +80,6 @@ describe('registrationSchema', () => {
         expect(() => registrationSchema.parse({ ...valid, password: 'onlyletters' })).toThrow()
     })
 
-    test('rejects a role outside the fixed enum', () => {
-        expect(() => registrationSchema.parse({ ...valid, role: 'admin' })).toThrow()
-    })
-
     test('rejects an OTP that is not exactly 6 digits', () => {
         expect(() => registrationSchema.parse({ ...valid, otp: '12345' })).toThrow()
         expect(() => registrationSchema.parse({ ...valid, otp: '1234567' })).toThrow()

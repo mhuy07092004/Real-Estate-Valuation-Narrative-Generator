@@ -104,7 +104,12 @@ export async function createUser(params: {
     include: { role: true },
   })
 
-  return toStoredUserWithPassword(user)
+  // Deliberately not toStoredUserWithPassword(user) — the one other caller
+  // (findUserByEmail/findUserById) needs the hash for login comparison, but
+  // createUser's result goes straight into the registration response path,
+  // so it must never carry passwordHash even internally.
+  const { passwordHash: _passwordHash, ...stored } = toStoredUserWithPassword(user)
+  return stored
 }
 
 // Only writes if the role is still unset (roleId: null is part of the WHERE,
