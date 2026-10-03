@@ -36,4 +36,12 @@ export const env = {
     // Geocoding API + Places API (New) only.
     serverKey: process.env.GOOGLE_MAPS_SERVER_KEY || '',
   },
+  googleOAuth: {
+    // Same Client ID as VITE_GOOGLE_OAUTH_CLIENT_ID on the frontend — unlike
+    // the Maps keys above, an OAuth Client ID is not a secret (it's embedded
+    // in client-side code), so sharing the one value across both is correct,
+    // not a leak. Used here as the `audience` when verifying the ID token
+    // Google Identity Services hands back — see google-auth.service.ts.
+    clientId: process.env.GOOGLE_OAUTH_CLIENT_ID || '',
+  },
 }

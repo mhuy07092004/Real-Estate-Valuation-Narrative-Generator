@@ -12,6 +12,7 @@ import {
   clearSession,
   getStoredSession,
   login as loginRequest,
+  loginWithGoogle as loginWithGoogleRequest,
   register as registerRequest,
   selectRole as selectRoleRequest,
   updateProfile as updateProfileRequest,
@@ -27,6 +28,7 @@ interface AuthContextValue {
     options?: { rememberMe?: boolean },
   ) => Promise<AuthSession>
   register: (credentials: RegisterCredentials) => Promise<AuthSession>
+  loginWithGoogle: (credential: string) => Promise<AuthSession>
   selectRole: (role: 'agent' | 'valuer' | 'investor' | 'buyer') => Promise<AuthSession>
   updateProfile: (input: UpdateProfileInput) => Promise<User>
   logout: () => void
@@ -58,6 +60,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(session.user)
     return session
   }, [])
+  const loginWithGoogle = useCallback(async (credential: string) => {
+    const session = await loginWithGoogleRequest(credential)
+    setUser(session.user)
+    return session
+  }, [])
   const selectRole = useCallback(async (role: 'agent' | 'valuer' | 'investor' | 'buyer') => {
     const session = await selectRoleRequest(role)
     setUser(session.user)
@@ -81,11 +88,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       login,
       register,
+      loginWithGoogle,
       selectRole,
       updateProfile,
       logout,
     }),
-    [user, isLoading, login, register, selectRole, updateProfile, logout]
+    [user, isLoading, login, register, loginWithGoogle, selectRole, updateProfile, logout]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

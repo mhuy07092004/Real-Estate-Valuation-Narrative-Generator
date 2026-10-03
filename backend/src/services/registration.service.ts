@@ -50,7 +50,7 @@ export async function registerUser(input: RegistrationInput, remoteIp?: string):
   const otpId = await verifyOtp(email, otp)
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
-  const stored = await createUser({ fullName, email, passwordHash })
+  const stored = await createUser({ fullName, email, passwordHash, authProvider: 'local' })
   await consumeOtp(otpId)
   recordRegisterSuccess(risk)
 

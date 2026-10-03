@@ -117,7 +117,7 @@ describe('updateUserProfile', () => {
 })
 
 describe('createUser', () => {
-    test('always sets authProvider "local" and never returns passwordHash', async () => {
+    test('local accounts require passwordHash and never return it', async () => {
         vi.mocked(prisma.user.create).mockResolvedValue(dbUser as any)
 
         const result = await createUser({
@@ -125,11 +125,28 @@ describe('createUser', () => {
             email: 'jane@example.com',
             passwordHash: 'hashed',
             roleId: 2,
+            authProvider: 'local',
         })
 
         const call = vi.mocked(prisma.user.create).mock.calls[0][0] as any
         expect(call.data.authProvider).toBe('local')
+        expect(call.data.passwordHash).toBe('hashed')
         expect(result).not.toHaveProperty('passwordHash')
         expect(result.roleName).toBe('agent')
+    })
+
+    test('OAuth accounts (e.g. google) never write a passwordHash, even if one were somehow passed', async () => {
+        vi.mocked(prisma.user.create).mockResolvedValue({ ...dbUser, passwordHash: null } as any)
+
+        await createUser({
+            fullName: 'Jane Doe',
+            email: 'jane@example.com',
+            roleId: 2,
+            authProvider: 'google',
+        })
+
+        const call = vi.mocked(prisma.user.create).mock.calls[0][0] as any
+        expect(call.data.authProvider).toBe('google')
+        expect(call.data.passwordHash).toBeNull()
     })
 })

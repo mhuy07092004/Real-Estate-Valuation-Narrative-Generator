@@ -172,6 +172,25 @@ export async function register(credentials: RegisterCredentials): Promise<AuthSe
   return session
 }
 
+/**
+ * Exchanges a Google Identity Services ID token for a session. New accounts
+ * are created role-less, same as local sign-up — ProtectedRoute redirects
+ * to /select-role afterward, so no role is collected here.
+ */
+export async function loginWithGoogle(credential: string): Promise<AuthSession> {
+  const response = await fetch(`${API_BASE}/google`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ credential }),
+  })
+
+  const body = (await response.json()) as ApiResponse<LoginResponseData>
+  const session = toSession(body)
+
+  persistSession(session)
+  return session
+}
+
 export async function selectRole(
   role: 'agent' | 'valuer' | 'investor' | 'buyer',
 ): Promise<AuthSession> {

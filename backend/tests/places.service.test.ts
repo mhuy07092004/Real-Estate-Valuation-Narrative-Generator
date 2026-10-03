@@ -51,19 +51,22 @@ describe('findNearbyAmenities', () => {
         })
     })
 
-    test('falls back to scanning the types array when primaryType is missing/unrecognized', async () => {
-        fetchMock.mockResolvedValue({
-            ok: true,
-            status: 200,
-            json: async () => ({
-                places: [
-                    {
-                        id: 'p2',
-                        location: { latitude: 1, longitude: 2 },
-                        types: ['point_of_interest', 'cafe'],
-                    },
-                ],
-            }),
+    // Category is no longer guessed from the place's own `types` field — each
+    // category now runs its own scoped search (includedTypes: CATEGORY_TYPES[category]),
+    // so a place's category is simply whichever search found it.
+    test('assigns category based on which per-category search found the place, not the place\'s own type fields', async () => {
+        fetchMock.mockImplementation(async (_url: string, options: { body: string }) => {
+            const body = JSON.parse(options.body)
+            const isCafeSearch = body.includedTypes.includes('cafe')
+            return {
+                ok: true,
+                status: 200,
+                json: async () => ({
+                    places: isCafeSearch
+                        ? [{ id: 'p2', location: { latitude: 1, longitude: 2 }, types: ['point_of_interest', 'cafe'] }]
+                        : [],
+                }),
+            }
         })
 
         const [amenity] = await findNearbyAmenities(1, 2, 1000)
@@ -71,18 +74,45 @@ describe('findNearbyAmenities', () => {
         expect(amenity.name).toBe('Unnamed place')
     })
 
-    test('categorizes as "other" when nothing matches any known type', async () => {
-        fetchMock.mockResolvedValue({
-            ok: true,
-            status: 200,
-            json: async () => ({
-                places: [{ id: 'p3', location: { latitude: 1, longitude: 2 }, types: ['weird_unknown_type'] }],
-            }),
+    test('falls back to the category name for primaryType when Google gives neither primaryType nor types', async () => {
+        fetchMock.mockImplementation(async (_url: string, options: { body: string }) => {
+            const body = JSON.parse(options.body)
+            const isSchoolSearch = body.includedTypes.includes('school')
+            return {
+                ok: true,
+                status: 200,
+                json: async () => ({
+                    places: isSchoolSearch ? [{ id: 'p3', location: { latitude: 1, longitude: 2 } }] : [],
+                }),
+            }
         })
 
         const [amenity] = await findNearbyAmenities(1, 2, 1000)
-        expect(amenity.category).toBe('other')
-        expect(amenity.primaryType).toBe('weird_unknown_type')
+        expect(amenity.category).toBe('school')
+        expect(amenity.primaryType).toBe('school')
+    })
+
+    test('degrades gracefully: a single category failing does not blank out amenities from categories that succeeded', async () => {
+        fetchMock.mockImplementation(async (_url: string, options: { body: string }) => {
+            const body = JSON.parse(options.body)
+            if (body.includedTypes.includes('hospital')) {
+                return { ok: false, status: 500, json: async () => ({ error: { message: 'upstream hiccup' } }) }
+            }
+            if (body.includedTypes.includes('school')) {
+                return {
+                    ok: true,
+                    status: 200,
+                    json: async () => ({
+                        places: [{ id: 'p4', displayName: { text: 'Richmond Primary School' }, location: { latitude: 1, longitude: 2 }, primaryType: 'primary_school' }],
+                    }),
+                }
+            }
+            return { ok: true, status: 200, json: async () => ({ places: [] }) }
+        })
+
+        const amenities = await findNearbyAmenities(1, 2, 1000)
+        expect(amenities).toHaveLength(1)
+        expect(amenities[0]).toMatchObject({ id: 'p4', category: 'school' })
     })
 
     test('returns an empty array (not an error) when Google returns no places field', async () => {
@@ -91,7 +121,11 @@ describe('findNearbyAmenities', () => {
         expect(result).toEqual([])
     })
 
-    test('throws a PlacesError carrying the upstream status on a non-OK response', async () => {
+    test('throws a PlacesError when every category search fails', async () => {
+        // One request per category now (searchNearbyByCategory), fanned out via
+        // Promise.allSettled — since this mock applies to every call, all of them
+        // fail, so findNearbyAmenities surfaces its own aggregate error rather than
+        // passing through any single category's upstream message.
         fetchMock.mockResolvedValue({
             ok: false,
             status: 400,
@@ -104,7 +138,7 @@ describe('findNearbyAmenities', () => {
         } catch (err) {
             expect(err).toBeInstanceOf(PlacesError)
             expect((err as PlacesError).status).toBe(502)
-            expect((err as PlacesError).message).toBe('Invalid radius')
+            expect((err as PlacesError).message).toBe('Nearby amenities lookup failed')
         }
     })
 

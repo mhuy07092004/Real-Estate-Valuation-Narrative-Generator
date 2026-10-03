@@ -86,20 +86,44 @@ export async function updateUserProfile(
   return toStoredUserWithPassword(user)
 }
 
-/** Persists a new local-auth user and returns frontend-safe profile fields. */
-export async function createUser(params: {
-  fullName: string
-  email: string
-  passwordHash: string
-  roleId?: number | null
-}): Promise<StoredUser> {
+// roleId is nullable/optional on both branches — every new account (local
+// OTP sign-up or first-time Google sign-in) is created role-less, and
+// ProtectedRoute redirects any role-less user to /select-role (see
+// registration.service.ts, google-auth.service.ts, and selectUserRole in
+// auth.service.ts).
+type CreateUserParams =
+  | {
+      fullName: string
+      email: string
+      roleId?: number | null
+      authProvider: 'local'
+      passwordHash: string
+    }
+  | {
+      fullName: string
+      email: string
+      roleId?: number | null
+      authProvider: 'google'
+      passwordHash?: undefined
+    }
+
+/**
+ * Persists a new user and returns frontend-safe profile fields. `authProvider`
+ * and `passwordHash` are tied together by this discriminated union, not two
+ * independent optional fields — 'local' requires a passwordHash, an OAuth
+ * provider forbids one (schema.prisma's User.passwordHash is nullable
+ * specifically for OAuth-only accounts). This makes "local account with no
+ * password" a compile error instead of a silent possibility: every call
+ * site must say which case it is.
+ */
+export async function createUser(params: CreateUserParams): Promise<StoredUser> {
   const user = await prisma.user.create({
     data: {
       fullName: params.fullName,
       email: params.email,
-      passwordHash: params.passwordHash,
+      passwordHash: params.authProvider === 'local' ? params.passwordHash : null,
       roleId: params.roleId ?? null,
-      authProvider: 'local',
+      authProvider: params.authProvider,
     },
     include: { role: true },
   })

@@ -16,6 +16,14 @@ export const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required'),
 })
 
+// `credential` is the ID token Google Identity Services hands back to the
+// frontend. No role here — a new account is created role-less, same as
+// local OTP registration (see loginOrRegisterWithGoogle in
+// google-auth.service.ts, and ProtectedRoute's /select-role redirect).
+export const googleAuthSchema = z.object({
+  credential: z.string().min(1, 'Missing Google credential'),
+})
+
 // Empty string means "clear this field" — normalized to null before hitting
 // the DB (see updateUserProfile), since these columns are nullable, not
 // required, unlike fullName.
