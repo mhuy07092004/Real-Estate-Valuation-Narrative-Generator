@@ -142,6 +142,28 @@ function ComparisonCell({ cell }: { cell: CellValue }) {
 
 function priceCell(tier: PlanTier, billingPeriod: 'monthly' | 'annually'): CellValue {
   if (tier.price === 'Free') return { type: 'text', value: 'Free' }
+  if (tier.promoPrice) {
+    return {
+      type: 'text',
+      value: (
+        <div className="flex flex-col items-center gap-0.5">
+          <span className="text-xs text-relaive-gray line-through">
+            {tier.price}
+            {tier.priceSuffix}
+          </span>
+          <div className="flex items-center gap-1">
+            <span>
+              {tier.promoPrice}
+              {tier.priceSuffix}
+            </span>
+            <span className="rounded bg-green-100 px-1 py-0.5 text-[10px] font-semibold text-green-700 whitespace-nowrap">
+              Promotion
+            </span>
+          </div>
+        </div>
+      ),
+    }
+  }
   if (billingPeriod === 'monthly') {
     return { type: 'text', value: `${tier.price}${tier.priceSuffix ?? ''}` }
   }

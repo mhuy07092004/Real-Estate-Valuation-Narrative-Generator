@@ -21,6 +21,8 @@ export type PlanTier = {
   description: string
   price: string
   priceSuffix?: string
+  /** Promotional price; when set, `price` is shown struck through. */
+  promoPrice?: string
   bestFor: string
   features: string[]
   primaryCta: PlanCta
@@ -81,7 +83,9 @@ export const PLAN_TIERS: PlanTier[] = [
     badgeTone: 'popular',
     title: 'Plus',
     description: 'Every feature, with room for regular client work.',
-    price: 'Free',
+    price: '$79',
+    priceSuffix: '/month',
+    promoPrice: '$0',
     bestFor: 'Valuers, agents & consultants',
     features: planFeatures('plus'),
     primaryCta: { label: 'Upgrade to Plus', href: '/signin' },
@@ -95,7 +99,9 @@ export const PLAN_TIERS: PlanTier[] = [
     badge: 'Highest Volume',
     title: 'Pro',
     description: 'Every feature, with the highest report allowance for busy practices and investors.',
-    price: 'Free',
+    price: '$129',
+    priceSuffix: '/month',
+    promoPrice: '$0',
     bestFor: 'Property investors & analysts',
     features: planFeatures('pro'),
     primaryCta: { label: 'Upgrade to Pro', href: '/signin' },

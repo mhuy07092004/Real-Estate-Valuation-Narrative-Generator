@@ -248,7 +248,12 @@ export function SettingsPage() {
                     ) : null}
                     <h3 className="text-base font-semibold text-relaive-navy">{plan.title}</h3>
                     <p className="mt-1 text-lg font-bold text-relaive-primary">
-                      {plan.price}
+                      {plan.promoPrice ? (
+                        <span className="mr-1.5 text-sm font-medium text-relaive-gray line-through">
+                          {plan.price}
+                        </span>
+                      ) : null}
+                      {plan.promoPrice ?? plan.price}
                       {plan.priceSuffix ? (
                         <span className="ml-1 text-sm font-medium text-relaive-gray">
                           /mo
