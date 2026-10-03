@@ -44,12 +44,4 @@ export const env = {
     // Google Identity Services hands back — see google-auth.service.ts.
     clientId: process.env.GOOGLE_OAUTH_CLIENT_ID || '',
   },
-  microsoftOAuth: {
-    // Same Client ID as VITE_MICROSOFT_OAUTH_CLIENT_ID on the frontend — an
-    // OAuth Client ID isn't a secret (this is a public-client PKCE flow, no
-    // client secret exists), so sharing the value across both is correct.
-    // Used as the `audience` when verifying the ID token MSAL hands back —
-    // see microsoft-auth.service.ts.
-    clientId: process.env.MICROSOFT_OAUTH_CLIENT_ID || '',
-  },
 }

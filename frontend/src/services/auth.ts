@@ -191,21 +191,3 @@ export async function loginWithGoogle(credential: string, role?: RegisterCredent
   persistSession(session)
   return session
 }
-
-/**
- * Exchanges an MSAL ID token for a session. Same `role`-only-needed-once
- * contract as loginWithGoogle above.
- */
-export async function loginWithMicrosoft(credential: string, role?: RegisterCredentials['role']): Promise<AuthSession> {
-  const response = await fetch(`${API_BASE}/microsoft`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ credential, role }),
-  })
-
-  const body = (await response.json()) as ApiResponse<LoginResponseData>
-  const session = toSession(body)
-
-  persistSession(session)
-  return session
-}

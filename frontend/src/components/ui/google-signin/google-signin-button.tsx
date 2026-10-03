@@ -27,9 +27,7 @@ import { buttonVariants } from '../button/button'
 // presets ('large' here) are a fixed ~40px with no way to request a taller
 // button, so forcing the iframe taller via CSS would leave the same kind of
 // dead strip vertically that 'icon' left horizontally. This button is
-// pinned to h-10 (40px) for that reason — SocialLoginButtons in
-// sign-in-form.tsx / sign-up-form.tsx pins MicrosoftSignInButton to the same
-// h-10 so the two buttons match.
+// pinned to h-10 (40px) for that reason.
 //
 // Loads the GSI script once and caches the promise — same pattern as
 // TurnstileWidget (../turnstile/turnstile-widget.tsx) for Cloudflare's script.

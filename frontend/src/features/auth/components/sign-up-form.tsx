@@ -4,7 +4,6 @@ import { Button } from '../../../components/ui/button/button'
 import { Input } from '../../../components/ui/input/input'
 import { TurnstileWidget } from '../../../components/ui/turnstile/turnstile-widget'
 import { GoogleSignInButton } from '../../../components/ui/google-signin/google-signin-button'
-import { MicrosoftSignInButton } from '../../../components/ui/microsoft-signin/microsoft-signin-button'
 import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-role'
 import { useAuth } from '../hooks/use-auth'
 import { useCaptchaGate } from '../hooks/use-captcha-gate'
@@ -124,22 +123,6 @@ function GoogleIcon() {
   )
 }
 
-function MicrosoftIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-      <path d="M0 0h8.5v8.5H0V0Z" fill="#F25022" />
-      <path d="M9.5 0H18v8.5H9.5V0Z" fill="#7FBA00" />
-      <path d="M0 9.5h8.5V18H0V9.5Z" fill="#00A4EF" />
-      <path d="M9.5 9.5H18V18H9.5V9.5Z" fill="#FFB900" />
-    </svg>
-  )
-}
-
-const SOCIAL_PROVIDERS = [
-  { id: 'google', label: 'Google', icon: GoogleIcon },
-  { id: 'microsoft', label: 'Microsoft', icon: MicrosoftIcon },
-] as const
-
 const ROLE_OPTIONS: { value: DashboardRole; label: string }[] = [
   { value: 'buyer', label: 'Buyer' },
   { value: 'investor', label: 'Investor' },
@@ -161,44 +144,35 @@ function SocialLoginButtons({
   role,
   onGoogleCredential,
   onGoogleError,
-  onMicrosoftCredential,
-  onMicrosoftError,
 }: {
   role: DashboardRole | ''
   onGoogleCredential: (credential: string) => void
   onGoogleError: () => void
-  onMicrosoftCredential: (credential: string) => void
-  onMicrosoftError: () => void
 }) {
-  return (
-    <div className="grid grid-cols-2 gap-3">
-      {SOCIAL_PROVIDERS.map(({ id, label, icon: Icon }) => {
-        // Both Google and Microsoft sign-up create a brand-new account when
-        // this email hasn't signed up before, and role isn't something
-        // either provider can tell us — same requirement the plain sign-up
-        // form above enforces.
-        if (!role) {
-          return (
-            <Button key={id} type="button" variant="outline" size="md" className="gap-2" disabled title="Select a role first">
-              <Icon />
-              {label}
-            </Button>
-          )
-        }
+  // Google sign-up creates a brand-new account when this email hasn't signed
+  // up before, and role isn't something the provider can tell us — same
+  // requirement the plain sign-up form above enforces.
+  if (!role) {
+    return (
+      <div className="grid grid-cols-1 gap-3">
+        <Button type="button" variant="outline" size="md" className="gap-2" disabled title="Select a role first">
+          <GoogleIcon />
+          Google
+        </Button>
+      </div>
+    )
+  }
 
-        return id === 'google' ? (
-          <GoogleSignInButton key={id} onCredential={onGoogleCredential} onError={onGoogleError} />
-        ) : (
-          <MicrosoftSignInButton key={id} onCredential={onMicrosoftCredential} onError={onMicrosoftError} />
-        )
-      })}
+  return (
+    <div className="grid grid-cols-1 gap-3">
+      <GoogleSignInButton onCredential={onGoogleCredential} onError={onGoogleError} />
     </div>
   )
 }
 
 export function SignUpForm() {
   const navigate = useNavigate()
-  const { register, loginWithGoogle, loginWithMicrosoft } = useAuth()
+  const { register, loginWithGoogle } = useAuth()
   const {
     isRequired: captchaRequired,
     token: captchaToken,
@@ -223,7 +197,6 @@ export function SignUpForm() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
-  const [isMicrosoftSubmitting, setIsMicrosoftSubmitting] = useState(false)
 
   async function handleGoogleCredential(credential: string) {
     setError(null)
@@ -241,23 +214,6 @@ export function SignUpForm() {
       }
     } finally {
       setIsGoogleSubmitting(false)
-    }
-  }
-
-  async function handleMicrosoftCredential(credential: string) {
-    setError(null)
-    setIsMicrosoftSubmitting(true)
-    try {
-      await loginWithMicrosoft(credential, role || undefined)
-      navigate('/dashboard', { replace: true })
-    } catch (err) {
-      if (err instanceof AuthError) {
-        setError(err.message)
-      } else {
-        setError('Microsoft sign-up failed. Please try again.')
-      }
-    } finally {
-      setIsMicrosoftSubmitting(false)
     }
   }
 
@@ -514,10 +470,8 @@ export function SignUpForm() {
         role={role}
         onGoogleCredential={handleGoogleCredential}
         onGoogleError={() => setError('Google sign-in failed to load. Please try again.')}
-        onMicrosoftCredential={handleMicrosoftCredential}
-        onMicrosoftError={() => setError('Microsoft sign-in failed to load. Please try again.')}
       />
-      {isGoogleSubmitting || isMicrosoftSubmitting ? (
+      {isGoogleSubmitting ? (
         <p className="text-center text-xs text-relaive-gray">Signing up…</p>
       ) : null}
     </div>

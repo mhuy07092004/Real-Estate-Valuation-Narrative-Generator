@@ -13,8 +13,9 @@
   now that frontend (Vercel) and backend (Render) are separate origins in prod.
 - Also bundled in: swap `bcrypt` → `bcryptjs` (native bcrypt's install script
   gets blocked by npm 12+ by default; bcryptjs is pure JS, no native build step).
-- For Google/Microsoft Oauth: semi working, currently only at local and only for sign in,
+- For Google Oauth: semi working, currently only at local and only for sign in,
 not sign up. Will need another push at the nearest future. Woowee
+- Microsoft OAuth held back for now — see PR #21 review.
 
 ## Environment variables required for this to work once deployed
 New config needed for the map/geocoding feature and Google OAuth — nothing
