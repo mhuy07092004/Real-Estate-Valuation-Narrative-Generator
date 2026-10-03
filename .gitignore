@@ -48,6 +48,8 @@ claude.md
 # Contains a plaintext Hugging Face token for Vertex AI training jobs
 data_ai/training/job_config.yaml
 data_ai/training/merge_job_config.yaml
+# Any other job config (e.g. job_config_smoke.yaml) is generated from the ones above and carries the same token
+data_ai/training/*job_config*.yaml
 data_ai/training/*.egg-info/
 
 data_ai/probe_output/

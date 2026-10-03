@@ -35,6 +35,8 @@ import { MarketComparison } from '../pages/dashboard/investor/market-comparision
 import { ProtectedRoute, SelectRoleRoute } from '../features/auth/components/protected-route'
 import SharedReportPage from '../pages/shared-report'
 import SelectRolePageRoute from '../pages/select-role'
+import ContactUsPage from '../pages/contactus'
+import PolicyPage from '../pages/policy'
 
 function DashboardReport() {
   const { role } = useParams<{ role: string }>()
@@ -65,6 +67,9 @@ export function AppRoutes() {
       <Route path="/about" element={<Navigate to="/" replace />} />
       <Route path="/features" element={<Navigate to="/" replace />} />
       <Route path="/plans" element={<Navigate to="/" replace />} />
+      <Route path="/contact-us" element={<ContactUsPage />} />
+      <Route path="/policy" element={<Navigate to="/policy/terms" replace />} />
+      <Route path="/policy/:doc" element={<PolicyPage />} />
       <Route path="/signin" element={<SignInPageRoute />} />
       <Route path="/signup" element={<SignUpPageRoute />} />
       <Route path="/forgot-password" element={<ForgotPasswordPageRoute />} />

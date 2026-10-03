@@ -15,6 +15,15 @@ resource "google_project_iam_member" "cloud_run_sql_client" {
   member = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
 }
 
+# Lets the backend call the fine-tuned narrative model on Vertex AI. On Cloud
+# Run the auth library gets its token from this service account automatically,
+# so no key file is needed (and the org blocks service-account keys anyway).
+resource "google_project_iam_member" "cloud_run_vertex_user" {
+  project = var.project_id
+  role    = "roles/aiplatform.user"
+  member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+}
+
 data "google_project" "current" {
   project_id = var.project_id
 }

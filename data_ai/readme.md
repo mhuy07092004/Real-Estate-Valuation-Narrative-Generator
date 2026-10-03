@@ -1,213 +1,279 @@
 # data_ai
 
-Data collection, dataset-building, and Gemma fine-tuning experiments supporting the main app, plus a separate FastAPI service that serves a trained price-prediction model. Not one standalone thing — pieces here either feed real data into the backend's DB (`backend/prisma/schema.prisma`, Postgres on Cloud SQL), build/train the AI narrative model, or serve the price-prediction model the backend calls over HTTP.
+Everything AI and data related, in four independent parts:
+
+1. **Data collection** — scrapers that produce the CSVs the backend imports into its database.
+2. **Narrative dataset** — the 300 role-conditioned example reports used to fine-tune a language model.
+3. **Price-prediction model and service** — a scikit-learn model behind a small FastAPI service the backend calls.
+4. **Narrative model (Vertex AI)** — fine-tune Gemma 2 2B with LoRA, merge it, serve it from a Vertex AI endpoint, and score it.
+
+Each part below is a numbered list of commands, with **Local** and **Deployed** variants where they differ. Commands are PowerShell from the repo root unless noted.
 
 ## Folder map
 
 | Path | What's there |
 | --- | --- |
-| `ingestion/` | Scraping scripts for external data: `bronze_listing_ingest.py` (property listings), `domain_suburb_insights_ingest.py`, `sqm_vacancy_rate_ingest.py`, `abs_sa2_raw_ingest.py`, plus `suburb_source.py` (shared helper — reads the real suburb list from the backend's live database rather than re-deriving it). |
-| `run_full_scrape.py` | Orchestrates the three external-data scripts (Domain/SQM/ABS) across every real suburb already in the backend DB, not just a test batch. |
-| `scripts/` | `prepare_finetune_dataset.py` and `split_narrative_dataset.py` (the narrative dataset pipeline — see below), plus one-off `probe_*.py` scripts used to inspect a scrape target's page structure before writing a real ingestion script against it. |
-| `docs/` | `scp425_plan.md` (the real, current narrative-dataset design), `scp419_plan.md` (historical baseline-eval plan), `gcp_provisioning_plan.md`, `fixtures/` (the actual dataset files at each pipeline stage — see below). |
-| `training/` | Vertex AI custom-training-job code: the `trainer/` Python package (`finetune_gemma.py`, `merge_adapter.py`), `setup.py` to package it, and job config YAML files (gitignored — they hold a plaintext Hugging Face token). |
-| `eval/` | `generate_baseline.py` (runs a deployed model against the held-out test set), `score_rouge.py` (ROUGE-L scoring against real reference text), `baseline-report.md`. |
-| `model/` | `train_price_model.py` — trains the RandomForest price-prediction model from `bronze_listings.csv` + `domain_suburb_insights.csv`. The trained `.joblib` artifacts are gitignored (reproducible from the CSVs, baked into the service's Docker image at build time — not committed). |
-| `service/` | The FastAPI app (`main.py`) that serves the trained price-prediction model over HTTP (`POST /predict`), plus its own `Dockerfile`/`requirements.txt`. This is what `backend/src/services/price-prediction.service.ts` calls via `ML_PRICE_PREDICTION_URL`. Deployed separately from everything else in this folder — see "Deploying the price-prediction service" below. |
-| `notebooks/` | `price_prediction_model.ipynb` — exploratory notebook for the price-prediction model (separate from the Vertex AI narrative fine-tuning below). |
-| `narrative_training_pairs.jsonl` | The actual dataset deliverable — role-conditioned narrative text paired with real property data. |
-| `Relaive_AI_Data_Service_Backlog.md` | Original ticket backlog (historical reference — some of it describes a simpler scheme than what's actually implemented; `docs/scp425_plan.md` has the real, current design). |
-| Root CSVs (`bronze_listings.csv`, `abs_*.csv`, `sqm_vacancy_rate_raw.csv`, `domain_suburb_insights.csv`) | Scraper outputs — real data pulled by `ingestion/`. |
-| `requirements.txt` | Scraping dependencies only (pandas, undetected_chromedriver, webdriver-manager, openpyxl). `training/`, `eval/`, and `service/` have their own separate, smaller dependency lists documented in their sections below. |
+| `ingestion/`, `run_full_scrape.py` | Scrapers (listings, Domain, SQM, ABS) and the orchestrator that runs them for every suburb in the database |
+| `scripts/` | `split_narrative_dataset.py`, `prepare_finetune_dataset.py` (dataset pipeline) and one-off `probe_*.py` scraper probes |
+| `docs/fixtures/` | The dataset files at each stage; `docs/scp425_plan.md` is the current dataset design |
+| `model/`, `service/`, `notebooks/` | Price model training script, its FastAPI service and Dockerfile, and the exploratory notebook |
+| `training/` | Vertex AI trainer package (`finetune_gemma.py`, `merge_adapter.py`); job config YAMLs are **gitignored** (they hold a Hugging Face token) |
+| `eval/` | `generate_baseline.py` (run a deployed model on the test prompts) and `score_rouge.py` |
+| Root CSVs | Scraper outputs: `bronze_listings.csv`, `domain_suburb_insights.csv`, `abs_*.csv`, `sqm_vacancy_rate_raw.csv` |
+| `narrative_training_pairs.jsonl` | The hand-authored narratives paired with real property data |
+| `Relaive_AI_Data_Service_Backlog.md`, `docs/scp419_plan.md`, `docs/gcp_provisioning_plan.md` | Historical planning docs — don't follow them |
 
-## Deploying the price-prediction service
+## 1. Collect data (local)
 
-Docker image → Docker Hub → Render, same pattern as the backend. Build/push is automated via [`../.github/workflows/docker-deploy-ai.yml`](../.github/workflows/docker-deploy-ai.yml) on every push to `main` touching `data_ai/service/**`, `data_ai/model/**`, or `data_ai/*.csv`.
+**Prerequisites:** Python 3.11, Chrome (the scrapers drive it), network access, and your machine allow-listed on Cloud SQL (the orchestrator reads the suburb list from the database).
 
-```bash
-docker build -f data_ai/service/Dockerfile -t <dockerhub-username>/relaive-ai-service:latest .
-docker push <dockerhub-username>/relaive-ai-service:latest
+1. Set up the environment:
+   ```powershell
+   cd data_ai
+   python -m venv venv
+   .\venv\Scripts\Activate.ps1
+   pip install -r requirements.txt
+   ```
+2. Scrape one source, or everything:
+   ```powershell
+   python ingestion/domain_suburb_insights_ingest.py     # one source
+   python run_full_scrape.py                              # all suburbs, sequentially
+   ```
+   None of the scrapers can resume: re-running without clearing their output silently duplicates rows. The orchestrator clears each output CSV first.
+3. **Hand-off to the database:** the CSVs are imported by scripts in `backend/scripts/` — the exact commands are in [`../backend/README.md`](../backend/README.md#database-steps). Nothing in `data_ai/` writes to the database directly.
+
+## 2. Build the narrative dataset (local)
+
+1. From `backend/`, export real property inputs (300 rows, 75 per role):
+   ```powershell
+   cd ..\backend
+   npx tsx scripts/export-narrative-training-inputs.ts       # writes data_ai/docs/fixtures/narrative_dataset_inputs.jsonl
+   ```
+2. `narrative_training_pairs.jsonl` pairs each row with a hand-written narrative grounded only in that row's numbers. It's already in the repo; regenerate it only if the inputs change.
+3. Split (fixed seed 42, stratified 80/10/10 by role) and format as chat examples:
+   ```powershell
+   cd ..\data_ai
+   python scripts/split_narrative_dataset.py          # → docs/fixtures/narrative_training_pairs.{train,val,test}.jsonl
+   python scripts/prepare_finetune_dataset.py         # → docs/fixtures/finetune_ready/{train,val,test}.jsonl  (240 / 28 / 32 rows)
+   ```
+
+## 3. Price-prediction model and service
+
+A RandomForest trained from `bronze_listings.csv` + `domain_suburb_insights.csv`, served by FastAPI (`POST /` or `POST /predict`, `GET /health`). The backend calls it through `ML_PRICE_PREDICTION_URL`.
+
+### Local
+1. Train (needs network once, for the Australian postcode lookup CSV):
+   ```powershell
+   cd data_ai
+   python model/train_price_model.py       # writes model/price_model.joblib + preprocessing.joblib (gitignored)
+   ```
+2. Run the service:
+   ```powershell
+   cd service
+   pip install -r requirements.txt
+   uvicorn main:app --port 8000
+   ```
+3. **Verify:**
+   ```powershell
+   curl.exe http://localhost:8000/health
+   curl.exe -X POST http://localhost:8000/predict -H "Content-Type: application/json" -d '{\"suburb\":\"Bonnyrigg\",\"state\":\"NSW\",\"postcode\":\"2177\",\"propertyType\":\"House\",\"bedrooms\":3,\"bathrooms\":2,\"landSizeSqm\":430}'
+   ```
+4. Point a local backend at it: `ML_PRICE_PREDICTION_URL=http://localhost:8000/predict` in `backend/.env`.
+
+### Deployed (Docker → Docker Hub → Render)
+The image trains the model at build time, so the running container only loads finished files. CI (`docker-deploy-ai.yml`) builds and pushes it on pushes to `main` touching `data_ai/service|model/**` or `data_ai/*.csv`. Manually, from the repo root:
+```powershell
+docker build -f data_ai/service/Dockerfile -t <dockerhub-user>/relaive-ai-service:latest .
+docker push <dockerhub-user>/relaive-ai-service:latest
+```
+Render: new **Web Service → Existing Image** `docker.io/<dockerhub-user>/relaive-ai-service:latest`, health check path `/health`. No variables are required; set `ML_API_KEY` only to require a bearer token (then set the same value as `ML_PRICE_PREDICTION_API_KEY` on the backend). Then set `ML_PRICE_PREDICTION_URL` on the backend (Render's env tab, or `backend_env` in `infra/terraform/variables.tf` for Cloud Run). Render's free tier sleeps after ~15 minutes idle, so the first prediction after a gap is slow. The live service is `https://relaive-ai-service-latest.onrender.com`.
+
+## 4. Narrative model on Vertex AI
+
+Fine-tune Gemma 2 2B-it with LoRA → merge → serve on a Vertex AI endpoint → score against the untrained baseline → connect the backend. **Train in Sydney, serve in `us-central1`.** Project `csit321-508209` (number `393439107077`).
+
+### 4.0 Before you start
+| | `australia-southeast1` (Sydney) | `us-central1` |
+|---|---|---|
+| Train on a T4 | works, but the Vertex *training* T4 quota starts at **0** — request 1 (Console → **IAM & Admin → Quotas**, filter `Custom model training Nvidia T4 GPUs`) | quota already 1 |
+| Serve on a T4 | the server **crashes** (see step 8) | same |
+| Serve on an L4 | **not offered in any zone** | works, serving quota 2 |
+
+The only runtime data sent to the US endpoint is the report prompt (subject address and features, estimated value, growth figure, up to five comparable sales) — no client names or emails.
+
+You also need: `gcloud` logged in (`gcloud auth login` and `gcloud auth application-default login`), a Hugging Face token whose account accepted the Gemma licence, and Docker isn't needed. Check the real Vertex quotas (not the Compute Engine table):
+```powershell
+$tok = gcloud auth print-access-token
+$h = @{ Authorization = "Bearer $tok"; "x-goog-user-project" = "csit321-508209" }
+(Invoke-RestMethod -Headers $h -Uri "https://serviceusage.googleapis.com/v1beta1/projects/csit321-508209/services/aiplatform.googleapis.com/consumerQuotaMetrics?pageSize=500").metrics |
+  Where-Object { $_.metric -match "custom_model_(training|serving)_nvidia_(t4|l4)_gpus$" }
+```
+Variables used below:
+```powershell
+$P="csit321-508209"; $R="australia-southeast1"; $B="gs://csit321-508209-training"
+$US="us-central1";   $USB="gs://csit321-508209-training-us"
 ```
 
-Render service settings: Image URL `docker.io/<dockerhub-username>/relaive-ai-service:latest`, Health Check Path `/health`. No env vars required — the trained model is baked into the image at build time. Set `ML_API_KEY` only to require a bearer token on `/predict`.
+### 4.1 Bucket and dataset (Sydney)
+```powershell
+gcloud storage buckets create $B --location=$R --project=$P --uniform-bucket-level-access
+gcloud storage cp data_ai\docs\fixtures\finetune_ready\train.jsonl data_ai\docs\fixtures\finetune_ready\val.jsonl "$B/training-data/"
+```
+The bucket must be in the region where training runs, or the job fails writing its output.
 
-Once live, point the backend at it: set `ML_PRICE_PREDICTION_URL` (and `ML_PRICE_PREDICTION_API_KEY` if `ML_API_KEY` was set) on the backend's deployment — see `backend/README.md`. Free-tier Render cold-sleeps after ~15 min idle; the first prediction after a gap is slower.
-
-## First-time setup (scraping/dataset tooling)
-
-```bash
-cd data_ai
-python -m venv venv
-.\venv\Scripts\Activate.ps1      # Windows; `source venv/bin/activate` elsewhere
-pip install -r requirements.txt
+### 4.2 Package the trainer
+```powershell
+cd data_ai\training
+python setup.py sdist --formats=gztar          # the "no README" warning is harmless
+gcloud storage cp dist\trainer-0.1.tar.gz "$B/training-code/"
 ```
 
-This covers the scraping and dataset-building scripts. The fine-tuning pipeline (`training/`, `eval/`) needs separate setup — see "Fine-tuning pipeline" below.
-
-## Scraping pipeline
-
-Run an individual ingestion script directly (each is a real scraper, expects real network access):
-
-```bash
-python ingestion/domain_suburb_insights_ingest.py
-```
-
-Or scrape every real suburb at once via the orchestrator:
-
-```bash
-python run_full_scrape.py
-```
-
-This clears each script's previous output CSV first (none of them are resume-aware — re-running without clearing silently duplicates rows) and runs the three external-data scripts sequentially, not in parallel, so no scrape target sees two concurrent sessions from this machine.
-
-**Handoff to the backend**: the CSVs these scripts produce (`bronze_listings.csv`, `domain_suburb_insights.csv`, `abs_*.csv`, `sqm_vacancy_rate_raw.csv`) get imported into the backend's real DB by scripts in `backend/scripts/` (`ingest-bronze-listings.ts`, `load-external-market-data.ts`, `build-suburb-market-intelligence.ts`) — see `backend/README.md`'s "Data import" section for the exact commands. Nothing in `data_ai/` writes to the backend DB directly.
-
-## Narrative dataset pipeline
-
-The real, verified chain that produces `narrative_training_pairs.jsonl` and its splits:
-
-1. **`backend/scripts/export-narrative-training-inputs.ts`** (run from `backend/`, not here) — pulls real properties/comparables/market-intelligence/ROI/affordability data from the backend's live DB, writes `docs/fixtures/narrative_dataset_inputs.jsonl` (300 rows, 75 per role: agent/valuer/buyer/investor).
-2. **Hand-authored narratives** — `narrative_training_pairs.jsonl` (this directory's root) pairs each of those 300 rows with real narrative text, grounded strictly in that row's own data (verifiable — every dollar figure traces back to the row's comparables/market/ROI/affordability numbers).
-3. **`python scripts/split_narrative_dataset.py`** — fixed-seed (42), stratified 80/10/10 split by role → `docs/fixtures/narrative_training_pairs.{train,val,test}.jsonl`.
-4. **`python scripts/prepare_finetune_dataset.py`** — joins the split files back to their grounding data from step 1, formats each as a `{"messages": [...]}` chat example → `docs/fixtures/finetune_ready/{train,val,test}.jsonl`, ready for fine-tuning.
-
-## GCP / Vertex AI setup
-
-Project used so far: `csit321-508209`. Adjust for whatever project you're actually using.
-
-```bash
-gcloud auth login
-gcloud auth application-default login   # needed separately — this is what lets Node/Python code get an access token, not just the CLI
-gcloud config set project csit321-508209
-gcloud services enable aiplatform.googleapis.com compute.googleapis.com
-```
-
-**One bucket, correct region from the start** — a mistake made once already: creating a bucket in a different region than where GPU quota/compute actually is causes Vertex AI Training jobs to fail with a region-mismatch error when writing output (reading training input across regions works fine; writing training *output* does not). Pick the bucket's region to match wherever your GPU quota is (check with the quota command below first), then:
-
-```bash
-gsutil mb -l us-central1 gs://YOUR_PROJECT-training
-```
-
-**GPU quota — two separate pools, not one.** Vertex AI keeps *serving* GPU quota and *training* GPU quota completely separate, even for the identical accelerator type in the identical region — having one does not imply having the other. Check both before assuming either is available:
-
-```bash
-gcloud compute regions describe us-central1 --project=YOUR_PROJECT --format="table(quotas)"
-```
-
-Look for `NVIDIA_L4_GPUS`/`NVIDIA_TESLA_T4_GPUS` (serving) — training quota isn't shown here; check it via Console: **IAM & Admin → Quotas**, filter for `custom_model_training_nvidia_t4_gpus` (or `_l4_gpus`). If either is 0, select the region row and request an increase — approval can be fast (minutes, in practice) despite Console's "2-3 weeks" disclaimer banner.
-
-## Fine-tuning pipeline (`training/`)
-
-**Setup** (separate from the root `requirements.txt`):
-```
-transformers==4.44.2
-peft==0.12.0
-accelerate==0.33.0
-trl==0.9.6
-datasets==2.21.0
-```
-(these are installed automatically inside the Vertex training container via `setup.py`'s `install_requires` — no local install needed unless you want to test the script locally, which requires a GPU to be practical.)
-
-**Package and upload the training code:**
-```bash
-cd training
-python setup.py sdist --formats=gztar
-gsutil cp dist/trainer-0.1.tar.gz gs://YOUR_PROJECT-training/training-code/
-```
-
-**Job config** (`job_config.yaml`, kept local and gitignored — it holds a plaintext `HF_TOKEN`):
+### 4.3 Job configs (gitignored — they contain your token)
+`job_config.yaml` (training) — the merge config is the same shape with `pythonModule: trainer.merge_adapter` and `--adapter-dir` / `--output-dir` args:
 ```yaml
 baseOutputDirectory:
-  outputUriPrefix: gs://YOUR_PROJECT-training/models/RUN_NAME
+  outputUriPrefix: gs://csit321-508209-training/models/gemma-2b-lora-run1
 workerPoolSpecs:
-  - machineSpec:
-      machineType: n1-standard-8
-      acceleratorType: NVIDIA_TESLA_T4
-      acceleratorCount: 1
+  - machineSpec: { machineType: n1-standard-8, acceleratorType: NVIDIA_TESLA_T4, acceleratorCount: 1 }
     replicaCount: 1
     pythonPackageSpec:
       executorImageUri: us-docker.pkg.dev/vertex-ai/training/pytorch-gpu.2-3.py310:latest
-      packageUris:
-        - gs://YOUR_PROJECT-training/training-code/trainer-0.1.tar.gz
+      packageUris: [gs://csit321-508209-training/training-code/trainer-0.1.tar.gz]
       pythonModule: trainer.finetune_gemma
       args:
-        - --train-file=gs://YOUR_PROJECT-training/training-data/train.jsonl
-        - --val-file=gs://YOUR_PROJECT-training/training-data/val.jsonl
+        - --train-file=gs://csit321-508209-training/training-data/train.jsonl
+        - --val-file=gs://csit321-508209-training/training-data/val.jsonl
       env:
-        - name: HF_TOKEN
-          value: "hf_..."
-        - name: USE_TORCH_XLA
-          value: "0"
+        - { name: HF_TOKEN, value: "hf_..." }
+        - { name: USE_TORCH_XLA, value: "0" }
+```
+`.gitignore` covers `data_ai/training/*job_config*.yaml`.
+
+### 4.4 Smoke test first (5 rows, 1 epoch)
+Four full runs failed before one worked, so prove the pipeline cheaply. Build the config from the real one:
+```powershell
+(Get-Content job_config.yaml) `
+  -replace 'models/gemma-2b-lora-run1','models/gemma-2b-lora-smoke' `
+  -replace 'train\.jsonl','train_smoke.jsonl' `
+  -replace 'val\.jsonl','val_smoke.jsonl' `
+  -replace '(- --val-file=.*)',"`$1`n        - --epochs=1" | Set-Content job_config_smoke.yaml -Encoding ascii
+gcloud storage cp ..\docs\fixtures\finetune_ready\train_smoke.jsonl ..\docs\fixtures\finetune_ready\val_smoke.jsonl "$B/training-data/"
+gcloud ai custom-jobs create --region=$R --project=$P --display-name=gemma-2b-lora-smoke --config=job_config_smoke.yaml
+$job = gcloud ai custom-jobs list --region=$R --project=$P --limit=1 --format="value(name.basename())"
+gcloud ai custom-jobs stream-logs $job --region=$R
+gcloud storage ls -r "$B/models/gemma-2b-lora-smoke/model/"        # adapter_model.safetensors MUST be listed
+```
+The red `ERROR` lines are progress bars on stderr, not failures. A clean exit code alone proves nothing — check the files exist.
+
+### 4.5 Full training (about 50 minutes, 90 steps)
+```powershell
+gcloud ai custom-jobs create --region=$R --project=$P --display-name=gemma-2b-lora-run1 --config=job_config.yaml
+gcloud ai custom-jobs stream-logs $job --region=$R
+gcloud storage ls -r "$B/models/gemma-2b-lora-run1/model/"         # adapter (~25 MB) + checkpoint-30/60/90
+```
+Loss history is in `.../checkpoint-90/trainer_state.json`. Back up the adapter before any teardown — it's the only irreplaceable artefact:
+```powershell
+New-Item -ItemType Directory -Force D:\relaive\adapter-run1-backup | Out-Null
+gcloud storage cp -r "$B/models/gemma-2b-lora-run1/model" D:\relaive\adapter-run1-backup
 ```
 
-**Submit and monitor:**
-```bash
-gcloud ai custom-jobs create --region=us-central1 --project=YOUR_PROJECT --display-name=RUN_NAME --config=job_config.yaml
-gcloud ai custom-jobs stream-logs <job-id-from-above>
+### 4.6 Merge the adapter into the base model
+Set `--adapter-dir` in `merge_job_config.yaml` to `$B/models/gemma-2b-lora-run1/model` and `--output-dir` to `$B/models/gemma-2b-lora-merged`, then:
+```powershell
+gcloud ai custom-jobs create --region=$R --project=$P --display-name=gemma-2b-lora-merge --config=merge_job_config.yaml
+gcloud storage ls --long "$B/models/gemma-2b-lora-merged/"        # 10 objects, ~4.9 GiB
 ```
 
-### Real gotchas hit and fixed (don't repeat these)
+### 4.7 Copy to the serving region and grant read access
+```powershell
+gcloud storage buckets create $USB --location=$US --project=$P --uniform-bucket-level-access
+gcloud storage cp -r "$B/models/gemma-2b-lora-merged" "$USB/models/"
+gcloud storage buckets add-iam-policy-binding $USB --member="serviceAccount:custom-online-prediction@kcb4e60809cc839b7-tp.iam.gserviceaccount.com" --role=roles/storage.objectViewer
+```
+**The serving service account is different in every region.** For `csit321-508209`: `us-central1` is `…@kcb4e60809cc839b7-tp…`, Sydney is `…@x45828b49f00b4b50-tp…`. Without the grant, the deploy runs 10–25 minutes and then fails with `does not have storage.objects.list access`. For another region, read the account name from the failed deploy's log.
 
-- **`baseOutputDirectory` is required, or your trained model is silently lost.** Without it, `AIP_MODEL_DIR` is never set, the script falls back to a local path inside the training container, training completes with exit code 0 looking totally fine, and the container is torn down with the result gone forever. Always set it.
-- **Vertex mounts every accessible bucket at `/gcs/<bucket>/...` via Cloud Storage FUSE.** Plain filesystem writes (`torch.save`, HF's `save_pretrained`) only reach the real bucket through that mount — passing a bare `gs://...` URI straight to standard file I/O does *not* work (it silently creates a bogus local path instead). Convert `gs://bucket/path` → `/gcs/bucket/path` before using it as a local output directory. `datasets.load_dataset(..., data_files="gs://...")` is the one exception — the `datasets` library has its own `gcsfs`-based GCS support and reads `gs://` URIs directly, no conversion needed there.
-- **The training container defaults to a `torch_xla`/PJRT runtime that can OOM on Gemma's 256k-token vocabulary**, even when nothing else about the job is oversized (its `BFCAllocator` reserves the large majority of the GPU's memory upfront, before any real tensor exists). Set `USE_TORCH_XLA=0` as an env var to force plain PyTorch/CUDA instead — this alone fixed a repeated OOM crash that batch-size reduction did not.
-- **T4's 16GB needs a small batch size.** `--batch-size=1 --grad-accum=8` (effective batch size 8) fit comfortably for Gemma 2 2B; `--batch-size=2` did not.
-- **Disable the training loop's own mid-training eval** (`eval_strategy="no"` in `SFTConfig`) if evaluation isn't otherwise needed — it runs an extra forward pass that computes the full vocabulary logits again, which was enough extra memory pressure to OOM right at the first epoch boundary even after the batch-size fix above. Real evaluation happens separately anyway (see "Evaluation" below).
-- **Smoke-test before the real run.** Build a 5-row subset of `train.jsonl`/`val.jsonl`, run 1 epoch, and confirm the *actual output files* land in GCS (`gsutil ls -r gs://.../models/RUN_NAME/model/`) before spending real GPU-hours on the full dataset. A clean exit code is not proof the output was saved correctly — verify the files exist.
-
-## Merging + serving
-
-A LoRA adapter alone isn't directly deployable to the same serving container a Model Garden base model uses (that container needs a full model directory) — merge it into the base weights first.
-
-`training/trainer/merge_adapter.py` loads the base model + adapter, calls `merge_and_unload()`, saves the full merged model. Run it the same way as training (its own job config, `pythonModule: trainer.merge_adapter`, args `--adapter-dir=gs://.../model --output-dir=gs://.../merged`).
-
-**Upload the merged model as a Vertex AI Model resource.** Get the exact serving container spec from a working Model Garden deployment first (`gcloud ai models describe <model-id> --format=json`) rather than guessing it — the container image, args, ports, and health/predict routes need to match exactly what the container actually expects:
-
-```bash
-gcloud ai models upload --region=us-central1 --project=YOUR_PROJECT \
-  --display-name=YOUR_MODEL_NAME \
-  --container-image-uri=us-docker.pkg.dev/vertex-ai/vertex-vision-model-garden-dockers/pytorch-vllm-serve:20250114_0916_RC00_maas \
-  --container-args="python,-m,vllm.entrypoints.api_server,--host=0.0.0.0,--port=8080,--model=gs://YOUR_PROJECT-training/models/merged,--tensor-parallel-size=1,--swap-space=16,--gpu-memory-utilization=0.95,--max-num-seqs=256" \
+### 4.8 Upload, create the endpoint, deploy (billing starts)
+Serve on an **L4**. A T4 can't run Gemma 2 in this container: XFormers "does not support attention logits soft capping", and forcing FlashInfer fails with "FlashAttention only supports Ampere GPUs or newer".
+```powershell
+gcloud ai models upload --region=$US --project=$P --display-name=relaive-gemma2-2b-ft `
+  --container-image-uri=us-docker.pkg.dev/vertex-ai/vertex-vision-model-garden-dockers/pytorch-vllm-serve:20250114_0916_RC00_maas `
+  --container-args="python,-m,vllm.entrypoints.api_server,--host=0.0.0.0,--port=8080,--model=$USB/models/gemma-2b-lora-merged,--tensor-parallel-size=1,--swap-space=16,--gpu-memory-utilization=0.95,--max-num-seqs=256" `
   --container-ports=8080 --container-health-route=/ping --container-predict-route=/generate
+gcloud ai models list --region=$US --project=$P                    # note MODEL_ID
+
+gcloud ai endpoints create --region=$US --project=$P --display-name=persistent-endpoint
+gcloud ai endpoints list --region=$US --project=$P                 # note ENDPOINT_ID
+
+gcloud ai endpoints deploy-model <ENDPOINT_ID> --region=$US --project=$P --model=<MODEL_ID> `
+  --display-name=relaive-gemma-ft --machine-type=g2-standard-12 --accelerator="type=nvidia-l4,count=1" --traffic-split=0=100
+```
+The endpoint is created **once** and kept (its ID stays stable; an empty one is free). Only the deployed model bills, at about $1–2 an hour. Deploying takes about 10–25 minutes.
+
+**If a deploy fails.** `gcloud` gives up after 30 minutes with "has not finished in 1800 seconds" even if the operation is still running, and its own error is just "Model server exited unexpectedly". Read the real state and the server log (use the project **id** in `--project`):
+```powershell
+$tok = gcloud auth print-access-token
+Invoke-RestMethod -Headers @{Authorization="Bearer $tok"} -Uri "https://$US-aiplatform.googleapis.com/v1beta1/projects/393439107077/locations/$US/endpoints/<ENDPOINT_ID>/operations?pageSize=1"
+gcloud logging read 'resource.type="aiplatform.googleapis.com/Endpoint" AND resource.labels.endpoint_id="<ENDPOINT_ID>" AND resource.labels.location="us-central1"' --project=$P --limit=300 --freshness=45m --order=asc --format="value(timestamp.date('%H:%M:%S'),textPayload)"
 ```
 
-Note: this same container also supports `--enable-lora --max-loras=1` for serving an adapter directly without merging — worth trying next time as a simpler alternative, not yet verified end-to-end.
-
-**Grant the serving service account access to your bucket** if it's not the same bucket a Model Garden deployment already used — the online-prediction service account needs explicit read access to any bucket you point a custom model's artifacts at:
-```bash
-gsutil iam ch serviceAccount:custom-online-prediction@<PROJECT-SUFFIX>-tp.iam.gserviceaccount.com:objectViewer gs://YOUR_PROJECT-training
+### 4.9 Test the endpoint
+```powershell
+$ID="<ENDPOINT_ID>"; $tok = gcloud auth print-access-token
+Set-Content "$env:TEMP\req.json" '{"instances":[{"@requestFormat":"chatCompletions","messages":[{"role":"user","content":"Write one sentence about a 3 bed house in Bonnyrigg NSW."}],"max_tokens":60}]}' -Encoding ascii
+curl.exe -s -H "Authorization: Bearer $tok" -H "Content-Type: application/json" -d "@$env:TEMP\req.json" "https://$US-aiplatform.googleapis.com/v1/projects/393439107077/locations/$US/endpoints/${ID}:predict"
 ```
-(get the exact service account name from the deploy failure's error message if you hit this — it's project-specific.)
+(`${ID}:predict` — PowerShell needs the braces — and `curl.exe`, because plain `curl` is an alias.) Expect HTTP 200 with the text at `predictions[0][0].message.content`.
 
-**Create a persistent endpoint once, reuse it across deploys** (Model Garden's UI always creates a *new* endpoint per deploy, with a new address each time — do this instead so the endpoint's identity stays stable):
-```bash
-gcloud ai endpoints create --region=us-central1 --project=YOUR_PROJECT --display-name=persistent-endpoint
-gcloud ai endpoints deploy-model <endpoint-id> --region=us-central1 --project=YOUR_PROJECT \
-  --model=<model-id> --display-name=deployment-name \
-  --machine-type=g2-standard-12 --accelerator="type=nvidia-l4,count=1" --traffic-split=0=100
-```
-
-**Cost discipline**: an empty endpoint (nothing deployed) is free. A deployed model bills continuously per GPU-hour whether or not it's receiving requests (~$1-2/hour depending on model size). Undeploy the *model* when done testing — `gcloud ai endpoints undeploy-model <endpoint-id> --deployed-model-id=<id>` — and leave the endpoint itself alive for next time, rather than deleting the endpoint (which loses its address and forces every consumer, e.g. `backend/src/services/vertex-narrative.service.ts`, to be updated with a new one). **Check for multiple models deployed on the same endpoint** before assuming you've stopped billing — deploying a new model with `--traffic-split=0=100` only redirects traffic, it does not automatically undeploy whatever was already there; `gcloud ai endpoints describe <id> --format="value(deployedModels)"` shows everything actually running.
-
-## Evaluation
-
-```bash
-python eval/generate_baseline.py    # requires the model deployed on the endpoint it's pointed at
-python eval/score_rouge.py docs/fixtures/finetune_ready/test_baseline_gemma2b.jsonl --label baseline
+### 4.10 Score against the baseline
+`generate_baseline.py` reads `VERTEX_REGION`, `VERTEX_ENDPOINT_ID` and `EVAL_OUTPUT` from the environment. **Always set `EVAL_OUTPUT`** — its default is the recorded baseline file.
+```powershell
+pip install rouge-score
+cd D:\relaive\Real-Estate-Valuation-Narrative-Generator\data_ai
+$env:VERTEX_REGION="us-central1"; $env:VERTEX_ENDPOINT_ID="<ENDPOINT_ID>"; $env:EVAL_OUTPUT="test_finetuned_gemma2b.jsonl"
+python eval\generate_baseline.py                      # 32 prompts, a few minutes
+$F="docs\fixtures\finetune_ready"
+python eval\score_rouge.py "$F\test_baseline_gemma2b.jsonl"  --label baseline
+python eval\score_rouge.py "$F\test_finetuned_gemma2b.jsonl" --label finetuned
 ```
 
-`generate_baseline.py` runs the deployed model against every prompt in the held-out test set and saves `{pair_id, prompt, reference, generated}` rows. `score_rouge.py` computes ROUGE-L precision/recall/f-measure against the real reference text.
+| | ROUGE-L f-measure | avg words |
+|---|---|---|
+| Baseline (Gemma 2 2B-it, zero-shot) | **0.2206** | 178 (rambles, adds markdown) |
+| Fine-tuned (`gemma-2b-lora-run1`, loss 1.53 → 0.53) | **0.7214** | 76 (reference 83) |
 
-Recorded baseline (untrained Gemma 2 2B-it, zero-shot): **ROUGE-L f-measure 0.2206** — the number a fine-tuned run needs to beat to prove the fine-tuning actually helped. Re-run both scripts against a fine-tuned model's output (same test set, `--label finetuned`) to compare.
+Read this with care: the training and test properties are disjoint (no leakage), and an inspected sample showed the "unsupported" figures were only rounding — but ROUGE-L rewards matching the formulaic reference wording, and it doesn't prove the values are right or that the model generalises to the backend's shorter live prompt.
 
-## Full teardown
+### 4.11 Connect the backend
+1. **Local:** set `VERTEX_PROJECT_ID=393439107077`, `VERTEX_REGION=us-central1`, `VERTEX_ENDPOINT_ID=<ENDPOINT_ID>` in `backend/.env` and restart. Your own `gcloud auth application-default login` is the credential.
+2. **Cloud Run:** put the same three values in the `backend_env` defaults in `infra/terraform/variables.tf` (not in `terraform.tfvars` — that replaces the whole map), make sure `cloud_run.tf` grants the service account `roles/aiplatform.user`, then `terraform plan` and `terraform apply`. A brand-new grant can return a 403 for a couple of minutes.
+3. **Render:** not possible — no Google credentials, and the organisation policy `iam.disableServiceAccountKeyCreation` forbids service-account keys. Render falls back to templated text.
+4. **Verify** with an authenticated call to `/api/appraisal/executive-summary?address=…` and check the logs for `[vertex-narrative]` warnings — the fallback is silent.
 
-To tear everything down to a clean slate (e.g. between experiments, or to stop all billing):
-```bash
-gcloud ai endpoints describe <endpoint-id> --format="value(deployedModels)"   # check what's actually deployed first
-gcloud ai endpoints undeploy-model <endpoint-id> --deployed-model-id=<id>      # repeat for each deployed model found
-gcloud ai endpoints delete <endpoint-id> --quiet
-gcloud ai models delete <model-id> --quiet                                     # repeat for each model resource
-gsutil rm -r gs://YOUR_PROJECT-training
+If the endpoint is ever recreated, update `VERTEX_ENDPOINT_ID` in `variables.tf` and `backend/.env`.
+
+### 4.12 Stop the billing / tear down
+```powershell
+gcloud ai endpoints describe <ENDPOINT_ID> --region=$US --project=$P --format="value(deployedModels)"   # what is deployed
+gcloud ai endpoints undeploy-model <ENDPOINT_ID> --region=$US --project=$P --deployed-model-id=<id>      # stops the charges; endpoint stays
 ```
-Verify with `gcloud ai endpoints list`, `gcloud ai models list`, `gsutil ls -p YOUR_PROJECT` — all three should return empty.
+Undeploy when you're not using it — the backend falls back to templated text automatically. To remove everything: also `gcloud ai endpoints delete`, `gcloud ai models delete`, and delete the buckets (keep the adapter backup first). Verify with `gcloud ai endpoints list`, `gcloud ai models list` and `gcloud storage buckets list`.
+
+### If training or serving fails
+- **No adapter files after a "successful" job:** `baseOutputDirectory` was missing — without it the model is silently discarded.
+- **Writing to `gs://…` with plain file I/O creates a bogus local path:** Vertex mounts buckets at `/gcs/<bucket>/…`; the trainer converts `gs://` to `/gcs/` (only `datasets.load_dataset` reads `gs://` directly).
+- **Out-of-memory on the T4:** keep `USE_TORCH_XLA=0`, `--batch-size=1 --grad-accum=8`, and `eval_strategy="no"` (already set).
+- **Training input reads fine but output fails:** bucket and job are in different regions.
+- **Merge finds no adapter:** `--adapter-dir` still points at an old run name.
+
+## Current state (as of 2026-09-21)
+
+| Resource | State |
+|---|---|
+| `gs://csit321-508209-training` (Sydney): dataset, adapter, merged model | keep — pennies a month |
+| `gs://csit321-508209-training-us` (`us-central1`): merged model copy | keep |
+| `us-central1` endpoint `365693719107600384`, model `6708156175189278720` | **deployed on an L4 — billing**; undeploy when idle |
+| Sydney endpoint `7079678405435719680`, models `3459586948518117376` and `8071272966945505280` | failed T4 attempts; safe to delete |
+| Backend wired to the endpoint | Cloud Run and local ✅; Render ❌ |
+| Local adapter backup | `D:\relaive\adapter-run1-backup` (outside the repo) |
+
+Known gap: the backend's prompt (`report-content.service.ts`) is a short fixed "real estate agent, Executive Summary only" prompt, while the model was trained on the longer role-specific prompts built by `scripts/prepare_finetune_dataset.py`. Until they match, expect live quality below the score above.

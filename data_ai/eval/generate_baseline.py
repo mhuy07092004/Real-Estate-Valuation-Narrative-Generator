@@ -15,22 +15,28 @@ Output: docs/fixtures/finetune_ready/test_baseline_gemma2b.jsonl
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import time
 import urllib.error
 import urllib.request
 from pathlib import Path
 
-PROJECT_ID = "393439107077"
-REGION = "us-central1"
-ENDPOINT_ID = "3931876120915345408"
+# Override per run instead of editing this file: VERTEX_REGION, VERTEX_ENDPOINT_ID,
+# and EVAL_OUTPUT (a file name inside finetune_ready/ — use e.g.
+# test_finetuned_gemma2b.jsonl so the recorded baseline is never overwritten).
+PROJECT_ID = os.environ.get("VERTEX_PROJECT_ID", "393439107077")
+REGION = os.environ.get("VERTEX_REGION", "us-central1")
+ENDPOINT_ID = os.environ.get("VERTEX_ENDPOINT_ID", "3931876120915345408")  # baseline endpoint (no longer exists)
 PREDICT_URL = (
     f"https://{REGION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}"
     f"/locations/{REGION}/endpoints/{ENDPOINT_ID}:predict"
 )
 
 TEST_FILE = Path(__file__).resolve().parent.parent / "docs" / "fixtures" / "finetune_ready" / "test.jsonl"
-OUTPUT_FILE = Path(__file__).resolve().parent.parent / "docs" / "fixtures" / "finetune_ready" / "test_baseline_gemma2b.jsonl"
+OUTPUT_FILE = Path(__file__).resolve().parent.parent / "docs" / "fixtures" / "finetune_ready" / os.environ.get(
+    "EVAL_OUTPUT", "test_baseline_gemma2b.jsonl"
+)
 
 MAX_TOKENS = 300
 RETRIES = 3

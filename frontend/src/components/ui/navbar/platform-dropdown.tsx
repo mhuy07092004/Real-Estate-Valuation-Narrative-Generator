@@ -132,44 +132,44 @@ const WORKFLOWS: Workflow[] = [
     features: [
       'Generate vendor appraisal reports',
       'Compare local comparable sales',
-      'Export client-ready PDF reports',
       'AI-generated property narratives',
+      'Track and manage client progress',
     ],
   },
   {
     icon: <ValuerIcon />,
     title: 'For Property Valuers',
     description:
-      'Review evidence, score confidence, and produce audit-ready valuations with full source tracing.',
+      'Manage valuation cases, collect and review property evidence, explore market insights, and organise valuation information.',
     features: [
-      'Review comparable evidence',
-      'Confidence scoring & risk analysis',
-      'Audit-friendly valuation reports',
-      'Source tracing & historical tracking',
+      'Manage valuation cases',
+      'Create new valuations',
+      'Review and save property evidence',
+      'Explore market insights',
     ],
   },
   {
     icon: <InvestorIcon />,
     title: 'For Investors',
     description:
-      'Forecast suburb growth, analyse yield, and surface opportunities with an investment intelligence dashboard.',
+      'Explore investment opportunities, compare properties and market data, analyse potential returns, and generate investment reports.',
     features: [
-      'Suburb growth forecasting',
-      'ROI & rental yield analysis',
-      'Opportunity detection',
-      'Investment intelligence dashboard',
+      'Generate investment reports',
+      "Overview of different suburbs' comparison",
+      'Explore suburbs and market insights',
+      'Calculate potential ROI',
     ],
   },
   {
     icon: <BuyerIcon />,
     title: 'For Buyers',
     description:
-      'Assess fair value, compare properties, and receive market context with buyer advisory reports.',
+      'Compare properties, evaluate affordability and receive market context with buyer advisory reports.',
     features: [
-      'Fair value assessment',
+      'Buyer advisory reports',
       'Property comparison tools',
       'Market context & insights',
-      'Buyer advisory reports',
+      'Property inspection insights',
     ],
   },
 ]

@@ -1,84 +1,69 @@
-# CSIT321 — Relaive Web Project
+# Relaive
 
-A full-stack web application for AI-powered property appraisal (Relaive).
+A full-stack web app for AI-assisted property appraisal. Agents, valuers, buyers and investors each get their own dashboard: comparable-sales analysis, market intelligence, ROI / affordability calculators, AI-written appraisal reports, and shareable client reports.
 
-## 🚀 Tech Stack
+This README explains **what is in the codebase and how the pieces fit together**. Each large folder has its own README with the numbered steps (commands) to reproduce its part — locally and deployed. Start there when you need to *do* something.
 
-**Frontend:** Vite, React, TypeScript, Tailwind CSS, React Router DOM, GSAP, Recharts.
+## How it fits together
 
-**Backend:** Node.js + Express, TypeScript, Prisma ORM (PostgreSQL on Cloud SQL), bcryptjs, jsonwebtoken, Vitest.
-
-See [`backend/README.md`](backend/README.md) for backend-specific versions and detail.
-
-## Prerequisites
-
-- Node.js 22+, npm
-- For the backend: access to the project's Cloud SQL Postgres instance — see [`infra/terraform/README.md`](infra/terraform/README.md#connecting-from-your-local-machine) to get your IP allowlisted. There is no local-only database fallback.
-
-## 🏃 Quick Start
-
-```bash
-# Frontend (repo root)
-npm install
-npm run dev          # http://localhost:5173
+```
+ Browser
+   │  React single-page app                         (Vercel)
+   ▼
+ Backend API — Node / Express / Prisma              (Render today · Cloud Run ready)
+   ├── Cloud SQL Postgres (Sydney)                  users, clients, reports, comparable sales, market data
+   ├── AI price service — FastAPI + scikit-learn    (Render)   estimated value
+   ├── Vertex AI endpoint — fine-tuned Gemma 2 2B   (GCP us-central1, deployed on demand)   report narrative
+   ├── SendGrid                                     sign-up codes, report emails
+   └── Google Maps Geocoding + Places               address lookup, nearby amenities
+ Browser also loads the Google Maps JavaScript API directly (separate, referrer-restricted key).
 ```
 
-The frontend calls the real backend for everything (auth, reports, comparable sales, etc.) — sign-in and every data-backed page will fail with a network error until the backend is also running. See [`backend/README.md`](backend/README.md) for full backend setup (env vars, database access, seeding).
+Two things worth knowing up front:
+- **The AI narrative can only be produced from Cloud Run or a developer machine.** Vertex AI needs Google credentials, Render has none, and the organisation forbids service-account keys. Everywhere else the backend silently falls back to templated report text.
+- **The database is shared.** There is no local database: local development connects to the same Cloud SQL instance the deployed backends use (your IP has to be allow-listed).
 
-Run both together in two terminals:
+## Tech stack
 
-| Terminal | Directory | Command | URL |
-|----------|-----------|---------|-----|
-| Frontend | repo root | `npm run dev` | http://localhost:5173 |
-| Backend | `backend/` | `npm run dev` | http://localhost:4000 |
-
-## 📁 Project Structure
-
-| Path | What's there | Docs |
+| Layer | Technology | Runs on |
 |---|---|---|
-| `frontend/` | React/Vite app | [`frontend/src/features/auth/README.md`](frontend/src/features/auth/README.md) covers the auth feature; no top-level frontend README yet |
-| `backend/` | Express/Prisma API | [`backend/README.md`](backend/README.md) |
-| `data_ai/` | Data scraping, dataset building, and Gemma fine-tuning for AI narrative generation, plus the FastAPI price-prediction service | [`data_ai/readme.md`](data_ai/readme.md) |
-| `infra/terraform/` | GCP infrastructure as code (Cloud SQL, Cloud Run) | [`infra/terraform/README.md`](infra/terraform/README.md) |
-| `.github/workflows/` | CI + Docker build/push automation | see "CI" below |
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS 4, React Router 7, Recharts, GSAP, `@vis.gl/react-google-maps` | Vercel · `localhost:5173` |
+| Backend | Node.js 22, Express 4, TypeScript, Zod, JWT (`jsonwebtoken`), `bcryptjs`, Vitest | Render (Docker) · Cloud Run (Docker) · `localhost:4000` |
+| Database | PostgreSQL 16 on Cloud SQL, Prisma 5 (ORM and migrations) | GCP `australia-southeast1` |
+| Price model | Python 3.11, pandas, scikit-learn (RandomForest), FastAPI, uvicorn | Render (Docker) · `localhost:8000` |
+| Narrative model | Gemma 2 2B-it + LoRA (Hugging Face `transformers`, `peft`, `trl`), vLLM serving | Vertex AI (train: Sydney, serve: `us-central1` L4) |
+| Data collection | Python, pandas, undetected-chromedriver (scrapers for listings, Domain, ABS, SQM) | local machine |
+| Infrastructure as code | Terraform ≥ 1.5 (`google` + `random` providers) | local machine → GCP |
+| CI/CD | GitHub Actions (lint/typecheck/test; Docker build and push) | GitHub |
+| Hosting | Vercel (frontend), Render (backend + price service), Cloud Run, Docker Hub (images) | — |
+| Third-party services | SendGrid (email), Google Maps Platform (Maps JS, Geocoding, Places New), Cloudflare Turnstile (captcha), Hugging Face (Gemma weights) | — |
 
-## ☁️ Deployment
+## Repository map
 
-| What | Where | Details |
+| Folder | What it is | README |
 |---|---|---|
-| Frontend | Vercel | See "Deploy frontend on Vercel" below |
-| Backend | Render (Docker image); Cloud Run migration in progress | [`backend/README.md`](backend/README.md#docker--deployment) |
-| AI price-prediction service | Render (Docker image) | [`backend/README.md`](backend/README.md#docker--deployment) |
-| AI narrative model (Vertex AI) | GCP, deployed on demand | [`data_ai/readme.md`](data_ai/readme.md) |
-| Cloud SQL Postgres | GCP | [`infra/terraform/README.md`](infra/terraform/README.md) |
+| [`frontend/`](frontend/) | The React app: landing site, auth, and the four role dashboards | [`frontend/README.md`](frontend/README.md) · [`frontend/src/features/auth/README.md`](frontend/src/features/auth/README.md) |
+| [`backend/`](backend/) | The Express API, Prisma schema and migrations, data-import scripts, Dockerfile | [`backend/README.md`](backend/README.md) |
+| [`data_ai/`](data_ai/) | Scrapers and datasets, the price-prediction model and service, and the narrative-model fine-tuning / serving pipeline | [`data_ai/readme.md`](data_ai/readme.md) |
+| [`infra/terraform/`](infra/terraform/) | GCP infrastructure as code: Cloud SQL, Cloud Run, IAM | [`infra/terraform/README.md`](infra/terraform/README.md) |
+| [`.github/workflows/`](.github/workflows/) | `ci.yml` (frontend lint/typecheck/build, backend build/test), `docker-deploy.yml` (backend image), `docker-deploy-ai.yml` (price-service image) | — |
 
-### Deploy frontend on Vercel
+## Environments
 
-The repo root [`vercel.json`](vercel.json) builds the Vite app and publishes **`frontend/dist`** only (the `backend/` folder is not deployed). Root Directory on Vercel should stay at the repo root (not `frontend`).
+| | Local | Deployed today | Target after cut-over |
+|---|---|---|---|
+| Frontend | `npm run dev` on 5173, `/api` proxied to `localhost:4000` | Vercel, calls the Render backend | Vercel, calls the Cloud Run backend |
+| Backend | `npm run dev` on 4000 → Cloud SQL public IP | Render, Docker image from Docker Hub | Cloud Run, same image, Cloud SQL socket |
+| Price model | optional, `uvicorn` on 8000 | Render (its own image) | unchanged |
+| Narrative model | works via your `gcloud` login | not available on Render | Cloud Run service account |
+| Database | shared Cloud SQL | shared Cloud SQL | shared Cloud SQL |
 
-| Setting | Value |
-|---------|--------|
-| Build Command | `npm run build` |
-| Output Directory | `frontend/dist` |
+## CI/CD
 
-The deployed frontend needs to know where the backend lives:
+- **Every push and pull request** to `main` or `dev` runs `ci.yml`: frontend `lint` + typecheck + build, backend `prisma generate` + build + tests.
+- **Pushes to `main`** that touch `backend/**` (or `data_ai/*.csv`) build and push `relaive-backend:latest` to Docker Hub; changes under `data_ai/service|model` build `relaive-ai-service:latest`.
+- **Nothing deploys automatically from those images.** Render needs a manual deploy, and Cloud Run needs a new revision (commands in [`backend/README.md`](backend/README.md#deployed-cloud-run-target)). Vercel deploys the frontend from Git on its own.
 
-1. In the Vercel project → **Settings → Environment Variables**, add `VITE_API_BASE_URL` set to the deployed backend's origin (e.g. `https://relaive-backend-060826-latest.onrender.com`), for the Production environment (and Preview too, if preview deployments should also hit the live backend).
-2. Redeploy so the build picks up the value.
+## Older files you may run into
 
-Without `VITE_API_BASE_URL` set, the deployed frontend falls back to relative `/api/...` calls (fine for local dev, where Vite's dev proxy in [`vite.config.ts`](vite.config.ts) forwards those to `localhost:4000`) — but there's no equivalent proxy on Vercel, so those calls would 404 in production. See [`api-client.ts`](frontend/src/services/api-client.ts) for the fetch wrapper that reads this variable.
-
-## ✅ CI
-
-Every pull request into `main` or `dev` runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml): lint + typecheck + build for the frontend, and build + test for the backend.
-
-Docker images build and push to Docker Hub automatically on push to `main` (not auto-deployed — see [`backend/README.md`](backend/README.md#docker--deployment)):
-- [`.github/workflows/docker-deploy.yml`](.github/workflows/docker-deploy.yml) — backend, on changes to `backend/**` or `data_ai/*.csv`
-- [`.github/workflows/docker-deploy-ai.yml`](.github/workflows/docker-deploy-ai.yml) — AI price-prediction service, on changes to `data_ai/service/**`, `data_ai/model/**`, or `data_ai/*.csv`
-
-## Where to Look Next
-
-- **Backend setup, API routes, deployment detail:** [`backend/README.md`](backend/README.md)
-- **Auth flow (sign-up/sign-in/sessions/roles):** [`frontend/src/features/auth/README.md`](frontend/src/features/auth/README.md)
-- **AI/ML pipeline (scraping, fine-tuning, price prediction):** [`data_ai/readme.md`](data_ai/readme.md)
-- **GCP infrastructure (Cloud SQL, Cloud Run):** [`infra/terraform/README.md`](infra/terraform/README.md)
+These predate the current design and are kept only for history: `integration-plan.md` (SQLite-era plan), `frontend/mapSetupREADME.md` (superseded by the frontend README), `VERCEL_ENV_VARIABLE.txt` (actually old pull-request notes, not environment variables), and `data_ai/Relaive_AI_Data_Service_Backlog.md`. Don't follow instructions found in them.
