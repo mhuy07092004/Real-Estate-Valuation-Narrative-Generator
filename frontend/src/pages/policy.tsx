@@ -4,49 +4,23 @@ import { Navigate, useLocation, useParams } from 'react-router-dom'
 import { Navbar } from '../components/ui/navbar/navbar'
 import { Footer } from '../components/ui/footer/footer'
 import { useLenis } from '../lib/smooth-scroll'
+import {
+  isPolicyDocSlug,
+  POLICY_GROUPS,
+  type PolicyClause,
+  type PolicyGroup,
+  type PolicySection,
+  sectionMatchesQuery,
+} from './policy-content'
 
 const SCROLL_OFFSET = 96
-
-type PolicySection = {
-  id: string
-  title: string
-  body: string
-}
-
-type PolicyGroup = {
-  slug: PolicyDocSlug
-  title: string
-  sections: PolicySection[]
-}
-
-const POLICY_DOC_TITLES = {
-  terms: 'Terms of Service',
-  privacy: 'Privacy Policy',
-  refund: 'Refund Policy',
-} as const
-
-type PolicyDocSlug = keyof typeof POLICY_DOC_TITLES
-
-const POLICY_DOC_SLUGS = Object.keys(POLICY_DOC_TITLES) as PolicyDocSlug[]
-
-function isPolicyDocSlug(value: string | undefined): value is PolicyDocSlug {
-  return value !== undefined && value in POLICY_DOC_TITLES
-}
-
-const POLICY_GROUPS: PolicyGroup[] = POLICY_DOC_SLUGS.map((slug) => ({
-  slug,
-  title: POLICY_DOC_TITLES[slug],
-  sections: [1, 2].map((n) => ({
-    id: `${slug}-section-${n}`,
-    title: `Section ${n}`,
-    body: String(n),
-  })),
-}))
 
 const ALL_SECTIONS = POLICY_GROUPS.flatMap((group) => group.sections)
 
 const PANEL_CLASS =
   'rounded-3xl border border-black/5 bg-white shadow-[0_4px_24px_rgba(26,32,44,0.06)]'
+
+const SUB_LIST_LETTERS = 'abcdefghijklmnopqrstuvwxyz'
 
 function IconWrap({ children, size = 16 }: { children: ReactNode; size?: number }) {
   return (
@@ -63,6 +37,26 @@ function IconWrap({ children, size = 16 }: { children: ReactNode; size?: number 
     >
       {children}
     </svg>
+  )
+}
+
+function PolicyClauseBlock({ clause }: { clause: PolicyClause }) {
+  return (
+    <div className="text-sm leading-relaxed text-relaive-navy/80">
+      <p>{clause.text}</p>
+      {clause.items && clause.items.length > 0 ? (
+        <ul className="mt-2 flex flex-col gap-1.5 pl-1">
+          {clause.items.map((item, index) => (
+            <li key={index} className="flex gap-2">
+              <span className="shrink-0 text-relaive-navy/70">
+                ({SUB_LIST_LETTERS[index] ?? index + 1})
+              </span>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
   )
 }
 
@@ -122,13 +116,13 @@ function PolicySidebar({
                 {group.title}
               </a>
               <ul className="flex flex-col gap-0.5">
-                {group.sections.map(({ id, title }) => {
-                  const active = id === activeId
+                {group.sections.map((section) => {
+                  const active = section.id === activeId
                   return (
-                    <li key={id}>
+                    <li key={section.id}>
                       <a
-                        href={`#${id}`}
-                        onClick={(e) => onSelect(e, id)}
+                        href={`#${section.id}`}
+                        onClick={(e) => onSelect(e, section.id)}
                         aria-current={active ? 'true' : undefined}
                         className={`block rounded-lg px-3 py-1.5 text-sm transition-colors ${
                           active
@@ -136,7 +130,7 @@ function PolicySidebar({
                             : 'text-relaive-navy/80 hover:bg-relaive-surface hover:text-relaive-navy'
                         }`}
                       >
-                        {title}
+                        {section.title}
                       </a>
                     </li>
                   )
@@ -163,7 +157,7 @@ export default function PolicyPage() {
 
     return POLICY_GROUPS.flatMap((group) => {
       if (group.title.toLowerCase().includes(q)) return [group]
-      const matching = group.sections.filter((s) => s.title.toLowerCase().includes(q))
+      const matching = group.sections.filter((section) => sectionMatchesQuery(section, q))
       return matching.length > 0 ? [{ ...group, sections: matching }] : []
     })
   }, [query])
@@ -246,23 +240,13 @@ export default function PolicyPage() {
                   {group.title}
                 </h1>
                 <p className="mt-2 text-xs text-relaive-gray">
-                  Last updated:{' '}
-                  <span className="font-semibold text-relaive-navy">January 15, 2026</span>
+                  Effective date:{' '}
+                  <span className="font-semibold text-relaive-navy">{group.effectiveDate}</span>
                 </p>
-                <p className="mt-4 text-sm leading-relaxed text-relaive-navy/80">Intro</p>
               </header>
 
-              {group.sections.map(({ id, title, body }, index) => (
-                <section
-                  key={id}
-                  id={id}
-                  className={`${PANEL_CLASS} min-h-[60vh] scroll-mt-24 p-6 sm:p-7`}
-                >
-                  <h2 className="border-b border-black/5 pb-4 text-lg font-semibold text-relaive-navy">
-                    {index + 1}. {title}
-                  </h2>
-                  <p className="mt-4 text-sm leading-relaxed text-relaive-navy/80">{body}</p>
-                </section>
+              {group.sections.map((section, index) => (
+                <PolicySectionCard key={section.id} section={section} index={index} />
               ))}
             </div>
           ))}
@@ -271,5 +255,23 @@ export default function PolicyPage() {
 
       <Footer />
     </div>
+  )
+}
+
+function PolicySectionCard({ section, index }: { section: PolicySection; index: number }) {
+  return (
+    <section
+      id={section.id}
+      className={`${PANEL_CLASS} scroll-mt-24 p-6 sm:p-7`}
+    >
+      <h2 className="border-b border-black/5 pb-4 text-lg font-semibold text-relaive-navy">
+        {index + 1}. {section.title}
+      </h2>
+      <div className="mt-4 flex flex-col gap-4">
+        {section.clauses.map((clause, clauseIndex) => (
+          <PolicyClauseBlock key={`${section.id}-${clauseIndex}`} clause={clause} />
+        ))}
+      </div>
+    </section>
   )
 }
