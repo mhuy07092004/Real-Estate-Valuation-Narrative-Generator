@@ -97,7 +97,7 @@ export const DASHBOARD_COPY_BY_ROLE: Record<DashboardRole, DashboardRoleCopy> = 
         subtitle: 'Comparable sales',
         tone: 'teal',
         iconKey: 'nodes',
-        to: '/dashboard/agent/generate-report?step=2',
+        to: '/dashboard/agent/comparable-sales',
       },
     ],
   },
@@ -208,7 +208,7 @@ export const DASHBOARD_COPY_BY_ROLE: Record<DashboardRole, DashboardRoleCopy> = 
         subtitle: 'Comparable sales',
         tone: 'teal',
         iconKey: 'nodes',
-        to: '/dashboard/investor/generate-report?step=2',
+        to: '/dashboard/investor/comparable-sales',
       },
       {
         id: 'saved-properties',

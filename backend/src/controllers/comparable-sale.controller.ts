@@ -36,6 +36,7 @@ function toComparableSaleResponse(row: {
     soldDate: Date
     property: {
         addressLine: string
+        propertyType: string
         bedrooms: number
         bathrooms: number
         parking: number
@@ -47,6 +48,7 @@ function toComparableSaleResponse(row: {
         address: row.property.addressLine,
         price: row.soldPrice,
         soldAgo: soldAgoLabel(row.soldDate),
+        propertyType: row.property.propertyType,
         beds: row.property.bedrooms,
         baths: row.property.bathrooms,
         parking: row.property.parking,

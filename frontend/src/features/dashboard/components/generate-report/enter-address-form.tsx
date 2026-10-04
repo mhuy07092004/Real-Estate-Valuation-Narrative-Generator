@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react'
 import { Button } from '../../../../components/ui/button/button'
 import { Input } from '../../../../components/ui/input/input'
+import { AddressAutocompleteInput } from '../../../../components/ui/search-bar/address-autocomplete-input'
+import { parseAuAddress } from '../../../../lib/au-address'
 import { useAsyncData } from '../../../../hooks/use-async-data'
 import { getPropertyTypeOptions } from '../../../../services/common'
-import { getPropertyInputMethodIcon } from './generate-report-icons'
 
 export const AU_STATES = ['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'] as const
 
@@ -170,16 +171,27 @@ export function EnterAddressForm({ value, onChange, errors }: EnterAddressFormPr
           <label htmlFor="street-address" className={FIELD_LABEL}>
             Street Address <span className="text-red-400">*</span>
           </label>
-          <Input
+          <AddressAutocompleteInput
             id="street-address"
             placeholder="e.g. 45 Smith Street"
             value={value.streetAddress}
-            startIcon={getPropertyInputMethodIcon('address')}
-            className={INPUT_CLASS}
-            aria-invalid={Boolean(errors?.streetAddress)}
-            onChange={(event) =>
-              onChange({ ...value, streetAddress: event.target.value })
-            }
+            onChange={(streetAddress) => onChange({ ...value, streetAddress })}
+            onSelect={(suggestion) => {
+              // A suggestion is one combined string — split it back into this
+              // form's 4 separate fields instead of only filling this one.
+              const parsed = parseAuAddress(suggestion.description)
+              onChange(
+                parsed
+                  ? {
+                      ...value,
+                      streetAddress: parsed.streetLine,
+                      suburb: parsed.suburb,
+                      state: parsed.state,
+                      postcode: parsed.postcode,
+                    }
+                  : { ...value, streetAddress: suggestion.description },
+              )
+            }}
           />
           <FieldError message={errors?.streetAddress} />
         </div>

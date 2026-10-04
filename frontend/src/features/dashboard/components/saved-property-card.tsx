@@ -110,24 +110,37 @@ export function SavedPropertyCard({ property, onRemove, compareTo }: SavedProper
       </span>
 
       <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-relaive-gray">
-        <span className="inline-flex items-center gap-1">
-          <BedIcon />
-          {property.beds}
-        </span>
-        <span className="text-[#D0D5DD]" aria-hidden="true">
-          ·
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <BathIcon />
-          {property.baths}
-        </span>
-        <span className="text-[#D0D5DD]" aria-hidden="true">
-          ·
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <AreaExpandIcon />
-          {property.areaSqm}m²
-        </span>
+        {[
+          property.beds > 0 ? (
+            <span key="beds" className="inline-flex items-center gap-1">
+              <BedIcon />
+              {property.beds}
+            </span>
+          ) : null,
+          property.baths > 0 ? (
+            <span key="baths" className="inline-flex items-center gap-1">
+              <BathIcon />
+              {property.baths}
+            </span>
+          ) : null,
+          property.areaSqm > 0 ? (
+            <span key="area" className="inline-flex items-center gap-1">
+              <AreaExpandIcon />
+              {property.areaSqm}m²
+            </span>
+          ) : null,
+        ]
+          .filter(Boolean)
+          .map((segment, index) => (
+            <span key={index} className="inline-flex items-center gap-2.5">
+              {index > 0 ? (
+                <span className="text-[#D0D5DD]" aria-hidden="true">
+                  ·
+                </span>
+              ) : null}
+              {segment}
+            </span>
+          ))}
       </div>
 
       <Button

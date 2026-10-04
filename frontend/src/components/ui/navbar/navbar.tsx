@@ -162,10 +162,20 @@ export function Navbar() {
             </Button>
           ) : (
             <>
-              <Button variant="primary" size="sm" href="/signin">
+              <Button
+                variant={location.pathname === '/signup' ? 'link' : 'primary'}
+                size="sm"
+                href="/signin"
+                className={location.pathname === '/signup' ? 'text-sm font-semibold' : undefined}
+              >
                 Sign in
               </Button>
-              <Button variant="link" href="/signup" className="text-sm font-semibold">
+              <Button
+                variant={location.pathname === '/signup' ? 'primary' : 'link'}
+                size="sm"
+                href="/signup"
+                className={location.pathname === '/signup' ? undefined : 'text-sm font-semibold'}
+              >
                 Sign up
               </Button>
             </>

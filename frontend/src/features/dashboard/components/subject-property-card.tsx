@@ -35,18 +35,30 @@ export function SubjectPropertyCard({ property, saved, onSave }: SubjectProperty
               {property.address}
             </h3>
             <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-relaive-gray">
-              <span className="inline-flex items-center gap-1.5">
-                <BedIcon />
-                {property.beds} bed
-              </span>
-              <span className="text-relaive-gray/50">·</span>
-              <span className="inline-flex items-center gap-1.5">
-                <BathIcon />
-                {property.baths} bath
-              </span>
-              <span className="text-relaive-gray/50">·</span>
-              <span>{property.areaSqm}m²</span>
-              <span className="text-relaive-gray/50">·</span>
+              {property.beds > 0 ? (
+                <>
+                  <span className="inline-flex items-center gap-1.5">
+                    <BedIcon />
+                    {property.beds} bed
+                  </span>
+                  <span className="text-relaive-gray/50">·</span>
+                </>
+              ) : null}
+              {property.baths > 0 ? (
+                <>
+                  <span className="inline-flex items-center gap-1.5">
+                    <BathIcon />
+                    {property.baths} bath
+                  </span>
+                  <span className="text-relaive-gray/50">·</span>
+                </>
+              ) : null}
+              {property.areaSqm > 0 ? (
+                <>
+                  <span>{property.areaSqm}m²</span>
+                  <span className="text-relaive-gray/50">·</span>
+                </>
+              ) : null}
               <span>{property.propertyType}</span>
             </p>
           </div>

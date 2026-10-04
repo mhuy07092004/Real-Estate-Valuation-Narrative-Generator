@@ -245,7 +245,7 @@ export function GeneratedReportContainer({
     { id: 'estimated-value', label: 'Estimated Value', value: appraisalSummary.priceRange, accent: true },
     {
       id: 'midpoint',
-      label: 'Midpoint',
+      label: 'AI Estimate',
       value: formatCurrency(parseCurrency(appraisalSummary.midpointEstimate)),
     },
     { id: 'property-type', label: 'Property Type', value: context?.propertyType || 'House' },
@@ -317,7 +317,7 @@ export function GeneratedReportContainer({
   const summaryResult: GeneratedReportSummaryResult = {
     rangeLow: rangeLowRaw ?? appraisalSummary.priceRange,
     rangeHigh: rangeHighRaw ?? '',
-    midpointLabel: 'Midpoint Estimate',
+    midpointLabel: 'AI Estimate',
     midpointValue: formatCurrency(midpoint),
     progressPercent,
   }

@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { APIProvider, Map, Marker, useMap } from '@vis.gl/react-google-maps'
-import { AddressSearch } from '../search-bar/address-search'
+import { AddressAutocompleteInput } from '../search-bar/address-autocomplete-input'
 import { geocodeAddress } from '../../../services/geocode'
-import { getAddressSuggestions, type AddressSuggestion } from '../../../services/autocomplete'
 import type { AmenityCategory } from '../../../services/places'
 import { useDebouncedValue } from '../../../hooks/use-debounced-value'
 import { RadiusCircle } from './radius-circle'
@@ -32,11 +31,6 @@ const DEFAULT_ZOOM = 12
 // Starting radius before the user touches the Map Layers slider — matches
 // the old fixed AMENITY_RADIUS_METERS constant this replaces.
 const DEFAULT_RADIUS_METERS = 5000
-// Address-suggestion tuning: don't fire on 1-2 characters (mostly noise,
-// wastes calls), and debounce so a fast typist doesn't fire one request per
-// keystroke.
-const SUGGESTION_MIN_LENGTH = 3
-const SUGGESTION_DEBOUNCE_MS = 300
 // Every amenity category the backend can return (services/places.ts). Used
 // to build the "which markers should render" set: everything minus whatever
 // TOGGLEABLE_CATEGORIES the layers panel has turned off.
@@ -192,9 +186,9 @@ function MapControls({
 
 /**
  * Geocodes the typed (or picked) address and recenters the map — lives
- * inside <Map> for map access. Also drives the address-suggestion dropdown:
- * suggestions come from /api/places/autocomplete (autocomplete.ts),
- * debounced as the user types, and picking one re-runs the exact same
+ * inside <Map> for map access. The address-suggestion dropdown itself
+ * (debounce, session token, keyboard nav) lives in the shared
+ * AddressAutocompleteInput — picking a suggestion re-runs the exact same
  * geocode path as typing + hitting Enter, just with clean Google-provided
  * text instead of whatever the user typed — the actual point of adding
  * this, since a typo'd address is what used to come back as "not found".
@@ -209,66 +203,7 @@ function AddressSearchBar({
 }) {
   const map = useMap()
   const [query, setQuery] = useState('')
-  // Set right before a programmatic setQuery (picking a suggestion) so the
-  // debounced suggestions effect below doesn't treat it as a fresh keystroke
-  // and reopen the dropdown ~300ms after it was just closed — see
-  // selectSuggestion.
-  const skipNextSuggestionFetchRef = useRef(false)
   const [error, setError] = useState<string | null>(null)
-  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([])
-  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false)
-  const [highlightedIndex, setHighlightedIndex] = useState(-1)
-  // One id per "typing session" (Google's term) — first keystroke through
-  // picking a result or searching directly. Kept in a ref, not state: it
-  // never drives a render, it's just a value threaded through to the API.
-  const sessionTokenRef = useRef<string | null>(null)
-
-  const getSessionToken = useCallback(() => {
-    if (!sessionTokenRef.current) {
-      sessionTokenRef.current = crypto.randomUUID()
-    }
-    return sessionTokenRef.current
-  }, [])
-
-  const endSession = useCallback(() => {
-    sessionTokenRef.current = null
-  }, [])
-
-  // Debounced suggestions fetch as the user types.
-  useEffect(() => {
-    if (skipNextSuggestionFetchRef.current) {
-      skipNextSuggestionFetchRef.current = false
-      return
-    }
-    if (query.trim().length < SUGGESTION_MIN_LENGTH) {
-      setSuggestions([])
-      setIsSuggestionsOpen(false)
-      return
-    }
-
-    let cancelled = false
-    const timer = setTimeout(() => {
-      getAddressSuggestions(query, getSessionToken())
-        .then((results) => {
-          if (cancelled) return
-          setSuggestions(results)
-          setIsSuggestionsOpen(results.length > 0)
-          setHighlightedIndex(-1)
-        })
-        .catch(() => {
-          // Secondary feature — fail quietly. The user can still hit Enter
-          // and search the raw typed text exactly as before this existed.
-          if (cancelled) return
-          setSuggestions([])
-          setIsSuggestionsOpen(false)
-        })
-    }, SUGGESTION_DEBOUNCE_MS)
-
-    return () => {
-      cancelled = true
-      clearTimeout(timer)
-    }
-  }, [query, getSessionToken])
 
   const runSearch = useCallback(
     async (value: string) => {
@@ -289,110 +224,22 @@ function AddressSearchBar({
     [map, onLocate],
   )
 
-  const closeSuggestions = useCallback(() => {
-    setSuggestions([])
-    setIsSuggestionsOpen(false)
-    setHighlightedIndex(-1)
-  }, [])
-
-  const handleSearch = useCallback(
-    (value: string) => {
-      closeSuggestions()
-      endSession()
-      void runSearch(value)
-    },
-    [closeSuggestions, endSession, runSearch],
-  )
-
-  const selectSuggestion = useCallback(
-    (suggestion: AddressSuggestion) => {
-      skipNextSuggestionFetchRef.current = true
-      setQuery(suggestion.description)
-      closeSuggestions()
-      endSession()
-      void runSearch(suggestion.description)
-    },
-    [closeSuggestions, endSession, runSearch],
-  )
-
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLInputElement>) => {
-      if (!isSuggestionsOpen || suggestions.length === 0) {
-        if (event.key === 'Enter') handleSearch(query)
-        return
-      }
-
-      if (event.key === 'ArrowDown') {
-        event.preventDefault()
-        setHighlightedIndex((i) => (i + 1) % suggestions.length)
-      } else if (event.key === 'ArrowUp') {
-        event.preventDefault()
-        setHighlightedIndex((i) => (i <= 0 ? suggestions.length - 1 : i - 1))
-      } else if (event.key === 'Enter') {
-        event.preventDefault()
-        if (highlightedIndex >= 0) {
-          selectSuggestion(suggestions[highlightedIndex])
-        } else {
-          handleSearch(query)
-        }
-      } else if (event.key === 'Escape') {
-        closeSuggestions()
-      }
-    },
-    [isSuggestionsOpen, suggestions, highlightedIndex, query, handleSearch, selectSuggestion, closeSuggestions],
-  )
-
   return (
     <div
       className={`absolute top-0 z-10 flex flex-col items-center gap-1 px-6 pt-6 transition-[left] ${
         panelOpen ? 'left-64 right-0' : 'inset-x-0'
       }`}
     >
-      <div
-        className="relative w-full max-w-md"
-        // Closes the dropdown once focus truly leaves this wrapper (input or
-        // any suggestion button) — not on every blur, since clicking a
-        // suggestion blurs the input first.
-        onBlur={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-            closeSuggestions()
-          }
+      <AddressAutocompleteInput
+        className="max-w-md"
+        value={query}
+        onChange={setQuery}
+        onSelect={(suggestion) => {
+          setQuery(suggestion.description)
+          void runSearch(suggestion.description)
         }}
-      >
-        <AddressSearch
-          value={query}
-          onChange={(value) => {
-            setQuery(value)
-            setIsSuggestionsOpen(true)
-          }}
-          onSearch={handleSearch}
-          onKeyDown={handleKeyDown}
-        />
-        {isSuggestionsOpen && suggestions.length > 0 && (
-          <ul className="absolute inset-x-0 top-full z-20 mt-1.5 max-h-64 overflow-y-auto rounded-2xl border border-black/5 bg-white py-1.5 shadow-[0_4px_24px_rgba(26,32,44,0.12)]">
-            {suggestions.map((suggestion, index) => (
-              <li key={suggestion.placeId}>
-                <button
-                  type="button"
-                  // Keeps the input focused through the click so this fires
-                  // before the wrapper's onBlur would otherwise close the list.
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => selectSuggestion(suggestion)}
-                  onMouseEnter={() => setHighlightedIndex(index)}
-                  className={`flex w-full flex-col items-start gap-0.5 px-4 py-2 text-left transition-colors ${
-                    index === highlightedIndex ? 'bg-relaive-primary/10' : 'hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="text-sm text-relaive-navy">{suggestion.mainText}</span>
-                  {suggestion.secondaryText && (
-                    <span className="text-xs text-relaive-gray">{suggestion.secondaryText}</span>
-                  )}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+        onEnter={(value) => void runSearch(value)}
+      />
       {error && <span className="rounded-full bg-white px-3 py-1 text-xs text-red-600 shadow-sm">{error}</span>}
     </div>
   )

@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { BUTTON_FONT_CLASS } from '../button/button'
-import { AddressSearch, SearchIcon } from './address-search'
+import { SearchIcon } from './address-search'
+import { AddressAutocompleteInput } from './address-autocomplete-input'
 
 const DATE_RANGES = [
   { value: '12m', label: 'Last 12 months' },
@@ -113,14 +114,14 @@ export function SalesSearch({ className = '', initialAddress = '', onSearch }: S
       className={`rounded-2xl border border-black/8 bg-white p-4 shadow-[0_1px_4px_rgba(26,32,44,0.04)] sm:p-5 ${className}`}
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <AddressSearch
+        <AddressAutocompleteInput
           placeholder="Enter a property address..."
           className="max-w-none min-w-0 flex-1"
           inputClassName="border-transparent bg-[#F3F4F6] py-3.5 shadow-none"
           iconPosition="left"
-          readOnly={false}
           value={address}
           onChange={setAddress}
+          onSelect={(suggestion) => setAddress(suggestion.description)}
         />
         <button
           type="submit"

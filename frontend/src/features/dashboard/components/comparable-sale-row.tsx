@@ -23,6 +23,14 @@ function BathIcon() {
   )
 }
 
+function PropertyTypeIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 10.5L12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9.5z" />
+    </svg>
+  )
+}
+
 function ParkingIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -99,12 +107,16 @@ export function ComparableSaleRow({ sale }: ComparableSaleRowProps) {
               {sale.baths} bath
             </span>
             <span className="inline-flex items-center gap-1.5">
+              <ParkingIcon />
+              {sale.parking} car
+            </span>
+            <span className="inline-flex items-center gap-1.5">
               <AreaIcon />
               {sale.areaSqm}m²
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <ParkingIcon />
-              House
+              <PropertyTypeIcon />
+              {sale.propertyType}
             </span>
           </div>
         </div>

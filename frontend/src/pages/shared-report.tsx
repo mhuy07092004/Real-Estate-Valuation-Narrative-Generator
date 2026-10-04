@@ -162,7 +162,7 @@ export default function SharedReportPage() {
                   : formatCurrency(report.estimatedValue),
               accent: true,
             },
-            { id: 'midpoint', label: 'Midpoint', value: formatCurrency(report.estimatedValue) },
+            { id: 'midpoint', label: 'AI Estimate', value: formatCurrency(report.estimatedValue) },
             { id: 'property-type', label: 'Property Type', value: report.propertyType },
             {
               id: 'features',
@@ -175,7 +175,7 @@ export default function SharedReportPage() {
           summaryResult={{
             rangeLow: rangeLow !== null ? formatCurrency(rangeLow) : formatCurrency(report.estimatedValue),
             rangeHigh: rangeHigh !== null ? formatCurrency(rangeHigh) : '',
-            midpointLabel: 'Midpoint Estimate',
+            midpointLabel: 'AI Estimate',
             midpointValue: formatCurrency(report.estimatedValue),
             progressPercent,
           }}

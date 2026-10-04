@@ -462,6 +462,7 @@ export type ComparableSale = {
   address: string
   price: number
   soldAgo: string
+  propertyType: string
   beds: number
   baths: number
   parking: number
