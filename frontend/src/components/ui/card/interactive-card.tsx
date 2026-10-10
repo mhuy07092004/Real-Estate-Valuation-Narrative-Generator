@@ -12,6 +12,8 @@ export function InteractiveCard({
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     const el = cardRef.current
     if (!el) return
+    // Tilt/glow is a pointer-hover effect; skip it on touch devices.
+    if (window.matchMedia('(hover: none)').matches) return
     const rect = el.getBoundingClientRect()
     const x = e.clientX - rect.left
     const y = e.clientY - rect.top

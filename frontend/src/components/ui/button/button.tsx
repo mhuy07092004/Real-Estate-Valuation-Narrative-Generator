@@ -27,7 +27,7 @@ const VARIANT_MAP: Record<ButtonVariant, string> = {
 }
 
 const SIZE_MAP: Record<ButtonSize, string> = {
-  sm: 'px-4 py-2 text-sm',
+  sm: 'min-h-10 px-4 py-2 text-sm sm:min-h-0',
   md: 'px-6 py-3 text-sm',
   lg: 'px-8 py-4 text-base',
 }

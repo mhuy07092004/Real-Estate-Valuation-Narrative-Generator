@@ -73,10 +73,12 @@ function PolicySidebar({
   activeId: string
   onSelect: (e: MouseEvent<HTMLAnchorElement>, targetId: string) => void
 }) {
+  const [tocOpen, setTocOpen] = useState(false)
+  const tocVisibility = tocOpen || query ? '' : 'max-lg:hidden'
   return (
     <aside
       data-lenis-prevent
-      className="flex flex-col gap-4 self-start lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto"
+      className="flex flex-col gap-4 self-start lg:sticky lg:top-24 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto"
     >
       <label className={`${PANEL_CLASS} flex items-center gap-2 !rounded-xl px-3 py-2.5 text-relaive-gray`}>
         <IconWrap>
@@ -93,8 +95,18 @@ function PolicySidebar({
         />
       </label>
 
+      <button
+        type="button"
+        aria-expanded={tocOpen}
+        onClick={() => setTocOpen((open) => !open)}
+        className={`${PANEL_CLASS} !rounded-xl flex min-h-11 items-center justify-between px-4 text-sm font-semibold text-relaive-navy lg:hidden`}
+      >
+        Table of contents
+        <span aria-hidden="true">{tocOpen ? '−' : '+'}</span>
+      </button>
+
       {groups.length === 0 ? (
-        <div className={`${PANEL_CLASS} !rounded-2xl p-4`}>
+        <div className={`${PANEL_CLASS} !rounded-2xl p-4 ${tocVisibility}`}>
           <p className="px-3 py-2 text-sm text-relaive-gray">No results</p>
         </div>
       ) : (
@@ -103,7 +115,7 @@ function PolicySidebar({
           return (
             <nav
               key={group.slug}
-              className={`${PANEL_CLASS} !rounded-2xl p-4 ${
+              className={`${PANEL_CLASS} ${tocVisibility} !rounded-2xl p-4 ${
                 groupActive ? 'ring-1 ring-relaive-primary/25' : ''
               }`}
               aria-label={group.title}
@@ -211,10 +223,10 @@ export default function PolicyPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-relaive-surface">
+    <div className="relative min-h-dvh bg-relaive-surface">
       <Navbar />
 
-      <main className="mx-auto grid w-full max-w-6xl gap-6 px-6 py-14 lg:grid-cols-[280px_1fr]">
+      <main className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-8 sm:px-6 sm:py-14 lg:grid-cols-[280px_1fr]">
         <PolicySidebar
           query={query}
           onQueryChange={setQuery}

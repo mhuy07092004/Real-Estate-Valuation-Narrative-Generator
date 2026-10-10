@@ -212,6 +212,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   )
 
   const [collapsed, setCollapsed] = useState(false)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [roleOpen, setRoleOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [activeNav, setActiveNav] = useState(() => resolveActiveNavFromPath(pathname))
@@ -297,6 +298,24 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
       setActiveNav('Dashboard')
     }
   }, [pathname, resolvedRole])
+
+  useEffect(() => {
+    setMobileNavOpen(false)
+  }, [pathname])
+
+  useEffect(() => {
+    if (!mobileNavOpen) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setMobileNavOpen(false)
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [mobileNavOpen])
 
   useClickOutside(userMenuRef, userMenuOpen, () => {
     setUserMenuOpen(false)
@@ -405,7 +424,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
   }
 
   return (
-    <div className="dashboard-shell flex min-h-screen bg-[#F5F6F8]">
+    <div className="dashboard-shell flex min-h-dvh bg-[#F5F6F8]">
       <DashboardSidebar
         collapsed={collapsed}
         onToggleCollapsed={() => setCollapsed((value) => !value)}
@@ -420,6 +439,8 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
         activeNav={activeNav}
         onNavChange={handleNavChange}
         onSignOut={handleSignOut}
+        mobileOpen={mobileNavOpen}
+        onCloseMobile={() => setMobileNavOpen(false)}
       />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-visible">
@@ -440,6 +461,7 @@ export function DashboardNavbar({ children }: DashboardNavbarProps) {
           activeNavLabel={activeNav}
           onNavigateHome={handleNavigateHome}
           onNavigatePlatform={handleNavigatePlatform}
+          onOpenMobileNav={() => setMobileNavOpen(true)}
         />
 
         <main className="min-h-0 flex-1 overflow-auto">{children}</main>

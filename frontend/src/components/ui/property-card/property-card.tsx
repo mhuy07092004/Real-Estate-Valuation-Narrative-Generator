@@ -194,14 +194,14 @@ export function PropertyCard({ property, className = '', saved = false, onSave }
         <div className="absolute top-3 right-3 flex items-center gap-2">
           <button
             type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-relaive-navy shadow-[0_2px_8px_rgba(26,32,44,0.08)] transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
+            className="flex h-10 w-10 items-center justify-center rounded-full sm:h-8 sm:w-8 bg-white text-relaive-navy shadow-[0_2px_8px_rgba(26,32,44,0.08)] transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
             aria-label="Compare property"
           >
             <CompareIcon />
           </button>
           <button
             type="button"
-            className={`flex h-8 w-8 items-center justify-center rounded-full shadow-[0_2px_8px_rgba(26,32,44,0.08)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary ${
+            className={`flex h-10 w-10 items-center justify-center rounded-full sm:h-8 sm:w-8 shadow-[0_2px_8px_rgba(26,32,44,0.08)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary ${
               saved
                 ? 'bg-relaive-primary text-white'
                 : 'bg-white text-relaive-navy hover:bg-slate-50'

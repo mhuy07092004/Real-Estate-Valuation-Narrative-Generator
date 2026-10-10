@@ -41,7 +41,7 @@ export default function Landing() {
   }, [])
 
   return (
-    <div className="relative min-h-screen bg-white">
+    <div className="relative min-h-dvh overflow-x-clip bg-white">
       <Navbar />
       <MainSection />
       <LazyMount minHeight={640}>

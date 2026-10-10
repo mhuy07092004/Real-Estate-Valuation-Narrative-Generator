@@ -34,6 +34,7 @@ type DashboardTopbarProps = {
   activeNavLabel: string
   onNavigateHome: () => void
   onNavigatePlatform: () => void
+  onOpenMobileNav: () => void
 }
 
 export function DashboardTopbar({
@@ -53,32 +54,48 @@ export function DashboardTopbar({
   activeNavLabel,
   onNavigateHome,
   onNavigatePlatform,
+  onOpenMobileNav,
 }: DashboardTopbarProps) {
   const isPlatformHome = activeNavLabel === 'Dashboard'
   const breadcrumbLinkClass =
     'inline-flex items-center gap-1.5 rounded-md transition-colors hover:text-relaive-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary/40'
 
   return (
-    <header className="sticky top-0 z-40 flex h-(--dash-topbar) items-center justify-between overflow-visible border-b border-black/5 bg-white px-[clamp(1.25rem,1rem+0.8vw,2rem)]">
+    <header className="sticky top-0 z-40 flex h-(--dash-topbar) items-center justify-between gap-2 overflow-visible border-b border-black/5 bg-white px-3 sm:px-[clamp(1.25rem,1rem+0.8vw,2rem)]">
+      <button
+        type="button"
+        aria-label="Open menu"
+        onClick={onOpenMobileNav}
+        className="flex size-10 shrink-0 items-center justify-center rounded-lg text-relaive-navy transition-colors hover:bg-relaive-navy/5 lg:hidden"
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
       <nav
         aria-label="Breadcrumb"
-        className="flex min-w-0 items-center gap-2 text-[length:var(--dash-nav)] text-relaive-gray 3xl:gap-2.5"
+        className="flex min-w-0 flex-1 items-center gap-2 text-[length:var(--dash-nav)] text-relaive-gray 3xl:gap-2.5"
       >
         <button type="button" onClick={onNavigateHome} className={breadcrumbLinkClass}>
           <HomeIcon className="size-(--dash-icon) shrink-0" />
-          Homepage
+          <span className="hidden sm:inline">Homepage</span>
+          <span className="sr-only sm:hidden">Homepage</span>
         </button>
-        <ChevronRightIcon />
+        <ChevronRightIcon className="shrink-0" />
         {isPlatformHome ? (
           <span className="truncate font-medium text-relaive-navy" aria-current="page">
             Dashboard
           </span>
         ) : (
           <>
-            <button type="button" onClick={onNavigatePlatform} className={breadcrumbLinkClass}>
+            <button
+              type="button"
+              onClick={onNavigatePlatform}
+              className={`${breadcrumbLinkClass} hidden sm:inline-flex`}
+            >
               Dashboard
             </button>
-            <ChevronRightIcon />
+            <ChevronRightIcon className="hidden shrink-0 sm:block" />
             <span className="truncate font-medium text-relaive-navy" aria-current="page">
               {activeNavLabel}
             </span>
@@ -86,12 +103,12 @@ export function DashboardTopbar({
         )}
       </nav>
 
-      <div className="flex items-center gap-2.5 overflow-visible 3xl:gap-3">
+      <div className="flex shrink-0 items-center gap-1 overflow-visible sm:gap-2.5 3xl:gap-3">
         <button
           type="button"
           aria-label="Notifications"
           onClick={onNavigateToNotifications}
-          className="relative flex size-9 items-center justify-center rounded-lg text-relaive-gray transition-colors hover:bg-relaive-navy/5 hover:text-relaive-navy 3xl:size-10"
+          className="relative flex size-10 items-center justify-center rounded-lg text-relaive-gray transition-colors hover:bg-relaive-navy/5 hover:text-relaive-navy 3xl:size-10"
         >
           <BellIcon className="size-(--dash-icon)" />
           {unreadNotificationCount > 0 ? (
@@ -127,7 +144,7 @@ export function DashboardTopbar({
           {userMenuOpen && (
             <div
               role="menu"
-              className="absolute right-0 top-[calc(100%+8px)] z-50 w-[clamp(18.75rem,22vw,22.5rem)] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-lg"
+              className="absolute right-0 top-[calc(100%+8px)] z-50 w-[clamp(18.75rem,22vw,22.5rem)] max-w-[calc(100vw-1rem)] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-lg"
             >
               <div className="flex items-center gap-3 border-b border-black/5 px-4 py-3.5">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-relaive-secondary to-relaive-primary text-sm font-semibold text-white">

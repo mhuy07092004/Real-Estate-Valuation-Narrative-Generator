@@ -145,7 +145,7 @@ export function AboutSection() {
   return (
     <section
       id="about"
-      className="scroll-mt-20 border-t border-black/5 bg-white px-6 py-24"
+      className="scroll-mt-20 border-t border-black/5 bg-white px-4 py-14 sm:px-6 sm:py-20 lg:py-24"
     >
       <div className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-12 lg:grid-cols-2 lg:gap-16">
         <div className="flex flex-col gap-6">

@@ -166,7 +166,7 @@ export function EnterAddressForm({ value, onChange, errors }: EnterAddressFormPr
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[6fr_3fr_1.5fr_1.5fr]">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-[6fr_3fr_1.5fr_1.5fr]">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="street-address" className={FIELD_LABEL}>
             Street Address <span className="text-red-400">*</span>

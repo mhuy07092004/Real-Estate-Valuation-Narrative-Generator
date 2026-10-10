@@ -1,4 +1,5 @@
 import logoIcon from '../../../assets/icon.svg'
+import { useMediaQuery } from '../../../hooks/use-media-query'
 import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-role'
 import {
   ChevronDownIcon,
@@ -25,10 +26,12 @@ type DashboardSidebarProps = {
   activeNav: string
   onNavChange: (label: string, to?: string) => void
   onSignOut: () => void
+  mobileOpen: boolean
+  onCloseMobile: () => void
 }
 
 export function DashboardSidebar({
-  collapsed,
+  collapsed: collapsedProp,
   onToggleCollapsed,
   roleOpen,
   onExpandRole,
@@ -41,12 +44,44 @@ export function DashboardSidebar({
   activeNav,
   onNavChange,
   onSignOut,
+  mobileOpen,
+  onCloseMobile,
 }: DashboardSidebarProps) {
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+  // The drawer (below lg) is always rendered expanded.
+  const collapsed = collapsedProp && isDesktop
+
+  function handleNav(label: string, to?: string) {
+    onNavChange(label, to)
+    onCloseMobile()
+  }
+
+  function handleRole(role: DashboardRole) {
+    onRoleChange(role)
+    onCloseMobile()
+  }
+
+  function handleSignOut() {
+    onCloseMobile()
+    onSignOut()
+  }
+
   return (
+    <>
+    {mobileOpen && (
+      <div
+        className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+        aria-hidden="true"
+        onClick={onCloseMobile}
+      />
+    )}
     <aside
+      aria-label="Dashboard navigation"
       className={[
-        'sticky top-0 flex h-screen shrink-0 flex-col border-r border-black/5 bg-white transition-[width] duration-200',
-        collapsed ? 'w-(--dash-sidebar-collapsed)' : 'w-(--dash-sidebar)',
+        'fixed inset-y-0 left-0 z-50 flex h-dvh w-[min(85vw,20rem)] shrink-0 flex-col border-r border-black/5 bg-white transition-[transform,width] duration-200',
+        'lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0',
+        mobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full',
+        collapsed ? 'lg:w-(--dash-sidebar-collapsed)' : 'lg:w-(--dash-sidebar)',
       ].join(' ')}
     >
       <div
@@ -81,9 +116,19 @@ export function DashboardSidebar({
           type="button"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           onClick={onToggleCollapsed}
-          className="flex size-7 shrink-0 items-center justify-center rounded-md text-relaive-gray transition-colors hover:bg-relaive-navy/5 hover:text-relaive-navy 3xl:size-8"
+          className="hidden size-8 shrink-0 items-center justify-center rounded-md text-relaive-gray transition-colors hover:bg-relaive-navy/5 hover:text-relaive-navy lg:flex 3xl:size-9"
         >
           <ChevronLeftIcon className={collapsed ? 'rotate-180' : ''} />
+        </button>
+        <button
+          type="button"
+          aria-label="Close menu"
+          onClick={onCloseMobile}
+          className="flex size-10 shrink-0 items-center justify-center rounded-md text-relaive-gray transition-colors hover:bg-relaive-navy/5 hover:text-relaive-navy lg:hidden"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
         </button>
       </div>
 
@@ -123,7 +168,7 @@ export function DashboardSidebar({
               id="dashboard-role-accordion"
               roles={availableRoles}
               resolvedRole={resolvedRole}
-              onSelect={onRoleChange}
+              onSelect={handleRole}
             />
           )}
         </div>
@@ -155,7 +200,7 @@ export function DashboardSidebar({
                       href="#"
                       onClick={(event) => {
                         event.preventDefault()
-                        onNavChange(item.label, item.to)
+                        handleNav(item.label, item.to)
                       }}
                       aria-current={active ? 'page' : undefined}
                       title={collapsed ? item.label : undefined}
@@ -193,7 +238,7 @@ export function DashboardSidebar({
                   href="#"
                   onClick={(event) => {
                     event.preventDefault()
-                    onNavChange(label)
+                    handleNav(label)
                   }}
                   aria-current={active ? 'page' : undefined}
                   title={collapsed ? label : undefined}
@@ -214,7 +259,7 @@ export function DashboardSidebar({
           <li>
             <button
               type="button"
-              onClick={onSignOut}
+              onClick={handleSignOut}
               title={collapsed ? 'Sign Out' : undefined}
               className={[
                 'flex w-full items-center gap-2.5 text-[length:var(--dash-nav)] font-semibold text-red-600 transition-all hover:bg-red-50 hover:text-red-700 3xl:gap-3',
@@ -228,5 +273,6 @@ export function DashboardSidebar({
         </ul>
       </div>
     </aside>
+    </>
   )
 }

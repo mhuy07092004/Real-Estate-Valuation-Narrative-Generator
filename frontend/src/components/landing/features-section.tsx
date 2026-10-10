@@ -167,7 +167,7 @@ export function FeaturesSection() {
       description="Everything you need for explainable, AI-powered property valuation and market intelligence."
       containerClassName="max-w-6xl"
     >
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-5 lg:gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3 lg:gap-6">
         {FEATURES.map((feature) => (
           <InteractiveCard key={feature.title} className={feature.className}>
             <FeatureCard {...feature} className="" />

@@ -357,7 +357,7 @@ function AddInspectionModal({
       onClick={onCancel}
     >
       <div
-        className="flex max-h-[90vh] w-full max-w-md flex-col rounded-2xl bg-white p-6 shadow-xl"
+        className="flex max-h-[90dvh] w-full max-w-md flex-col rounded-2xl bg-white p-6 shadow-xl"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex shrink-0 items-center justify-between">

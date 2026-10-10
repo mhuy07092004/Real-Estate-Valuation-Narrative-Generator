@@ -183,7 +183,7 @@ const STATS: { icon: ReactNode; label: string }[] = [
 export function PlatformDropdown({ open }: { open: boolean }) {
   return (
     <NavDropdownPanel open={open}>
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-10">
+        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-6 sm:px-6 sm:py-10">
           <div className="flex flex-col items-center gap-2 text-center">
             <h2 className="text-2xl font-semibold text-relaive-navy sm:text-3xl">
               Tailored AI Workflows
@@ -202,7 +202,7 @@ export function PlatformDropdown({ open }: { open: boolean }) {
             ))}
           </div>
 
-          <div className="flex flex-col items-center justify-center gap-4 border-t border-black/5 pt-6 sm:flex-row sm:gap-10">
+          <div className="flex flex-col items-center justify-center gap-4 border-t border-black/5 pt-6 text-center sm:flex-row sm:flex-wrap sm:gap-x-10 sm:gap-y-3">
             {STATS.map((stat) => (
               <div
                 key={stat.label}

@@ -8,6 +8,7 @@ import { FeaturesDropdown } from './features-dropdown'
 import { PlatformDropdown } from './platform-dropdown'
 import { AboutDropdown } from './about-dropdown'
 import { PlansDropdown } from './plans-dropdown'
+import { MobileNavMenu } from './mobile-nav-menu'
 
 const NAV_ORDER = [
   { type: 'dropdown', label: 'Platform', key: 'platform' },
@@ -49,6 +50,7 @@ export function Navbar() {
   const { isAuthenticated, isLoading } = useAuth()
   const headerRef = useRef<HTMLElement>(null)
   const [openMenu, setOpenMenu] = useState<OpenMenu>(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const switchTimeoutRef = useRef<number | null>(null)
   const openPlansMenu = useCallback(() => setOpenMenu('plans'), [])
 
@@ -83,17 +85,33 @@ export function Navbar() {
   useEffect(() => {
     clearSwitchTimeout()
     setOpenMenu(null)
+    setMobileMenuOpen(false)
   }, [location.pathname, clearSwitchTimeout])
 
   useEffect(() => () => clearSwitchTimeout(), [clearSwitchTimeout])
 
+  const handleMobileSelect = useCallback(
+    (key: string) => {
+      setMobileMenuOpen(false)
+      handleNavClick(key as Exclude<OpenMenu, null>)
+    },
+    [handleNavClick],
+  )
+
+  const toggleMobileMenu = useCallback(() => {
+    clearSwitchTimeout()
+    setOpenMenu(null)
+    setMobileMenuOpen((open) => !open)
+  }, [clearSwitchTimeout])
+
   useEffect(() => {
-    if (!openMenu) return
+    if (!openMenu && !mobileMenuOpen) return
 
     function handlePointerDown(event: MouseEvent) {
       if (headerRef.current && !headerRef.current.contains(event.target as Node)) {
         clearSwitchTimeout()
         setOpenMenu(null)
+        setMobileMenuOpen(false)
       }
     }
 
@@ -101,6 +119,7 @@ export function Navbar() {
       if (event.key === 'Escape') {
         clearSwitchTimeout()
         setOpenMenu(null)
+        setMobileMenuOpen(false)
       }
     }
 
@@ -111,19 +130,19 @@ export function Navbar() {
       document.removeEventListener('mousedown', handlePointerDown)
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [openMenu, clearSwitchTimeout])
+  }, [openMenu, mobileMenuOpen, clearSwitchTimeout])
 
   return (
     <header ref={headerRef} className="relative sticky top-0 z-50 w-full border-b border-black/5 bg-white">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-4">
         {/* Logo */}
-        <a href="/" className="flex items-center gap-3 shrink-0">
-          <img src={logoIcon} alt="Relaive icon" className="h-12 w-12" />
+        <a href="/" className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <img src={logoIcon} alt="Relaive icon" className="h-10 w-10 shrink-0 sm:h-12 sm:w-12" />
           <div className="flex flex-col leading-tight">
             <span className="font-logo text-2xl font-bold text-relaive-navy tracking-tight">
               Relaive
             </span>
-            <span className="text-xs text-relaive-gray">
+            <span className="hidden text-xs text-relaive-gray sm:block">
               Real-estate AI Evaluation
             </span>
           </div>
@@ -155,13 +174,13 @@ export function Navbar() {
         </ul>
 
         {/* Actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           {isLoading ? null : isAuthenticated ? (
-            <Button variant="primary" size="sm" href="/dashboard">
+            <Button variant="primary" size="sm" href="/dashboard" className="max-md:hidden">
               Go to Dashboard
             </Button>
           ) : (
-            <>
+            <div className="flex items-center gap-2 sm:gap-4 max-md:hidden">
               <Button
                 variant={location.pathname === '/signup' ? 'link' : 'primary'}
                 size="sm"
@@ -178,10 +197,30 @@ export function Navbar() {
               >
                 Sign up
               </Button>
-            </>
+            </div>
           )}
+          <button
+            type="button"
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-nav-menu"
+            onClick={toggleMobileMenu}
+            className="flex size-10 items-center justify-center rounded-lg text-relaive-navy transition-colors hover:bg-relaive-navy/5 md:hidden"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d={mobileMenuOpen ? 'M6 6l12 12M18 6L6 18' : 'M4 6h16M4 12h16M4 18h16'} />
+            </svg>
+          </button>
         </div>
       </nav>
+
+      <MobileNavMenu
+        open={mobileMenuOpen}
+        items={NAV_ORDER}
+        onSelect={handleMobileSelect}
+        isAuthenticated={isAuthenticated}
+        isLoading={isLoading}
+      />
 
       <PlatformDropdown open={openMenu === 'platform'} />
       <FeaturesDropdown open={openMenu === 'features'} />

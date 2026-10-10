@@ -64,7 +64,7 @@ export function RoleSelection() {
                 aria-checked={selected}
                 onClick={() => setRole(option.value)}
                 className={[
-                  'rounded-lg border px-4 py-6 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary',
+                  'rounded-lg border px-2 py-5 text-sm sm:px-4 sm:py-6 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary',
                   selected
                     ? 'border-relaive-primary bg-relaive-primary/10 text-relaive-navy'
                     : 'border-black/10 bg-white text-relaive-navy hover:border-relaive-primary/40',

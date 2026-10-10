@@ -148,7 +148,7 @@ type LayersPanelProps = {
  */
 export function LayersPanel({ radiusMeters, onRadiusChange, layerVisibility, onToggleLayer, onClose }: LayersPanelProps) {
   return (
-    <div className="absolute inset-y-0 left-0 z-20 flex w-64 flex-col gap-4 overflow-y-auto rounded-l-3xl border-r border-black/5 bg-white p-5 shadow-[0_4px_24px_rgba(26,32,44,0.08)]">
+    <div className="absolute inset-x-0 bottom-0 z-20 flex max-h-[60%] flex-col gap-4 overflow-y-auto rounded-b-3xl rounded-t-2xl border-t border-black/5 bg-white p-4 sm:inset-y-0 sm:right-auto sm:left-0 sm:max-h-none sm:w-64 sm:rounded-l-3xl sm:rounded-r-none sm:border-r sm:border-t-0 sm:p-5 shadow-[0_4px_24px_rgba(26,32,44,0.08)]">
       <div className="flex items-center justify-between">
         <h3 className="text-base font-medium text-relaive-navy">Map Layers</h3>
         <button

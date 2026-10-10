@@ -19,7 +19,7 @@ export function NavDropdownPanel({
     <div
       className={`absolute inset-x-0 top-full z-40 grid overflow-hidden transition-[grid-template-rows,max-height,opacity] duration-300 ease-out ${
         open
-          ? 'grid-rows-[1fr] pointer-events-auto max-h-[calc(100dvh-100%)] opacity-100 border-b border-black/5 bg-white shadow-[0_16px_40px_rgba(26,32,44,0.08)]'
+          ? 'grid-rows-[1fr] pointer-events-auto max-h-[calc(100dvh-4.5rem)] opacity-100 border-b border-black/5 bg-white shadow-[0_16px_40px_rgba(26,32,44,0.08)]'
           : 'grid-rows-[0fr] pointer-events-none max-h-0 opacity-0 border-0 bg-transparent shadow-none'
       }`}
       aria-hidden={!open}

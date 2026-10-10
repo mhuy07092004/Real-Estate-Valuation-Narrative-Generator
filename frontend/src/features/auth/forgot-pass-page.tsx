@@ -5,7 +5,7 @@ import { ForgotPassForm } from './components/forgot-pass-form'
 
 export function ForgotPassPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-b from-relaive-cream to-relaive-surface">
+    <div className="flex min-h-dvh flex-col bg-gradient-to-b from-relaive-cream to-relaive-surface">
       <Navbar />
       <AuthLayout
         footer={

@@ -262,7 +262,7 @@ export function SignUpForm() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <div className="flex items-end gap-2">
+          <div className="flex flex-col gap-2 min-[420px]:flex-row min-[420px]:items-end">
             <div className="min-w-0 flex-1">
               <Input
                 id="email"
@@ -280,7 +280,7 @@ export function SignUpForm() {
               type="button"
               variant="outline"
               size="sm"
-              className="h-[42px] shrink-0 whitespace-nowrap"
+              className="h-[42px] w-full shrink-0 whitespace-nowrap min-[420px]:w-auto"
               onClick={handleSendOtp}
               disabled={!email || otpSending || cooldown > 0}
             >

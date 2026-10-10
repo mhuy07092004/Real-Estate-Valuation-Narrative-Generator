@@ -153,7 +153,7 @@ function MapControls({
   ] as const
 
   return (
-    <div className="absolute right-5 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2.5">
+    <div className="absolute right-3 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2 sm:right-5 sm:gap-2.5">
       {controls.map(({ label, icon, onClick }) => (
         <button
           key={label}
@@ -226,8 +226,8 @@ function AddressSearchBar({
 
   return (
     <div
-      className={`absolute top-0 z-10 flex flex-col items-center gap-1 px-6 pt-6 transition-[left] ${
-        panelOpen ? 'left-64 right-0' : 'inset-x-0'
+      className={`absolute top-0 z-10 flex flex-col items-center gap-1 px-3 pt-3 transition-[left] sm:px-6 sm:pt-6 ${
+        panelOpen ? 'inset-x-0 sm:left-64 sm:right-0' : 'inset-x-0'
       }`}
     >
       <AddressAutocompleteInput
@@ -291,8 +291,8 @@ export function MapCard() {
       ref={containerRef}
       className={
         isExpanded
-          ? 'fixed inset-4 z-50 overflow-hidden rounded-3xl shadow-2xl'
-          : 'relative aspect-[16/9] min-h-[420px] w-full overflow-hidden rounded-3xl shadow-[0_4px_24px_rgba(26,32,44,0.06)]'
+          ? 'fixed inset-2 z-50 overflow-hidden rounded-3xl shadow-2xl sm:inset-4'
+          : 'relative aspect-[4/5] min-h-[380px] w-full overflow-hidden rounded-3xl shadow-[0_4px_24px_rgba(26,32,44,0.06)] sm:aspect-[16/9] sm:min-h-[420px]'
       }
     >
       <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>

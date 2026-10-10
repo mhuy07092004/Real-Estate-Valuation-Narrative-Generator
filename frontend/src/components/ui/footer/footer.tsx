@@ -149,7 +149,7 @@ export function Footer() {
             </h3>
             <a
               href="/contact-us"
-              className="inline-flex shrink-0 items-center rounded-full border border-relaive-secondary/80 px-4 py-1.5 text-[13px] font-medium text-white/90 transition-colors hover:border-relaive-secondary hover:bg-white/5"
+              className="inline-flex shrink-0 items-center rounded-full border border-relaive-secondary/80 min-h-10 px-4 py-2 text-[13px] font-medium text-white/90 transition-colors hover:border-relaive-secondary hover:bg-white/5"
             >
               Contact Us
             </a>

@@ -205,7 +205,7 @@ export default function ContactUsPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-relaive-surface">
+    <div className="relative min-h-dvh bg-relaive-surface">
       <Navbar />
 
       <main className="mx-auto w-full max-w-6xl px-6 py-14 sm:py-16">
@@ -396,7 +396,7 @@ export default function ContactUsPage() {
 
             <Card className="!h-auto">
               <h2 className="text-base font-semibold text-relaive-navy">Follow Us</h2>
-              <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {SOCIAL_LINKS.map(({ label, href, icon }) => (
                   <Button
                     key={label}

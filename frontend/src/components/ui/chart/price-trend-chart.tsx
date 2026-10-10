@@ -190,6 +190,7 @@ export function PriceTrendChart({ data, valueFormatter, className = '' }: PriceT
                 height={VIEW_HEIGHT}
                 fill="transparent"
                 onMouseEnter={() => setHoverIndex(index)}
+                onPointerDown={() => setHoverIndex(index)}
                 onMouseLeave={() => setHoverIndex((current) => (current === index ? null : current))}
               />
             ))}

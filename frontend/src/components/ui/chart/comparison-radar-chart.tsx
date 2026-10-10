@@ -1,3 +1,4 @@
+import { useMediaQuery } from '../../../hooks/use-media-query'
 import {
   Legend,
   PolarAngleAxis,
@@ -25,9 +26,11 @@ type ComparisonRadarChartProps = {
 export function ComparisonRadarChart({
   axes,
   series,
-  height = 320,
+  height: heightProp = 320,
   className = '',
 }: ComparisonRadarChartProps) {
+  const isSm = useMediaQuery('(min-width: 640px)')
+  const height = isSm ? heightProp : Math.min(heightProp, 260)
   if (axes.length === 0 || series.length === 0) {
     return (
       <div

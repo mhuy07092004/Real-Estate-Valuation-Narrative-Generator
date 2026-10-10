@@ -106,6 +106,6 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
       )
     }
 
-    return <div ref={containerRef} className={className} />
+    return <div ref={containerRef} className={`max-w-full overflow-x-auto ${className ?? ''}`} />
   }
 )

@@ -461,7 +461,7 @@ export function FeaturesDropdown({ open }: { open: boolean }) {
 
   return (
     <NavDropdownPanel open={open}>
-      <div className="mx-auto flex max-w-5xl flex-col gap-8 px-6 py-10">
+      <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-6 sm:gap-8 sm:px-6 sm:py-10">
         <div
           role="tablist"
           aria-label="Feature categories"
@@ -476,7 +476,7 @@ export function FeaturesDropdown({ open }: { open: boolean }) {
                 role="tab"
                 aria-selected={active}
                 onClick={() => setActiveCategoryId(category.id)}
-                className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary focus-visible:ring-offset-2 sm:px-5 ${
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium transition-colors sm:py-2.5 sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary focus-visible:ring-offset-2 sm:px-5 ${
                   active
                     ? 'bg-white text-relaive-navy shadow-sm'
                     : 'text-relaive-gray hover:text-relaive-navy'

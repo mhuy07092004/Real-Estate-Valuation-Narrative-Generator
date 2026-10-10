@@ -216,13 +216,13 @@ export function SignInForm() {
           ) : null}
         </div>
 
-        <div className="flex items-center justify-between text-sm">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
           <label className="flex items-center gap-2 text-relaive-navy">
             <input
               type="checkbox"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="h-4 w-4 rounded border-black/20 text-relaive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
+              className="h-5 w-5 rounded border-black/20 text-relaive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary"
             />
             Remember me
           </label>

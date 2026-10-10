@@ -1,3 +1,5 @@
+import { useMediaQuery } from '../../../hooks/use-media-query'
+
 type StepStatus = 'completed' | 'active' | 'upcoming'
 
 export type StepperItem = {
@@ -72,6 +74,31 @@ export function Stepper({
   className = '',
   onStepClick,
 }: StepperProps) {
+  const isSm = useMediaQuery('(min-width: 640px)')
+
+  if (!isSm) {
+    const current = Math.min(Math.max(activeStep, 0), steps.length - 1)
+    const percent = steps.length > 0 ? ((current + 1) / steps.length) * 100 : 0
+    return (
+      <nav aria-label="Progress" className={`rounded-3xl bg-white px-4 py-4 ${className}`}>
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <span className="min-w-0 truncate font-semibold text-relaive-secondary">
+            {steps[current]?.label}
+          </span>
+          <span className="shrink-0 text-xs font-medium text-relaive-gray">
+            Step {current + 1} of {steps.length}
+          </span>
+        </div>
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#E2E8F0]">
+          <div
+            className="h-full rounded-full bg-relaive-secondary transition-[width] duration-300"
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+      </nav>
+    )
+  }
+
   return (
     <nav
       aria-label="Progress"

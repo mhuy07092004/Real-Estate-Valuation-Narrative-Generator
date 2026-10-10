@@ -13,9 +13,9 @@ export function MainSection() {
   return (
     <section
       id="main"
-      className="relative flex flex-col items-center justify-center bg-relaive-cream px-6 pt-24 pb-16 text-center"
+      className="relative flex flex-col items-center justify-center bg-relaive-cream px-4 pt-16 pb-12 sm:px-6 sm:pt-24 sm:pb-16 text-center"
     >
-      <h1 className="relative text-5xl font-semibold leading-tight text-relaive-navy sm:text-6xl lg:text-7xl">
+      <h1 className="relative text-4xl font-semibold leading-tight text-relaive-navy sm:text-6xl lg:text-7xl">
         The Future of
         <br />
         <span className="text-relaive-accent font-bold">Property Intelligence</span>
@@ -36,11 +36,11 @@ export function MainSection() {
         </Button>
       </div>
 
-      <div className="relative mt-16 grid grid-cols-3 gap-12">
+      <div className="relative mt-12 grid grid-cols-3 gap-4 sm:mt-16 sm:gap-8 lg:gap-12">
         {METRICS.map(({ value, label }) => (
           <div key={label} className="flex flex-col items-center gap-1">
-            <span className="text-3xl font-semibold text-relaive-primary sm:text-4xl">{value}</span>
-            <span className="text-sm text-relaive-gray">{label}</span>
+            <span className="text-2xl font-semibold text-relaive-primary sm:text-4xl">{value}</span>
+            <span className="text-center text-xs text-relaive-gray sm:text-sm">{label}</span>
           </div>
         ))}
       </div>

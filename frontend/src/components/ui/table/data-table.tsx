@@ -9,6 +9,7 @@ import {
   type FilterFn,
   type SortingState,
 } from '@tanstack/react-table'
+import { useMediaQuery } from '../../../hooks/use-media-query'
 import { FilterButton } from '../button/filter-button'
 
 export type DataTableTab<T> = {
@@ -147,6 +148,9 @@ export function DataTable<T>({
   const [activeTab, setActiveTab] = useState(initialTabId)
   const [tabsMenuOpen, setTabsMenuOpen] = useState(false)
   const tabsMenuRef = useRef<HTMLDivElement>(null)
+  const isSm = useMediaQuery('(min-width: 640px)')
+  // Below sm the table becomes a card list and tabs collapse into a dropdown.
+  const compactMode = compactTabs || !isSm
 
   useEffect(() => {
     if (!tabsMenuOpen) return
@@ -162,8 +166,8 @@ export function DataTable<T>({
   }, [tabsMenuOpen])
 
   useEffect(() => {
-    if (!compactTabs) setTabsMenuOpen(false)
-  }, [compactTabs])
+    if (!compactMode) setTabsMenuOpen(false)
+  }, [compactMode])
 
   const tabFilteredData = useMemo(() => {
     if (!tabs || tabs.length === 0) return data
@@ -200,7 +204,7 @@ export function DataTable<T>({
       className={`rounded-3xl border border-black/5 bg-white shadow-[0_4px_24px_rgba(26,32,44,0.06)] ${className}`}
     >
       <div className="flex flex-col gap-4 border-b border-black/5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center">
           <label className="relative flex w-full items-center sm:w-72">
             <span className="sr-only">Search</span>
             <input
@@ -215,14 +219,14 @@ export function DataTable<T>({
             </span>
           </label>
 
-          {showTabs && compactTabs && (
-            <div ref={tabsMenuRef} className="relative">
+          {showTabs && compactMode && (
+            <div ref={tabsMenuRef} className="relative w-full sm:w-auto">
               <button
                 type="button"
                 aria-haspopup="listbox"
                 aria-expanded={tabsMenuOpen}
                 onClick={() => setTabsMenuOpen((open) => !open)}
-                className="inline-flex min-w-[9.5rem] items-center justify-between gap-2 rounded-full border border-black/10 bg-gray-100 px-3.5 py-2 text-sm font-medium text-relaive-navy transition-colors hover:bg-gray-200/70"
+                className="inline-flex w-full min-w-[9.5rem] items-center sm:w-auto justify-between gap-2 rounded-full border border-black/10 bg-gray-100 px-3.5 py-2 text-sm font-medium text-relaive-navy transition-colors hover:bg-gray-200/70"
               >
                 <span className="truncate">{activeTabLabel}</span>
                 <ChevronDownIcon
@@ -263,7 +267,7 @@ export function DataTable<T>({
             </div>
           )}
 
-          {showTabs && !compactTabs && (
+          {showTabs && !compactMode && (
             <div className="inline-flex w-fit flex-wrap items-center gap-1 rounded-full bg-gray-100 p-1">
               {tabs.map((tab) => (
                 <button
@@ -283,12 +287,56 @@ export function DataTable<T>({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <FilterButton onClick={onFilterClick} />
           <FilterButton label="Sort" icon={<SortToolbarIcon />} onClick={onSortClick} />
         </div>
       </div>
 
+      {!isSm ? (
+        <ul className="divide-y divide-black/5">
+          {table.getRowModel().rows.map((row) => {
+            const isSelected = selectedRowId != null && row.id === selectedRowId
+            const [firstCell, ...restCells] = row.getVisibleCells()
+            return (
+              <li
+                key={row.id}
+                onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                className={`p-4 ${onRowClick ? 'cursor-pointer' : ''} ${
+                  isSelected ? 'bg-relaive-primary/5' : 'active:bg-gray-50/60'
+                }`}
+              >
+                {firstCell ? (
+                  <div className="min-w-0">
+                    {flexRender(firstCell.column.columnDef.cell, firstCell.getContext())}
+                  </div>
+                ) : null}
+                {restCells.length > 0 ? (
+                  <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3">
+                    {restCells.map((cell) => {
+                      const header = cell.column.columnDef.header
+                      const label = typeof header === 'string' ? header : cell.column.id
+                      return (
+                        <div key={cell.id} className="min-w-0">
+                          <dt className="text-[11px] font-semibold uppercase tracking-wide text-relaive-gray">
+                            {label}
+                          </dt>
+                          <dd className="mt-1 text-sm">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </dd>
+                        </div>
+                      )
+                    })}
+                  </dl>
+                ) : null}
+              </li>
+            )
+          })}
+          {table.getRowModel().rows.length === 0 && (
+            <li className="px-4 py-10 text-center text-sm text-relaive-gray">{emptyMessage}</li>
+          )}
+        </ul>
+      ) : (
       <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] border-collapse text-left">
           <thead>
@@ -348,6 +396,7 @@ export function DataTable<T>({
           </tbody>
         </table>
       </div>
+      )}
     </section>
   )
 }

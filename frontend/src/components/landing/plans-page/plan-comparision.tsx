@@ -267,7 +267,7 @@ export function PlanComparison() {
           </div>
         </div>
 
-        <div className="mt-12 overflow-x-auto">
+        <div className="-mx-6 mt-12 overflow-x-auto px-6">
           <table className="w-full min-w-[720px] border-collapse">
             <thead>
               <tr className="border-b border-black/5">

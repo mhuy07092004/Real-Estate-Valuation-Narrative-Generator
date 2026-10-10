@@ -79,17 +79,17 @@ type SettingsNavProps = {
 export function SettingsNav({ activeSection, onSelect, onSignOut }: SettingsNavProps) {
   return (
     <nav className="w-full shrink-0 sm:w-64">
-      <ul className="flex flex-col gap-1">
+      <ul className="-mx-4 flex gap-1 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-col sm:overflow-visible sm:px-0 sm:pb-0">
         {SETTINGS_NAV_ITEMS.map(({ id, label, icon: Icon }) => {
           const active = activeSection === id
           return (
-            <li key={id}>
+            <li key={id} className="shrink-0 sm:shrink">
               <button
                 type="button"
                 onClick={() => onSelect(id)}
                 aria-current={active ? 'page' : undefined}
                 className={[
-                  'flex w-full items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-left text-sm font-medium transition-colors',
+                  'flex w-full items-center gap-2.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-left text-sm font-medium transition-colors',
                   active
                     ? 'bg-relaive-primary/10 text-relaive-primary'
                     : 'text-relaive-gray hover:bg-black/[0.03] hover:text-relaive-navy',
@@ -103,7 +103,7 @@ export function SettingsNav({ activeSection, onSelect, onSignOut }: SettingsNavP
         })}
       </ul>
 
-      <div className="mt-4 flex flex-col gap-1 border-t border-black/5 pt-4">
+      <div className="mt-3 flex flex-row flex-wrap gap-1 border-t border-black/5 pt-3 sm:mt-4 sm:flex-col sm:pt-4">
         <button
           type="button"
           onClick={onSignOut}

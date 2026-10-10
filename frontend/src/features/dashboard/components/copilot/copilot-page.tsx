@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useAsyncData } from '../../../../hooks/use-async-data'
 import {
   getCopilotConversations,
@@ -55,11 +56,23 @@ export function CopilotPage() {
   const { data: conversations } = useAsyncData(getCopilotConversations, [])
   const { data: suggestions } = useAsyncData(getCopilotSuggestions, [])
   const { data: messages } = useAsyncData(getCopilotMessages, [])
+  const [listOpen, setListOpen] = useState(false)
 
   return (
-    <div className="flex h-[calc(100dvh-3.5rem)] min-h-0 overflow-hidden bg-white">
-      {/* Conversation sidebar */}
-      <aside className="flex w-[280px] shrink-0 flex-col border-r border-black/5 bg-[#F8FAFB]">
+    <div className="relative flex h-[calc(100dvh-var(--dash-topbar))] min-h-0 overflow-hidden bg-white">
+      {listOpen && (
+        <div
+          className="absolute inset-0 z-10 bg-black/30 lg:hidden"
+          aria-hidden="true"
+          onClick={() => setListOpen(false)}
+        />
+      )}
+      {/* Conversation sidebar (drawer below lg) */}
+      <aside
+        className={`${
+          listOpen ? 'flex' : 'hidden'
+        } absolute inset-y-0 left-0 z-20 w-[min(85%,280px)] shrink-0 flex-col border-r border-black/5 bg-[#F8FAFB] shadow-xl lg:static lg:z-auto lg:flex lg:w-[280px] lg:shadow-none`}
+      >
         <div className="flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-relaive-secondary to-relaive-primary text-white">
@@ -70,7 +83,8 @@ export function CopilotPage() {
           <button
             type="button"
             aria-label="Close conversation panel"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-relaive-gray transition-colors hover:bg-black/5 hover:text-relaive-navy"
+            onClick={() => setListOpen(false)}
+            className="flex h-10 w-10 lg:h-8 lg:w-8 items-center justify-center rounded-lg text-relaive-gray transition-colors hover:bg-black/5 hover:text-relaive-navy"
           >
             <CloseIcon />
           </button>
@@ -141,13 +155,21 @@ export function CopilotPage() {
 
       {/* Chat area */}
       <section className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-black/5 px-5 py-3.5">
-          <div className="flex items-center gap-3">
+        <header className="flex items-center justify-between gap-2 border-b border-black/5 px-3 py-3.5 sm:px-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <button
+              type="button"
+              aria-label="Open conversations"
+              onClick={() => setListOpen(true)}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-relaive-gray transition-colors hover:bg-black/5 hover:text-relaive-navy lg:hidden"
+            >
+              <HistoryIcon />
+            </button>
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-relaive-secondary to-relaive-primary text-white">
               <SparkleIcon className="h-5 w-5" />
             </span>
             <div>
-              <h1 className="text-base font-semibold text-relaive-navy">Relaive AI Copilot</h1>
+              <h1 className="truncate text-base font-semibold text-relaive-navy">Relaive AI Copilot</h1>
               <p className="text-xs text-relaive-gray">
                 <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 Online · GPT-4 powered
@@ -172,7 +194,7 @@ export function CopilotPage() {
           </div>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-8">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-8">
           <div className="mx-auto flex max-w-3xl flex-col gap-6">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {(suggestions ?? []).map((suggestion) => (
@@ -227,13 +249,13 @@ export function CopilotPage() {
           </div>
         </div>
 
-        <div className="border-t border-black/5 px-5 py-4 sm:px-8">
+        <div className="border-t border-black/5 px-3 py-3 sm:px-8 sm:py-4">
           <div className="mx-auto max-w-3xl">
             <div className="flex items-center gap-2 rounded-full border border-black/10 bg-[#F8F9FB] py-1.5 pl-4 pr-1.5 shadow-sm">
               <input
                 type="text"
                 placeholder="Ask about properties, market trends, valuations…"
-                className="min-w-0 flex-1 bg-transparent text-sm text-relaive-navy outline-none placeholder:text-relaive-gray"
+                className="min-w-0 flex-1 bg-transparent text-base text-relaive-navy outline-none sm:text-sm placeholder:text-relaive-gray"
                 readOnly
               />
               <div className="flex items-center gap-0.5">
@@ -247,7 +269,7 @@ export function CopilotPage() {
                 <button
                   type="button"
                   aria-label="Attach image"
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-relaive-gray transition-colors hover:bg-black/5 hover:text-relaive-navy"
+                  className="flex max-[400px]:hidden h-8 w-8 items-center justify-center rounded-full text-relaive-gray transition-colors hover:bg-black/5 hover:text-relaive-navy"
                 >
                   <ImageIcon />
                 </button>

@@ -102,7 +102,7 @@ export function AddressSearch({
               }
             : undefined)
         }
-        className={`w-full rounded-full border border-black/5 bg-white py-3 text-sm text-relaive-navy shadow-[0_2px_12px_rgba(26,32,44,0.08)] placeholder:text-relaive-gray/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary ${
+        className={`w-full rounded-full border border-black/5 bg-white py-3 text-base text-relaive-navy shadow sm:text-sm-[0_2px_12px_rgba(26,32,44,0.08)] placeholder:text-relaive-gray/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary ${
           iconPosition === 'left' ? 'pl-11 pr-5' : 'pl-5 pr-12'
         } ${inputClassName}`}
       />

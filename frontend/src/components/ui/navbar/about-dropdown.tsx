@@ -281,7 +281,7 @@ function MiniWorkflowCard({ title, description }: { title: string; description: 
 export function AboutDropdown({ open }: { open: boolean }) {
   return (
     <NavDropdownPanel open={open}>
-      <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-10">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-6 sm:gap-10 sm:px-6 sm:py-10">
         <div className="flex flex-col items-center gap-3 text-center">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-relaive-primary/20 bg-relaive-primary/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-relaive-primary">
             <StarIcon />

@@ -22,7 +22,7 @@ export function Input({ label, startIcon, endIcon, id, className = '', ...props 
         ) : null}
         <input
           id={id}
-          className={`w-full rounded-lg border border-black/10 bg-white py-2.5 text-sm text-relaive-navy placeholder:text-relaive-gray/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary ${
+          className={`w-full rounded-lg border border-black/10 bg-white py-2.5 text-base text-relaive-navy sm:text-sm placeholder:text-relaive-gray/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-relaive-primary ${
             startIcon ? 'pl-10' : 'pl-4'
           } ${endIcon ? 'pr-10' : 'pr-4'} ${className}`}
           {...props}
