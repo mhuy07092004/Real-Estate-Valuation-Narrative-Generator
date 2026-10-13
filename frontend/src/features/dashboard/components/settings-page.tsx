@@ -384,10 +384,7 @@ export function SettingsPage() {
                   Usually response within 2 business days
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Button type="button" variant="outline" size="sm" href="mailto:relaive.ai@gmail.com">
-                    Email Us Now
-                  </Button>
-                  <Button type="button" size="sm" onClick={() => undefined}>
+                  <Button type="button" size="sm" href="/contact-us">
                     Contact Us
                   </Button>
                 </div>
