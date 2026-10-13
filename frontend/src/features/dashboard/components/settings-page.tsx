@@ -295,25 +295,8 @@ export function SettingsPage() {
                 </Button>
               </div>
 
-              <div className="mt-5 rounded-2xl border border-black/5 bg-relaive-primary/[0.04] px-4 py-4 sm:px-5">
-                <p className="text-sm font-semibold text-relaive-navy">
-                  Visa •••• 4242
-                </p>
-                <p className="mt-1 text-sm text-relaive-gray">
-                  Hayden L · Expires 08/27
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button type="button" variant="outline" size="sm">
-                    Update card
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    className="bg-red-600 text-white hover:bg-red-700"
-                  >
-                    Remove
-                  </Button>
-                </div>
+              <div className="mt-5 rounded-2xl border border-dashed border-black/10 bg-relaive-primary/[0.04] px-4 py-6 text-center sm:px-5">
+                <p className="text-sm text-relaive-gray">No payment method added yet.</p>
               </div>
             </Card>
 
