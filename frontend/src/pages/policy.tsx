@@ -3,6 +3,7 @@ import type { MouseEvent, ReactNode } from 'react'
 import { Navigate, useLocation, useParams } from 'react-router-dom'
 import { Navbar } from '../components/ui/navbar/navbar'
 import { Footer } from '../components/ui/footer/footer'
+import { BackToTop } from '../components/ui/back-to-top/back-to-top'
 import { useLenis } from '../lib/smooth-scroll'
 import {
   isPolicyDocSlug,
@@ -266,6 +267,7 @@ export default function PolicyPage() {
       </main>
 
       <Footer />
+      <BackToTop />
     </div>
   )
 }
