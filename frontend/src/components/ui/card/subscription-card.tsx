@@ -28,6 +28,7 @@ export type SubscriptionCardProps = {
   highlighted?: boolean
   variant?: CardVariant
   billingPeriod?: 'monthly' | 'annually'
+  showSecondaryCta?: boolean
 }
 
 function CheckIcon({ className = '' }: { className?: string }) {
@@ -129,6 +130,7 @@ export function SubscriptionCard({
   highlighted = false,
   variant = 'light',
   billingPeriod = 'monthly',
+  showSecondaryCta = true,
 }: SubscriptionCardProps) {
   const isDark = variant === 'dark'
 
@@ -239,9 +241,11 @@ export function SubscriptionCard({
           {primaryCta.label}
           <ChevronRight />
         </Button>
-        <Button variant="outline" href={secondaryCta.href} className="w-full">
-          {secondaryCta.label}
-        </Button>
+        {showSecondaryCta ? (
+          <Button variant="outline" href={secondaryCta.href} className="w-full">
+            {secondaryCta.label}
+          </Button>
+        ) : null}
       </div>
     </Card>
   )

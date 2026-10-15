@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { useAuth } from '../../../features/auth/hooks/use-auth'
 import {
   SubscriptionCard,
   type SubscriptionCardProps,
@@ -114,6 +115,7 @@ function BillingToggle({
 
 export function PlanPrice() {
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly')
+  const { isAuthenticated, isLoading } = useAuth()
 
   return (
     <div id="plan-pricing" className="scroll-mt-20">
@@ -143,7 +145,12 @@ export function PlanPrice() {
       <section className="mx-auto max-w-7xl px-6 pb-16" aria-label={`${billingPeriod} plans`}>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {PLANS.map((plan) => (
-            <SubscriptionCard key={plan.title} {...plan} billingPeriod={billingPeriod} />
+            <SubscriptionCard
+              key={plan.title}
+              {...plan}
+              billingPeriod={billingPeriod}
+              showSecondaryCta={!isLoading && !isAuthenticated}
+            />
           ))}
         </div>
       </section>
