@@ -8,7 +8,7 @@ import { getNearbyAmenities, type Amenity, type AmenityCategory } from '../../..
 export const CATEGORY_COLOR: Record<AmenityCategory, string> = {
   school: '#16a34a', // Education — green
   grocery: '#2563eb', // Grocery — blue
-  park: '#7c3aed', // purple — was going to be teal, but that read as "another green" next to Education; not user-facing (no toggle)
+  park: '#7c3aed', // purple — was going to be teal, but that read as "another green" next to Education
   transit: '#6b7280', // Transport — gray
   healthcare: '#dc2626', // Healthcare — red
   dining: '#ea580c', // Dining — orange
@@ -18,7 +18,7 @@ export const CATEGORY_COLOR: Record<AmenityCategory, string> = {
 export const CATEGORY_LABEL: Record<AmenityCategory, string> = {
   school: 'Education',
   grocery: 'Grocery',
-  park: 'Parks',
+  park: 'Recreational',
   transit: 'Transport',
   healthcare: 'Healthcare',
   dining: 'Dining',

@@ -7,7 +7,28 @@ export type AmenityCategory = 'school' | 'grocery' | 'park' | 'transit' | 'healt
 const CATEGORY_TYPES: Record<Exclude<AmenityCategory, 'other'>, string[]> = {
   school: ['school', 'primary_school', 'secondary_school'],
   grocery: ['supermarket', 'grocery_store'],
-  park: ['park'],
+  // Broadened from just `park` to green/recreational space generally (all
+  // valid Table A types — https://developers.google.com/maps/documentation/places/web-service/place-types)
+  // per the "shouldn't all recreational area read as the same purple?"
+  // question that prompted this. Deliberately stops short of venue-style
+  // recreation (golf_course, zoo, water_park, marina, sports_complex,
+  // ski_resort) — those are destinations in their own right, not the kind
+  // of open green space this category is meant to read as on the map.
+  park: [
+    'park',
+    'national_park',
+    'state_park',
+    'city_park',
+    'dog_park',
+    'garden',
+    'botanical_garden',
+    'picnic_ground',
+    'playground',
+    'wildlife_park',
+    'wildlife_refuge',
+    'hiking_area',
+    'campground',
+  ],
   transit: ['transit_station', 'train_station', 'bus_station', 'subway_station'],
   healthcare: ['hospital', 'pharmacy'],
   dining: ['restaurant', 'cafe'],
