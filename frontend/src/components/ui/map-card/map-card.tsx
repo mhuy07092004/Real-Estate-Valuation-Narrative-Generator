@@ -387,9 +387,8 @@ export function MapCard() {
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Every category except the ones a toggle has explicitly turned off.
-  // Categories the panel never mentions (park, other) always stay in this
-  // set, matching how the map behaved before this panel existed — the panel
-  // only ever removes Transport/Education/Healthcare/Dining/Grocery.
+  // 'other' is the only category the panel never mentions, so it always
+  // stays in this set regardless of any toggle.
   // Doubles as the map's only amenity legend now — the old bottom-left
   // AmenityLegend was removed because it kept its own color choices and
   // drifted out of sync with this panel's; the toggle rows (which pull

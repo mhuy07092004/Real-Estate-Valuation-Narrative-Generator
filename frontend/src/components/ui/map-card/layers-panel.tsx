@@ -1,14 +1,16 @@
 import type { AmenityCategory } from '../../../services/places'
 import { CATEGORY_COLOR, CATEGORY_LABEL } from './amenity-markers'
 
-// The five amenity categories this panel exposes a toggle for. 'park' and
-// 'other' (services/places.ts has both) aren't mentioned anywhere in this
-// panel, so they're left alone and always render, same as before this panel
-// existed — only these five are ever hidden/shown here. Labels and colors
-// come from amenity-markers.tsx (CATEGORY_LABEL/CATEGORY_COLOR) rather than
-// being redefined here, so this panel can never drift out of sync with what
-// the map markers actually look like.
-export const TOGGLEABLE_CATEGORIES = ['transit', 'school', 'healthcare', 'dining', 'grocery'] as const satisfies readonly AmenityCategory[]
+// The six amenity categories this panel exposes a toggle for. 'other'
+// (services/places.ts's catch-all bucket) is the only one left out — it's
+// never mentioned anywhere in this panel, so it's left alone and always
+// renders, same as before this panel existed. 'park' used to be excluded
+// the same way (purple dots with no toggle, no icon, no label) — added here
+// once that turned out to be an oversight rather than intentional. Labels
+// and colors come from amenity-markers.tsx (CATEGORY_LABEL/CATEGORY_COLOR)
+// rather than being redefined here, so this panel can never drift out of
+// sync with what the map markers actually look like.
+export const TOGGLEABLE_CATEGORIES = ['transit', 'school', 'healthcare', 'dining', 'grocery', 'park'] as const satisfies readonly AmenityCategory[]
 export type ToggleableCategory = (typeof TOGGLEABLE_CATEGORIES)[number]
 
 export type LayerVisibility = Record<ToggleableCategory, boolean>
@@ -19,6 +21,7 @@ export const DEFAULT_LAYER_VISIBILITY: LayerVisibility = {
   healthcare: true,
   dining: true,
   grocery: true,
+  park: true,
 }
 
 const MIN_RADIUS_METERS = 0
@@ -119,12 +122,21 @@ function GroceryIcon() {
   )
 }
 
+function ParkIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 3L6.5 11H9L5 18H11V21H13V18H19L15 11H17.5L12 3Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 const LAYER_ICON = {
   transit: TransportIcon,
   school: SchoolIcon,
   healthcare: HospitalIcon,
   dining: DiningIcon,
   grocery: GroceryIcon,
+  park: ParkIcon,
 } satisfies Record<ToggleableCategory, () => ReturnType<typeof TransportIcon>>
 
 type LayersPanelProps = {
