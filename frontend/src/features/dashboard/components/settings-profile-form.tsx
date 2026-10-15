@@ -39,11 +39,16 @@ export function SettingsProfileForm({ user, roleLabel }: SettingsProfileFormProp
     setIsSaving(true)
     setError(null)
     try {
-      await updateProfile({
+      const updatedUser = await updateProfile({
         fullName: `${firstName} ${lastName}`.trim(),
         phone: phone.trim(),
         company: company.trim(),
       })
+      const updatedName = splitFullName(updatedUser.fullName)
+      setFirstName(updatedName.firstName)
+      setLastName(updatedName.lastName)
+      setPhone(updatedUser.phone ?? '')
+      setCompany(updatedUser.company ?? '')
       setSavedJustNow(true)
       setTimeout(() => setSavedJustNow(false), 2500)
     } catch {

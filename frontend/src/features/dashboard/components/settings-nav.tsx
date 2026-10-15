@@ -35,16 +35,6 @@ function BillingIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
-function TrashIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...iconProps(props)}>
-      <path d="M5 7h14" />
-      <path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7" />
-      <path d="M7 7l1 13h8l1-13" />
-    </svg>
-  )
-}
-
 export type SettingsSectionId =
   | 'profile'
   | 'subscription'
@@ -111,14 +101,6 @@ export function SettingsNav({ activeSection, onSelect, onSignOut }: SettingsNavP
         >
           <LogOutIcon className="shrink-0" />
           <span>Sign Out</span>
-        </button>
-        <button
-          type="button"
-          onClick={(event) => event.preventDefault()}
-          className="flex w-full items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
-        >
-          <TrashIcon className="shrink-0" />
-          <span>Delete Account</span>
         </button>
       </div>
     </nav>

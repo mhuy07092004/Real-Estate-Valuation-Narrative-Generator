@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Button } from '../../../components/ui/button/button'
 import { Card } from '../../../components/ui/card/card'
 import { ComparisonRadarChart } from '../../../components/ui/chart/comparison-radar-chart'
 import { RemovableChip } from '../../../components/ui/chip/removable-chip'
@@ -120,27 +119,6 @@ function findBestSuburbIds(row: DetailedMetricRow, suburbs: MarketComparisonSubu
   return suburbs.filter((suburb) => suburb[row.key] === bestValue).map((suburb) => suburb.id)
 }
 
-function ExportIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 3v12m0 0l4-4m-4 4l-4-4"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
 function StarIcon({ className = '' }: { className?: string }) {
   return (
     <svg
@@ -244,12 +222,6 @@ export function MarketComparison() {
               Compare up to 4 suburbs side by side
             </p>
           </div>
-          <Button variant="outline" size="sm" type="button" onClick={() => {}}>
-            <span className="mr-1.5">
-              <ExportIcon />
-            </span>
-            Export Report
-          </Button>
         </header>
 
         <div className="flex flex-wrap items-center gap-3">
