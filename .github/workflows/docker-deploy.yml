@@ -12,6 +12,9 @@ jobs:
   build-and-push:
     name: Build backend image and push to Docker Hub
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # required for Workload Identity Federation — no stored key needed
     steps:
       - uses: actions/checkout@v4
 
@@ -31,3 +34,22 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/relaive-backend:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/relaive-backend:sha-${{ github.sha }}
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: github-actions-deployer@csit321-508209.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      # Deploys the exact image just built (the immutable sha- tag, not
+      # :latest) so Cloud Run always runs precisely what this commit built —
+      # no reliance on Cloud Run re-resolving a mutable tag on its own,
+      # which it never does automatically.
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy relaive-backend \
+            --image=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/relaive-backend:sha-${{ github.sha }} \
+            --region=australia-southeast1 \
+            --project=csit321-508209 \
+            --quiet
