@@ -5,6 +5,7 @@ import { Footer } from '../components/ui/footer/footer'
 import { Button } from '../components/ui/button/button'
 import { Input } from '../components/ui/input/input'
 import { Card } from '../components/ui/card/card'
+import { ContactError, MAX_ATTACHMENT_BYTES, sendContactMessage } from '../services/contact'
 
 const MAX_MESSAGE_LENGTH = 2000
 
@@ -191,12 +192,46 @@ export default function ContactUsPage() {
   const [enquiry, setEnquiry] = useState('')
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
-  const [fileName, setFileName] = useState('')
+  const [attachment, setAttachment] = useState<File | null>(null)
   const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  function handleSubmit(e: FormEvent) {
+  function handleFileChange(file: File | null) {
+    if (file && file.size > MAX_ATTACHMENT_BYTES) {
+      setError('Attachment must be 5MB or smaller.')
+      setAttachment(null)
+      return
+    }
+    setError(null)
+    setAttachment(file)
+  }
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    setSubmitted(true)
+    setError(null)
+    setIsSubmitting(true)
+    try {
+      await sendContactMessage({
+        fullName,
+        email,
+        company,
+        role,
+        enquiryType: enquiry,
+        subject,
+        message,
+        attachment,
+      })
+      setSubmitted(true)
+    } catch (err) {
+      setError(
+        err instanceof ContactError
+          ? (Object.values(err.errors ?? {})[0] ?? err.message)
+          : 'Could not send your message. Please try again.',
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   function selectEnquiry(value: string) {
@@ -328,6 +363,9 @@ export default function ContactUsPage() {
                     <span className="text-sm font-medium text-relaive-navy">
                       Attach a file (optional)
                     </span>
+                    <span className="text-xs text-relaive-gray">
+                      PDF, image, text, Word or Excel — up to 5MB.
+                    </span>
                     <label
                       htmlFor="contact-file"
                       className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-black/15 bg-relaive-surface/60 px-4 py-3 text-sm text-relaive-gray transition-colors hover:bg-relaive-surface"
@@ -345,18 +383,25 @@ export default function ContactUsPage() {
                       >
                         <path d="m21 11-8.5 8.5a5 5 0 0 1-7-7L14 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L15 7" />
                       </svg>
-                      {fileName || 'Click to attach a file'}
+                      {attachment?.name || 'Click to attach a file'}
                     </label>
                     <input
                       id="contact-file"
                       type="file"
                       className="sr-only"
-                      onChange={(e) => setFileName(e.target.files?.[0]?.name ?? '')}
+                      accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.csv,.doc,.docx,.xls,.xlsx"
+                      onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
                     />
                   </div>
 
-                  <Button type="submit" size="lg" className="w-full">
-                    Send Message
+                  {error ? (
+                    <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600" role="alert">
+                      {error}
+                    </p>
+                  ) : null}
+
+                  <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? 'Sending…' : 'Send Message'}
                   </Button>
                 </form>
               )}
