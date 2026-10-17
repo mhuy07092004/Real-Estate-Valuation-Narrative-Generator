@@ -129,7 +129,7 @@ export type UpdateProfileInput = {
 }
 
 export async function updateProfile(input: UpdateProfileInput): Promise<User> {
-  const body = await fetchJson<ApiResponse<{ user: User }>>(`${API_BASE}/me`, {
+  const body = await fetchJson<ApiResponse<{ user: User }>>('/api/auth/me', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
@@ -141,6 +141,32 @@ export async function updateProfile(input: UpdateProfileInput): Promise<User> {
 
   persistSessionUser(body.data.user)
   return body.data.user
+}
+
+// Plain fetch (not fetchJson): these run signed out, and fetchJson throws a
+// bare Error that drops the backend's per-field `errors`.
+async function postAuthJson(path: string, payload: unknown): Promise<void> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+
+  const body = (await response.json().catch(() => null)) as
+    | { success: true }
+    | { success: false; message: string; errors?: Record<string, string> }
+    | null
+  if (!body || !body.success) {
+    throw new AuthError(body?.message ?? 'Something went wrong. Please try again.', body?.errors)
+  }
+}
+
+export function requestPasswordReset(email: string): Promise<void> {
+  return postAuthJson('/forgot-password', { email })
+}
+
+export function resetPassword(token: string, password: string): Promise<void> {
+  return postAuthJson('/reset-password', { token, password })
 }
 
 export async function sendOtp(email: string): Promise<void> {
