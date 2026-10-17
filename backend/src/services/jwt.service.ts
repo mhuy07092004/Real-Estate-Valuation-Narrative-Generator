@@ -5,6 +5,7 @@ export type JwtPayload = {
   userId: string
   email: string
   roles: string[]
+  iat?: number
 }
 
 export function signAccessToken(payload: JwtPayload): string {

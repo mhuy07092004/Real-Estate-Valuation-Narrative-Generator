@@ -31,6 +31,23 @@ export async function sendOtpEmail(params: { to: string; code: string }): Promis
     })
 }
 
+export async function sendPasswordResetEmail(params: { to: string; resetUrl: string }): Promise<void> {
+    if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_FROM_EMAIL) {
+        throw new Error('Email sending is not configured (missing SENDGRID_API_KEY/SENDGRID_FROM_EMAIL).')
+    }
+
+    await sgMail.send({
+        to: params.to,
+        from: process.env.SENDGRID_FROM_EMAIL,
+        subject: 'Reset your Relaive password',
+        html: `
+            <p>We received a request to reset your Relaive password.</p>
+            <p><a href="${params.resetUrl}">Choose a new password</a></p>
+            <p>This link expires in 30 minutes and can only be used once. If you didn't request it, you can ignore this email.</p>
+        `,
+    })
+}
+
 export async function sendReportEmail(params: {
     to: string
     clientName: string

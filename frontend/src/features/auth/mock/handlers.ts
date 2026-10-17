@@ -302,6 +302,36 @@ export const authHandlers = [
     }
   ),
 
+  http.post<never, { token?: string; password?: string }>(
+    '/api/auth/reset-password',
+    async ({ request }) => {
+      await simulateLatency()
+
+      const { token, password } = await request.json()
+      if (!token || token === 'expired') {
+        return HttpResponse.json(
+          { success: false, message: 'This reset link is invalid or has expired.' },
+          { status: 400 }
+        )
+      }
+      if (!password || password.length < 8) {
+        return HttpResponse.json(
+          {
+            success: false,
+            message: 'Validation failed.',
+            errors: { password: 'Password must be at least 8 characters' },
+          },
+          { status: 400 }
+        )
+      }
+
+      return HttpResponse.json(
+        { success: true, message: 'Password updated. You can now sign in.' },
+        { status: 200 }
+      )
+    }
+  ),
+
   http.post<never, ForgotPasswordRequestBody>(
     '/api/auth/forgot-password',
     async ({ request }) => {

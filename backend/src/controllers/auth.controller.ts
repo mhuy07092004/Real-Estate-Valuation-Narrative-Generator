@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express'
 import { ZodError } from 'zod'
 import { verifyAccessToken } from '../services/jwt.service.js'
-import { forgotPasswordSchema } from '../validators/auth.validator.js'
+import { requestPasswordReset, resetPassword as resetPasswordService, InvalidResetTokenError } from '../services/password-reset.service.js'
+import { forgotPasswordSchema, resetPasswordSchema } from '../validators/auth.validator.js'
 import { getMe, loginUser, refreshSession, selectUserRole, updateProfile as updateProfileService } from '../services/auth.service.js'
 import { CaptchaRequiredError, TurnstileVerificationError } from '../services/turnstile.service.js'
 import { InvalidCredentialsError, RoleAlreadySetError, type ApiResponse, type AuthResponseData, type FrontendUser } from '../types/auth.types.js'
@@ -83,11 +84,13 @@ export async function login(req: Request, res: Response) {
 }
 
 /**
- * Prototype endpoint that validates email format and always acknowledges reset flow.
+ * Emails a reset link if the account exists. The response is identical either
+ * way so it can't be used to discover which emails are registered.
  */
-export function forgotPassword(req: Request, res: Response) {
+export async function forgotPassword(req: Request, res: Response) {
   try {
-    forgotPasswordSchema.parse(req.body)
+    const { email } = forgotPasswordSchema.parse(req.body)
+    await requestPasswordReset(email)
     const body: ApiResponse<{ acknowledged: true }> = {
       success: true,
       message: 'If an account with that email exists, a password reset link has been sent.',
@@ -97,6 +100,32 @@ export function forgotPassword(req: Request, res: Response) {
   } catch (err) {
     if (err instanceof ZodError) {
       res.status(400).json(toFieldErrorResponse(err))
+      return
+    }
+
+    throw err
+  }
+}
+
+/** Completes the reset started by forgotPassword using the emailed token. */
+export async function resetPassword(req: Request, res: Response) {
+  try {
+    const { token, password } = resetPasswordSchema.parse(req.body)
+    await resetPasswordService(token, password)
+    const body: ApiResponse<{ updated: true }> = {
+      success: true,
+      message: 'Password updated. You can now sign in.',
+      data: { updated: true },
+    }
+    res.status(200).json(body)
+  } catch (err) {
+    if (err instanceof ZodError) {
+      res.status(400).json(toFieldErrorResponse(err))
+      return
+    }
+    if (err instanceof InvalidResetTokenError) {
+      const body: ApiResponse<never> = { success: false, message: err.message }
+      res.status(400).json(body)
       return
     }
 

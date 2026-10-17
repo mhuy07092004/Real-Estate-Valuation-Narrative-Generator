@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '../../../components/ui/button/button'
 import { Input } from '../../../components/ui/input/input'
 import { TurnstileWidget } from '../../../components/ui/turnstile/turnstile-widget'
@@ -88,6 +88,7 @@ function SocialLoginButtons({
 
 export function SignInForm() {
   const navigate = useNavigate()
+  const passwordReset = (useLocation().state as { passwordReset?: boolean } | null)?.passwordReset
   const { login, loginWithGoogle } = useAuth()
   const {
     isRequired: captchaRequired,
@@ -164,6 +165,11 @@ export function SignInForm() {
         <p className="mt-2 text-sm text-relaive-gray">
           Continue your property intelligence workflow
         </p>
+        {passwordReset && !error ? (
+          <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700" role="status">
+            Password updated. Sign in with your new password.
+          </p>
+        ) : null}
         {error ? (
           <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600" role="alert">
             {error}

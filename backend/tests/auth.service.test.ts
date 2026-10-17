@@ -17,11 +17,15 @@ vi.mock('../src/services/auth-risk.service.js', () => ({
     recordLoginFailure: vi.fn(),
     recordLoginSuccess: vi.fn(),
 }))
+vi.mock('../src/lib/prisma.js', () => ({
+    prisma: { user: { findUnique: vi.fn() } },
+}))
 vi.mock('bcryptjs', () => ({
     default: { compare: vi.fn(), hash: vi.fn() },
 }))
 
 import bcrypt from 'bcryptjs'
+import { prisma } from '../src/lib/prisma.js'
 import { findUserByEmail, findUserById, updateUserProfile } from '../src/services/user.service.js'
 import { verifyTurnstileToken, CaptchaRequiredError } from '../src/services/turnstile.service.js'
 import {
@@ -173,12 +177,21 @@ describe('refreshSession', () => {
     test('issues a fresh token pair for a valid refresh token whose user still exists', async () => {
         const refreshToken = signRefreshToken({ userId: 'u1', email: 'jane@example.com', roles: ['agent'] })
         vi.mocked(findUserById).mockResolvedValue(storedUser as any)
+        vi.mocked(prisma.user.findUnique).mockResolvedValue({ passwordChangedAt: null } as any)
 
         const result = await refreshSession({ refreshToken })
 
         expect(result.user.userId).toBeUndefined() // frontend user uses `id`, not `userId`
         expect(result.user.id).toBe('u1')
         expect(typeof result.accessToken).toBe('string')
+    })
+
+    test('rejects a refresh token issued before the password was last changed', async () => {
+        const refreshToken = signRefreshToken({ userId: 'u1', email: 'jane@example.com', roles: ['agent'] })
+        vi.mocked(findUserById).mockResolvedValue(storedUser as any)
+        vi.mocked(prisma.user.findUnique).mockResolvedValue({ passwordChangedAt: new Date(Date.now() + 60_000) } as any)
+
+        await expect(refreshSession({ refreshToken })).rejects.toBeInstanceOf(InvalidCredentialsError)
     })
 
     test('rejects when the refresh token is malformed/invalid', async () => {

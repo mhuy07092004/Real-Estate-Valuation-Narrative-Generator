@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs'
 import { env } from '../config/env.js'
+import { prisma } from '../lib/prisma.js'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from './jwt.service.js'
 import { toFrontendUser, type AuthResponseData, type StoredUser, InvalidCredentialsError, RoleAlreadySetError } from '../types/auth.types.js'
 import { loginSchema, refreshTokenSchema, updateProfileSchema, type LoginInput } from '../validators/auth.validator.js'
@@ -89,6 +90,15 @@ export async function refreshSession(input: unknown): Promise<AuthResponseData> 
   const user = await findUserById(payload.userId)
 
   if (!user) {
+    throw new InvalidCredentialsError()
+  }
+
+  // A password reset ends every session started before it.
+  const changed = await prisma.user.findUnique({
+    where: { userId: user.userId },
+    select: { passwordChangedAt: true },
+  })
+  if (changed?.passwordChangedAt && payload.iat && payload.iat * 1000 < changed.passwordChangedAt.getTime()) {
     throw new InvalidCredentialsError()
   }
 

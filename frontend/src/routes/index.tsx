@@ -3,6 +3,7 @@ import Landing from '../pages/Landing'
 import SignInPageRoute from '../pages/signin'
 import SignUpPageRoute from '../pages/signup'
 import ForgotPasswordPageRoute from '../pages/forgot-password'
+import ResetPasswordPageRoute from '../pages/reset-password'
 import {
   DashboardLayout,
   DashboardRoleGuard,
@@ -73,6 +74,7 @@ export function AppRoutes() {
       <Route path="/signin" element={<SignInPageRoute />} />
       <Route path="/signup" element={<SignUpPageRoute />} />
       <Route path="/forgot-password" element={<ForgotPasswordPageRoute />} />
+      <Route path="/reset-password" element={<ResetPasswordPageRoute />} />
       <Route
         path="/select-role"
         element={
