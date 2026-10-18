@@ -9,3 +9,7 @@ matplotlib
 seaborn
 jupyter
 joblib
+
+# Medallion pipeline (data_ai/pipeline)
+psycopg[binary]
+python-dotenv
