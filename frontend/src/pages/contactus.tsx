@@ -105,18 +105,8 @@ const SUPPORT_CATEGORIES: SupportCategory[] = [
 
 const SOCIAL_LINKS: { label: string; href: string; icon: ReactNode }[] = [
   {
-    label: 'LinkedIn',
-    href: 'https://www.linkedin.com',
-    icon: (
-      <IconWrap>
-        <rect x="3" y="3" width="18" height="18" rx="3" />
-        <path d="M8 11v5M8 8v.01M12 16v-5M12 13a2.5 2.5 0 0 1 5 0v3" />
-      </IconWrap>
-    ),
-  },
-  {
     label: 'Instagram',
-    href: 'https://www.instagram.com',
+    href: 'https://www.instagram.com/relaive.ai/?fbclid=IwY2xjawVBYxVleHRuA2FlbQIxMABwZG9mBWJyaWQRMXI0QWhZQnNCMUQ1SGhucmZzcnRjBmFwcF9pZBAyMjIwMzkxNzg4MjAwODkyAAEeP8mRqLKb9NZceMKZhjYnswUK6yLMN2eE2heeZ7yidBMhjTW7Hh1yxjdaz-I_aem_OGP1EEvcTEKiN9JNF2GRHA',
     icon: (
       <IconWrap>
         <rect x="3" y="3" width="18" height="18" rx="5" />
@@ -127,7 +117,7 @@ const SOCIAL_LINKS: { label: string; href: string; icon: ReactNode }[] = [
   },
   {
     label: 'Facebook',
-    href: 'https://www.facebook.com',
+    href: 'https://www.facebook.com/profile.php?id=61594583343296',
     icon: (
       <IconWrap>
         <path d="M14 8h3V4h-3a4 4 0 0 0-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8a1 1 0 0 1 1-1Z" />
@@ -136,7 +126,7 @@ const SOCIAL_LINKS: { label: string; href: string; icon: ReactNode }[] = [
   },
   {
     label: 'Email',
-    href: 'mailto:hello@relaive.com',
+    href: 'mailto:relaive.ai@gmail.com',
     icon: (
       <IconWrap>
         <rect x="3" y="5" width="18" height="14" rx="2" />
