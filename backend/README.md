@@ -59,10 +59,12 @@ Only needed for a **brand-new database** — the shared instance already has eve
 ```bash
 npx prisma migrate deploy                       # create the schema
 npm run prisma:seed                             # roles + demo user
-npx tsx scripts/ingest-bronze-listings.ts       # data_ai/bronze_listings.csv → properties + comparable sales
-npx tsx scripts/build-suburb-market-intelligence.ts   # per-suburb market rows from those sales
-npx tsx scripts/load-external-market-data.ts    # enrich market rows (must run after the previous step)
 ```
+Then load the property data with the **medallion pipeline** in `data_ai/pipeline` (Python; the full step-by-step with checks is [`data_ai/readme.md` §1b](../data_ai/readme.md#1b-load-the-data-into-the-database-medallion-pipeline)): create the bronze/silver/gold schemas, then run the bronze loader, silver transform, gold build, and the two app loaders. Finish with the one script that is still TypeScript:
+```bash
+npx tsx scripts/load-external-market-data.ts    # enrich market rows with Domain/ABS/SQM data (must run after the app loaders)
+```
+`scripts/ingest-bronze-listings.ts` and `scripts/build-suburb-market-intelligence.ts` are **deprecated** and refuse to run: the first imported 2,405 duplicate sales and would double-insert everything if re-run. Set `ALLOW_LEGACY_INGEST=1` only if you really need the old behaviour.
 Changing the schema: `npm run prisma:migrate` runs `prisma migrate dev` against the **shared** instance, so coordinate first. `scripts/export-narrative-training-inputs.ts` is unrelated to importing — it exports data for the AI fine-tuning dataset (see `data_ai/readme.md`).
 
 ## Environment variables
