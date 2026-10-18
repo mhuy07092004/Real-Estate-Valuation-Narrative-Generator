@@ -13,8 +13,8 @@ See `main.tf`/`outputs.tf` comments for what each resource is for.
 - ✅ Old SQLite-era migrations deleted (they don't replay against Postgres —
   a fresh baseline migration replaced them: `20260916161727_init_postgres`)
 - ✅ Schema migrated and seeded — roles, demo account, and the full
-  bronze-listings/market-intelligence ingestion all re-run against this
-  instance (33k+ properties/comparable sales, 800+ suburb rows)
+  listings pipeline (now the medallion pipeline in `data_ai/pipeline`: 31k+
+  properties/comparable sales, 800+ suburb rows) all run against this instance
 - ✅ Local dev's `backend/.env` `DATABASE_URL` now points at this instance
   directly, via the IP allowlist (see below)
 - ✅ Cloud Run service `relaive-backend` deployed (`cloud_run.tf`), public, connected to Cloud SQL over the built-in socket
@@ -206,11 +206,10 @@ Only needed after creating a brand-new instance (or after `terraform destroy` + 
 
 1. `npx prisma migrate deploy` — creates the schema
 2. `npm run prisma:seed` — roles + demo user
-3. `npx tsx scripts/ingest-bronze-listings.ts` — properties + comparable sales
-4. `npx tsx scripts/build-suburb-market-intelligence.ts` — per-suburb market rows
-5. `npx tsx scripts/load-external-market-data.ts` — enrich market rows (must run after step 4)
+3. The medallion pipeline in `data_ai/pipeline` — creates the bronze/silver/gold schemas, then loads properties, comparable sales and per-suburb market rows. Run order and checks: [`data_ai/readme.md` §1b](../../data_ai/readme.md#1b-load-the-data-into-the-database-medallion-pipeline).
+4. `npx tsx scripts/load-external-market-data.ts` — enrich market rows (must run after step 3)
 
-Details on each script: [`backend/README.md`](../../backend/README.md#database-steps).
+`ingest-bronze-listings.ts` and `build-suburb-market-intelligence.ts` are deprecated (they refuse to run) — see [`backend/README.md`](../../backend/README.md#database-steps).
 
 ## Configuration
 

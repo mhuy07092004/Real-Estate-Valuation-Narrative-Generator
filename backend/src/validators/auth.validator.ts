@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { registrationSchema } from './registration.validator.js'
 
 // Input contracts for auth endpoints.
 export const loginSchema = z.object({
@@ -10,6 +11,12 @@ export const loginSchema = z.object({
 
 export const forgotPasswordSchema = z.object({
   email: z.string().trim().toLowerCase().email('Invalid email address'),
+})
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Reset token is required'),
+  // Same rule as sign-up.
+  password: registrationSchema.shape.password,
 })
 
 export const refreshTokenSchema = z.object({

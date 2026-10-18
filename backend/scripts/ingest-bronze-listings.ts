@@ -17,6 +17,15 @@ import { createReadStream } from 'node:fs'
 import { createInterface } from 'node:readline'
 import { PrismaClient } from '@prisma/client'
 
+// DEPRECATED: replaced by the medallion pipeline in data_ai/pipeline (see
+// data_ai/readme.md, section 1b). This script does not de-duplicate sales — its
+// import contained 2,405 repeated sales — and running it again would insert
+// every row a second time. Kept for reference only.
+if (process.env.ALLOW_LEGACY_INGEST !== '1') {
+    console.error('ingest-bronze-listings.ts is deprecated; use data_ai/pipeline instead (set ALLOW_LEGACY_INGEST=1 to override).')
+    process.exit(1)
+}
+
 const prisma = new PrismaClient()
 
 const CSV_PATH = process.env.BRONZE_CSV_PATH ?? '../data_ai/bronze_listings.csv'

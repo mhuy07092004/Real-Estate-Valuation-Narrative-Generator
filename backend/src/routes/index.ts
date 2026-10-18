@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { geocodeRouter } from './geocode.routes.js'
 import { placesRouter } from './places.routes.js'
 import { registrationRouter } from './registration.routes.js'
+import { contactRouter } from './contact.routes.js'
 import { clientRouter } from './client.routes.js'
 import { comparableSaleRouter } from './comparable-sale.routes.js'
 import { marketInsightsRouter } from './market-insights.routes.js'
@@ -37,6 +38,7 @@ apiRouter.get('/health', (_req, res) => {
 })
 
 apiRouter.use('/auth', registrationRouter)
+apiRouter.use('/contact', contactRouter)
 apiRouter.use('/geocode', geocodeRouter)
 apiRouter.use('/places', placesRouter)
 apiRouter.use('/clients', clientRouter)

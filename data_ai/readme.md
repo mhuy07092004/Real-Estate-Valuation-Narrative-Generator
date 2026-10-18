@@ -1,8 +1,8 @@
 # data_ai
 
-Everything AI and data related, in four independent parts:
+Everything AI and data related, in four independent parts (plus the medallion pipeline that loads the scraped data, section 1b):
 
-1. **Data collection** — scrapers that produce the CSVs the backend imports into its database.
+1. **Data collection** — scrapers that produce the CSVs, which the medallion pipeline and the backend load into the database.
 2. **Narrative dataset** — the 300 role-conditioned example reports used to fine-tune a language model.
 3. **Price-prediction model and service** — a scikit-learn model behind a small FastAPI service the backend calls.
 4. **Narrative model (Vertex AI)** — fine-tune Gemma 2 2B with LoRA, merge it, serve it from a Vertex AI endpoint, and score it.
@@ -14,6 +14,7 @@ Each part below is a numbered list of commands, with **Local** and **Deployed** 
 | Path | What's there |
 | --- | --- |
 | `ingestion/`, `run_full_scrape.py` | Scrapers (listings, Domain, SQM, ABS) and the orchestrator that runs them for every suburb in the database |
+| `pipeline/` | The medallion pipeline for the sold-listings data: SQL for the bronze/silver/gold schemas, the loaders and transforms, and the cleaning rules with their tests (section 1b) |
 | `scripts/` | `split_narrative_dataset.py`, `prepare_finetune_dataset.py` (dataset pipeline) and one-off `probe_*.py` scraper probes |
 | `docs/fixtures/` | The dataset files at each stage; `docs/scp425_plan.md` is the current dataset design |
 | `model/`, `service/`, `notebooks/` | Price model training script, its FastAPI service and Dockerfile, and the exploratory notebook |
@@ -40,7 +41,64 @@ Each part below is a numbered list of commands, with **Local** and **Deployed** 
    python run_full_scrape.py                              # all suburbs, sequentially
    ```
    None of the scrapers can resume: re-running without clearing their output silently duplicates rows. The orchestrator clears each output CSV first.
-3. **Hand-off to the database:** the CSVs are imported by scripts in `backend/scripts/` — the exact commands are in [`../backend/README.md`](../backend/README.md#database-steps). Nothing in `data_ai/` writes to the database directly.
+3. **Hand-off to the database:** the listings CSV is loaded by the medallion pipeline in `pipeline/` — see section 1b below. The Domain, ABS and SQM CSVs are still imported by `backend/scripts/load-external-market-data.ts` ([`../backend/README.md`](../backend/README.md#database-steps)).
+
+## 1b. Load the data into the database (medallion pipeline)
+
+`pipeline/` moves the scraped sold listings through three layers, as schemas in the same Cloud SQL database the app uses. The application's own tables stay in `public` and are the serving layer.
+
+| Layer | Schema | What it holds |
+| --- | --- | --- |
+| **Bronze** | `bronze` | The CSV rows exactly as scraped (all text), append-only. `ingest_batches` records each file by SHA-256 so the same file is never loaded twice; lines that can't be parsed go to `listings_errors`. |
+| **Silver** | `silver` | `listings_clean`: typed, validated and de-duplicated sales (the same address, suburb, state, sale date and price is one row). `listings_rejects`: every rejected bronze row with the rule it failed (unrecognised property type, no postcode match, missing bedrooms/bathrooms/parking/land size, invalid price, unparseable sold date, missing address/suburb/state). |
+| **Gold** | `gold` | `suburb_aggregates`: per-suburb median price, 12-month price-index trend, growth, and the House/Unit median split. Also holds the backup tables the loaders create. |
+| **Serving** | `public` | The app's `market_intelligence`, `properties` and `comparable_sales`, loaded from gold and silver. |
+
+Every script is idempotent and has a `--dry-run` that reads and reports without writing; run the dry run first. All need `psycopg` and `python-dotenv` (`pip install -r requirements.txt`); the connection comes from `DATABASE_URL`, falling back to `backend/.env`.
+
+### Run order (a fresh database, or after re-scraping)
+1. **Create the schemas** (once; `psql` isn't needed — Prisma runs the file), from `backend/`:
+   ```powershell
+   npx prisma db execute --file ..\data_ai\pipeline\sql\001_medallion_listings.sql --schema prisma\schema.prisma
+   npx prisma db execute --file ..\data_ai\pipeline\sql\002_gold_suburb_aggregates_columns.sql --schema prisma\schema.prisma
+   ```
+2. **Bronze** — `bronze_listings.csv` → `bronze.listings`. Loading a grown file only inserts rows not already there.
+   ```powershell
+   python data_ai/pipeline/load_bronze_listings.py --dry-run
+   python data_ai/pipeline/load_bronze_listings.py
+   ```
+3. **Silver** — clean, de-duplicate and record rejects. Use `--rebuild` after changing the rules in `pipeline/cleaning.py` (it clears both silver tables and recomputes from bronze).
+   ```powershell
+   python data_ai/pipeline/transform_silver_listings.py --dry-run     # prints counts per rejection reason
+   python data_ai/pipeline/transform_silver_listings.py
+   ```
+4. **Gold** — per-suburb statistics for the trailing 12 months (suburbs with fewer than 8 sales are skipped). The dry run compares against the app's current `market_intelligence`.
+   ```powershell
+   python data_ai/pipeline/build_gold_suburb_aggregates.py --dry-run
+   python data_ai/pipeline/build_gold_suburb_aggregates.py
+   ```
+5. **Serving loads.** Both back up the tables they change into the `gold` schema first and run in one transaction.
+   ```powershell
+   python data_ai/pipeline/load_app_market_intelligence.py --dry-run  # updates the listing-derived columns only; external columns are untouched
+   python data_ai/pipeline/load_app_market_intelligence.py
+   python data_ai/pipeline/load_app_properties_sales.py --dry-run     # replaces properties + comparable_sales with silver (keeps non-scraped demo rows)
+   python data_ai/pipeline/load_app_properties_sales.py
+   ```
+   A suburb that no longer has 8 sales keeps its old row by default; `load_app_market_intelligence.py --prune-stale` deletes them instead.
+6. Back in `backend/`, `npx tsx scripts/load-external-market-data.ts` enriches the market rows with the Domain/ABS/SQM data.
+
+Unit tests for the cleaning rules: `python -m unittest data_ai/pipeline/test_cleaning.py`.
+
+### What the first run found (2026-10-18)
+- 42,320 bronze rows → 33,572 pass the rules, 8,748 rejected (4,358 unrecognised property type, 2,030 missing parking, 1,894 unparseable sold date, 315 no postcode match, 151 other).
+- 2,405 of the 33,572 were duplicate sales that the previous TypeScript import had inserted as separate rows. Silver holds **31,167** distinct sales; 394 of 786 suburb medians changed (on average 1.67%, at most 30.5%); 28 suburbs fell below the 8-sale minimum.
+- Checked before changing anything: running the same gold logic on the pre-de-duplication rows reproduced all 814 of the old suburb aggregates exactly.
+
+### Known limits
+- `cleaning.py` deliberately keeps two quirks of the old importer so results matched exactly: bedrooms/bathrooms/parking/land size keep only the digits (`"3.5"` becomes 35) and the price keeps only digits and `.` (`"$1.2m"` becomes 1.2). Fix them in a separate, deliberate change, then `--rebuild` silver.
+- One property row is created per silver sale; a property sold twice appears as two properties.
+- Only the listings source is on the medallion layers. The Domain, ABS and SQM CSVs, the price model's training (`model/train_price_model.py`) and the narrative export still read the raw CSVs and clean them themselves.
+- The old `backend/scripts/ingest-bronze-listings.ts` and `build-suburb-market-intelligence.ts` are deprecated and refuse to run (`ALLOW_LEGACY_INGEST=1` overrides).
 
 ## 2. Build the narrative dataset (local)
 

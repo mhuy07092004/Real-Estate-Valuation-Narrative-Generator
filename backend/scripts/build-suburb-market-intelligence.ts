@@ -15,6 +15,15 @@
 // Usage: npx tsx scripts/build-suburb-market-intelligence.ts
 import { PrismaClient } from '@prisma/client'
 
+// DEPRECATED: replaced by data_ai/pipeline/build_gold_suburb_aggregates.py and
+// load_app_market_intelligence.py (see data_ai/readme.md, section 1b), which
+// compute the same figures from the de-duplicated silver layer. Kept for
+// reference only.
+if (process.env.ALLOW_LEGACY_INGEST !== '1') {
+    console.error('build-suburb-market-intelligence.ts is deprecated; use data_ai/pipeline instead (set ALLOW_LEGACY_INGEST=1 to override).')
+    process.exit(1)
+}
+
 const prisma = new PrismaClient()
 const MIN_SALES_IN_WINDOW = 8
 
