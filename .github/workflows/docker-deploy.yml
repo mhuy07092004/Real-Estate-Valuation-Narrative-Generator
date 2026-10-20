@@ -9,8 +9,37 @@ on:
       - '.github/workflows/docker-deploy.yml'
 
 jobs:
+  # Gate: nothing is built or deployed unless the backend builds and every
+  # unit test passes. This runs in the same workflow as the deploy (not as a
+  # separate workflow) so `needs` can actually block it — the CI workflow
+  # runs in parallel and cannot stop a deploy on its own.
+  test:
+    name: Backend tests (gate)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+
+      # tsc needs @prisma/client's generated types to resolve before it can build.
+      - run: npm run prisma:generate
+
+      - run: npm run build
+
+      - run: npm test
+
   build-and-push:
     name: Build backend image and push to Docker Hub
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
