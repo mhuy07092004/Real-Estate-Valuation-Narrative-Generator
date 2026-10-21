@@ -53,7 +53,7 @@ describe('listInspectionsByOwner', () => {
 
 describe('createInspection', () => {
     test('seeds a new inspection with the standard 10-item blank checklist', async () => {
-        vi.mocked(prisma.inspection.create).mockImplementation(async ({ data }: any) => ({
+        vi.mocked(prisma.inspection.create as any).mockImplementation(async ({ data }: any) => ({
             inspectionId: 'i2',
             addressLine: data.addressLine,
             suburb: data.suburb,
@@ -81,7 +81,7 @@ describe('createInspection', () => {
     })
 
     test('checklist item ids are unique and sequential (item-1..item-10)', async () => {
-        vi.mocked(prisma.inspection.create).mockImplementation(async ({ data }: any) => ({
+        vi.mocked(prisma.inspection.create as any).mockImplementation(async ({ data }: any) => ({
             inspectionId: 'i3',
             ...data,
         }))

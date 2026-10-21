@@ -182,7 +182,7 @@ describe('refreshSession', () => {
 
         const result = await refreshSession({ refreshToken })
 
-        expect(result.user.userId).toBeUndefined() // frontend user uses `id`, not `userId`
+        expect((result.user as Record<string, unknown>).userId).toBeUndefined() // frontend user uses `id`, not `userId`
         expect(result.user.id).toBe('u1')
         expect(typeof result.accessToken).toBe('string')
     })
