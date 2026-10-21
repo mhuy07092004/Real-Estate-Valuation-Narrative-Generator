@@ -1,3 +1,4 @@
+// Authors: The Long Tran, Minh Huy Loi
 import bcrypt from 'bcryptjs'
 import { env } from '../config/env.js'
 import { prisma } from '../lib/prisma.js'

@@ -1,3 +1,4 @@
+// Authors: Minh Phan, Minh Huy Loi
 import { z } from 'zod'
 
 // Password rule of thumb for an appraisal/finance-adjacent product:

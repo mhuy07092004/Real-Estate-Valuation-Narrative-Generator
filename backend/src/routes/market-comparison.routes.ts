@@ -1,3 +1,4 @@
+// Author: The Long Tran
 import { Router } from 'express'
 import { requireAuth } from '../middleware/require-auth.js'
 import { asyncHandler } from '../middleware/async-handler.js'

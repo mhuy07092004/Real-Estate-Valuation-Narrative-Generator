@@ -1,3 +1,4 @@
+// Author: Minh Phan
 import type { Request, Response } from 'express'
 import { ZodError } from 'zod'
 import { GoogleAuthError, loginOrRegisterWithGoogle } from '../services/google-auth.service.js'

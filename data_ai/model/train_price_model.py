@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """Trains the property price prediction RandomForest model and saves the two
 artifacts the FastAPI serving layer needs: the fitted model, and the fitted
 preprocessing state (postcode lookup, suburb market-stat aggregates, parking

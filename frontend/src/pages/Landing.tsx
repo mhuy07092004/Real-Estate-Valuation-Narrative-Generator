@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useEffect } from 'react'
 import { AboutSection } from '../components/landing/about-section'
 import { FeaturesSection } from '../components/landing/features-section'

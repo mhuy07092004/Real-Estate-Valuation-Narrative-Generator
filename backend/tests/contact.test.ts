@@ -1,3 +1,4 @@
+// Author: The Long Tran
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 vi.mock('../src/services/email.service.js', () => ({ sendContactEmail: vi.fn() }))

@@ -1,3 +1,4 @@
+// Authors: Minh Huy Loi, The Long Tran
 // Investor types + HTTP service — ROI calculator, reports, notifications.
 
 import { fetchJson } from './api-client'

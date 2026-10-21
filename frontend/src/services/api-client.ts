@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Shared HTTP helper. Every service function resolves through this so swapping
 // in a real backend only requires pointing at the same `/api/...` paths.
 

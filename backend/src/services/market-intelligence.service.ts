@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Data-access + response shaping for MarketIntelligence — reference data,
 // not owned by a user, keyed by suburb+state. Two shapers on top of the
 // same row: a named-field shape (Market Insights / Suburb Explorer pages)

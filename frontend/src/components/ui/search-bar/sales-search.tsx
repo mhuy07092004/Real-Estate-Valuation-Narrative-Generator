@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useEffect, useState, type FormEvent } from 'react'
 import { BUTTON_FONT_CLASS } from '../button/button'
 import { SearchIcon } from './address-search'

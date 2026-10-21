@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useRef, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 import { gsap, useGSAP } from '../../../lib/gsap'

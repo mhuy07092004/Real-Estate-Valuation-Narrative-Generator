@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Pure lending-serviceability math for the buyer affordability calculator —
 // no database access, stateless in, stateless out. There is no interest
 // rate or loan term input anywhere in this calculator (unlike the investor

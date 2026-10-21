@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """Fixed-seed 80/10/10 split of data_ai/narrative_training_pairs.jsonl into
 train/val/test files, stratified by role so each split has a proportional
 mix of all 4 roles (not just a global shuffle, which could otherwise leave

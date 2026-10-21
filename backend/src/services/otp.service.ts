@@ -1,3 +1,4 @@
+// Author: The Long Tran
 import { createHmac, randomInt, timingSafeEqual } from 'node:crypto'
 import { env } from '../config/env.js'
 import { prisma } from '../lib/prisma.js'

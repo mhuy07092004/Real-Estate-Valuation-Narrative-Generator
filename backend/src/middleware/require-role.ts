@@ -1,3 +1,4 @@
+// Author: The Long Tran
 import type { NextFunction, Request, Response } from 'express'
 
 /**

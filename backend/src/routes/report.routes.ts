@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Report REST endpoints — list, get one, create — behind requireAuth
 // since every report is owned by a specific user.
 import { Router } from 'express'

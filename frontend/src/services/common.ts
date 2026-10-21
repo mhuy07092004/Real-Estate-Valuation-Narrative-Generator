@@ -1,3 +1,4 @@
+// Authors: The Long Tran, Minh Huy Loi
 // Shared types + HTTP service for notifications, AI copilot, generate-appraisal wizard.
 
 import { parseAuAddress } from '../lib/au-address'

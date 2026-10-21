@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Request-body validation for Inspection create (a few fields, server
 // attaches the default checklist) and update (the whole BuyerInspection
 // shape, since the frontend always PUTs the complete object at once).

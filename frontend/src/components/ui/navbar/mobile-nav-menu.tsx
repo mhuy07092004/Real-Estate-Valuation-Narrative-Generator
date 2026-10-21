@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { Button } from '../button/button'
 
 type MobileNavItem = { label: string; key: string }

@@ -1,3 +1,4 @@
+// Authors: Minh Huy Loi, The Long Tran, Thi Tuong Vy Tran
 import { useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { Navbar } from '../components/ui/navbar/navbar'

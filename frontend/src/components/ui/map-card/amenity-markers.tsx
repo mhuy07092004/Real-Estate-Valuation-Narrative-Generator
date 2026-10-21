@@ -1,3 +1,4 @@
+// Author: Minh Phan
 import { useEffect, useState } from 'react'
 import { InfoWindow, Marker } from '@vis.gl/react-google-maps'
 import { getNearbyAmenities, type Amenity, type AmenityCategory } from '../../../services/places'

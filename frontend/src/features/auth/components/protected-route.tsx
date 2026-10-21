@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { Navigate, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { getDefaultDashboardRole } from '../../dashboard/utils/dashboard-role'

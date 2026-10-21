@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useEffect, useState } from 'react'
 import { useLenis } from '../../../lib/smooth-scroll'
 

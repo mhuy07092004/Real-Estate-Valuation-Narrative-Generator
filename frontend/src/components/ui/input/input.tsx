@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import type { InputHTMLAttributes, ReactNode } from 'react'
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & {

@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { delay } from 'msw'
 
 export async function simulateLatency() {

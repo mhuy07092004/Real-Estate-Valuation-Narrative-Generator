@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """LoRA fine-tuning of Gemma 2 2B-it on the role-conditioned narrative dataset
 (gs://csit321-508209-relaive-data/training-data/{train,val}.jsonl).
 Requires an HF_TOKEN env var with the Gemma license accepted.

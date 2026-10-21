@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """Joins the role-conditioned narrative pairs (data_ai/docs/fixtures/narrative_training_pairs.{split}.jsonl,
 produced by split_narrative_dataset.py) back to their real grounding data
 (data_ai/docs/fixtures/narrative_dataset_inputs.jsonl, produced by

@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 export function formatUserDisplayDate(date: Date = new Date()) {
   return new Intl.DateTimeFormat('en-GB', {
     weekday: 'long',

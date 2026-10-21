@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { Card } from '../../../components/ui/card/card'
 
 type SettingsSectionPlaceholderProps = {

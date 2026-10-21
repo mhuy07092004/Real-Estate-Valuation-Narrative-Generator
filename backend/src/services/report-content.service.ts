@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Templated wording for the generated report — replaces the old 100%
 // static fictional content (a fixed invented South Yarra property) with
 // real sentences built from actual comparable sales and market data.

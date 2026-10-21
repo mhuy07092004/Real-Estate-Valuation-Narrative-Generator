@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // HTTP handlers for the Client API: validate the request, call the
 // service layer, and shape the { success, data } / { success, message,
 // errors } response envelope used across the backend.

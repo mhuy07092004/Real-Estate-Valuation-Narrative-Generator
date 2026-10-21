@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 type RemovableChipProps = {
   label: string
   secondaryLabel?: string

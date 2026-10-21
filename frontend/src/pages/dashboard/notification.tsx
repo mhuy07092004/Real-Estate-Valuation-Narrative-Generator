@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import type { ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
 import { ViewNotification } from '../../components/notification/view-notifcation'

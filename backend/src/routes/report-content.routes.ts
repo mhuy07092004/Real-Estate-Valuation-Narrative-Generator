@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Mounted at /api/appraisal alongside the other appraisal-family routes.
 import { Router } from 'express'
 import { requireAuth } from '../middleware/require-auth.js'

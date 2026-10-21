@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { getActionIcon, getStatIcon } from './dashboard-icons'
 import { AppraisalPipelinePanel } from './appraisal-pipeline-panel'
 import { QuickActionsPanel } from './quick-actions-panel'

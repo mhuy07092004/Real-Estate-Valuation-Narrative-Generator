@@ -1,3 +1,4 @@
+// Authors: The Long Tran, Minh Phan
 import { Router } from 'express'
 import { register, sendOtp } from '../controllers/registration.controller.js'
 import { forgotPassword, login, me, refreshToken, resetPassword, selectRole, updateProfile } from '../controllers/auth.controller.js'

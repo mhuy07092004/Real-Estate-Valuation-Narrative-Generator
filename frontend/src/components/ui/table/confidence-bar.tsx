@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 type ConfidenceTone = 'high' | 'medium' | 'low'
 
 function getConfidenceTone(value: number): ConfidenceTone {

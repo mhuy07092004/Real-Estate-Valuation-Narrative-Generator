@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 
 // Cloudflare Turnstile captcha widget. Loads the Cloudflare script once and

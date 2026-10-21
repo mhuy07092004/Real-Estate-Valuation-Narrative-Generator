@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 export type UserRole =
   | 'admin'
   | 'user'

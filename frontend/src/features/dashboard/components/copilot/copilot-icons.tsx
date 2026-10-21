@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import type { SVGProps } from 'react'
 
 function iconProps(props: SVGProps<SVGSVGElement>) {

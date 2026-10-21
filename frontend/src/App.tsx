@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { BrowserRouter } from 'react-router-dom'
 import { AppRoutes } from './routes'
 import { AuthProvider } from './features/auth/hooks/use-auth'

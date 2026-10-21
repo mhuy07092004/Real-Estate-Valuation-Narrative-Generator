@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { Card } from '../../../../components/ui/card/card'
 import { PriceTrendChart } from '../../../../components/ui/chart/price-trend-chart'
 import { StatCard } from '../../../../components/ui/stat-card/stat-card'

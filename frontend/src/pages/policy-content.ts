@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 export type PolicyClause = {
   num: string
   text: string

@@ -1,3 +1,4 @@
+# Author: The Long Tran
 from setuptools import setup, find_packages
 
 setup(

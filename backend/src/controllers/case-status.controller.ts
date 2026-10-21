@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // HTTP handler for updating a valuer case — wires up the address edit and
 // status dropdown on the Valuation Cases page, both previously fake/
 // local-state-only. Returns the reshaped CaseItem, matching listValuerCases.

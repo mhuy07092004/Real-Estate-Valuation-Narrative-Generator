@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // HTTP handlers for the appraisal wizard's comparable-sales list and the
 // standalone comparable-sales search page. Unlike Client/Report, these
 // endpoints return raw JSON matching the frontend's type directly — no

@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Client REST endpoints — list, get one, create, update, delete — all
 // behind requireAuth since every client is owned by a specific user.
 import { Router } from 'express'

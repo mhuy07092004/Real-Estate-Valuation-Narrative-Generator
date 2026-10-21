@@ -1,3 +1,4 @@
+// Authors: The Long Tran, Minh Huy Loi
 // Shared dashboard types + HTTP service — role-parametrized dashboard home.
 
 import type { AiInsight } from '../features/dashboard/components/ai-insights-panel'

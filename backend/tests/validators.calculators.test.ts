@@ -1,3 +1,4 @@
+// Author: Hoang Thanh Truc Nguyen
 import { describe, expect, test } from 'vitest'
 import { roiCalculationSchema } from '../src/validators/roi-calculation.validator.js'
 import { affordabilityCalculationSchema } from '../src/validators/affordability-calculation.validator.js'

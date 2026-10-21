@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Request-body validation for POST /api/investor/roi-calculation. All
 // fields are required numbers — the frontend always sends the full form,
 // defaulting untouched inputs to 0.

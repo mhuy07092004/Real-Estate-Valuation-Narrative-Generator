@@ -1,3 +1,4 @@
+// Authors: Minh Phan, Minh Huy Loi, The Long Tran
 // Mirrors frontend/src/types/auth.ts — kept in sync manually for now since
 // frontend and backend are separate npm projects with no shared package yet.
 

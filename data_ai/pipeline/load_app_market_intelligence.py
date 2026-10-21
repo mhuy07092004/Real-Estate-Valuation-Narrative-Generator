@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """Serving load: gold.suburb_aggregates -> the app's market_intelligence table.
 
 Updates only the listing-derived columns (median price, growth, trend, house/unit

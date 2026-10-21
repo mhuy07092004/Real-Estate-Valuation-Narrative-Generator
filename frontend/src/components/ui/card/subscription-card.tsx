@@ -1,3 +1,4 @@
+// Authors: Minh Huy Loi, Thi Tuong Vy Tran
 import type { ReactNode } from 'react'
 import { Button } from '../button/button'
 import { Card, CardDescription, CardTitle } from './card'

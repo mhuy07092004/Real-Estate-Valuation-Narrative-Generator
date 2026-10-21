@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useEffect } from 'react'
 
 const OPEN_PLANS_MENU_EVENT = 'relaive:open-plans-menu'

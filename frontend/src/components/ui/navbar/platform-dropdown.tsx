@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import type { ReactNode } from 'react'
 import { FeatureCard } from '../card/card'
 import { InteractiveCard } from '../card/interactive-card'

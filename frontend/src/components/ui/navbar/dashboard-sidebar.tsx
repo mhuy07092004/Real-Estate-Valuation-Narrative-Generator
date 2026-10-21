@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import logoIcon from '../../../assets/icon.svg'
 import { useMediaQuery } from '../../../hooks/use-media-query'
 import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-role'

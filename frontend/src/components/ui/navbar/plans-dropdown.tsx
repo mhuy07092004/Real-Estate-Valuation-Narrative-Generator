@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { PlanPrice } from '../../landing/plans-page/plan-price'
 import { PlanComparison } from '../../landing/plans-page/plan-comparision'
 import { NavDropdownPanel } from './nav-dropdown-panel'

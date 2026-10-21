@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import type { RefObject } from 'react'
 import { Link } from 'react-router-dom'
 import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-role'

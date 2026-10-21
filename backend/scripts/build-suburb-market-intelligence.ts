@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // One-off: computes real per-suburb MarketIntelligence rows from the
 // ComparableSale data already in the DB (see ingest-bronze-listings.ts).
 // Only populates what's honestly derivable from bulk sold-listing data —

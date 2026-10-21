@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Request-body validation for Client create/update — required fields for a
 // new client, all fields optional for a partial update.
 import { z } from 'zod'

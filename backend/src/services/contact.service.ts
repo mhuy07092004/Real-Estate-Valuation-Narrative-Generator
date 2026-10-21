@@ -1,3 +1,4 @@
+// Author: The Long Tran
 import { sendContactEmail } from './email.service.js'
 import type { ContactInput } from '../validators/contact.validator.js'
 

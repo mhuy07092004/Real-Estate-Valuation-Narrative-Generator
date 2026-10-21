@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Per-role report/case list endpoints — all read-only reshapes of Report,
 // each filtered to its own role, mounted at each role's exact expected
 // path in routes/index.ts.

@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """
 Feasibility probe for Days-on-Market/Rental-Yield/Vacancy-Rate sourcing.
 

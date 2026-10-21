@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 

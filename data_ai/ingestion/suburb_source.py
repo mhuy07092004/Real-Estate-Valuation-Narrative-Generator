@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """
 Shared suburb list for the new external-data ingestion scripts (Domain
 suburb-profile, ABS population/building-approvals, SQM vacancy rate).

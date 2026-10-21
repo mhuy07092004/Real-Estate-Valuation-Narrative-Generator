@@ -1,3 +1,4 @@
+// Authors: The Long Tran, Minh Huy Loi
 import {
   AuthError,
   type ApiResponse,

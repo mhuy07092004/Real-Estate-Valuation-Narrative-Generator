@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Comparable Sale endpoints for the appraisal wizard and the standalone
 // search page. Read-only reference data — no create/update/delete — but
 // still behind requireAuth since it's only ever reached from inside the

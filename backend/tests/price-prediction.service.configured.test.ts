@@ -1,3 +1,4 @@
+// Author: Hoang Thanh Truc Nguyen
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 process.env.ML_PRICE_PREDICTION_URL = 'https://ml.example.com/predict'

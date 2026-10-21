@@ -1,3 +1,4 @@
+// Author: The Long Tran
 import { prisma } from '../lib/prisma.js'
 import type { StoredUser } from '../types/auth.types.js'
 

@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Request-body validation for saving a property — every field is required
 // since the frontend always has all of them available (either from a
 // comparable-sale search's subjectProperty, or a property-search result).

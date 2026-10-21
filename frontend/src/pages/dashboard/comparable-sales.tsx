@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { SearchIcon } from '../../components/ui/search-bar/address-search'

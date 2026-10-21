@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Mounted at /api/valuer/cases alongside report-list.routes' GET handlers.
 import { Router } from 'express'
 import { requireAuth } from '../middleware/require-auth.js'

@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useEffect, useState, type ReactNode } from 'react'
 import { NavDropdownPanel } from './nav-dropdown-panel'
 

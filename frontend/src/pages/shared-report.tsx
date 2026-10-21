@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Public, unauthenticated report view — reached via the token-based share
 // link an agent generates from the Generated Report screen. No login, no
 // ProtectedRoute: a client has no Relaive account at all. Renders the same

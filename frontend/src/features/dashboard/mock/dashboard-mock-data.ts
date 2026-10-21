@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import type { DashboardMockPayload } from '../../../services/dashboard'
 import { DASHBOARD_COPY_BY_ROLE } from '../utils/dashboard-copy'
 import type { DashboardRole } from '../utils/dashboard-role'

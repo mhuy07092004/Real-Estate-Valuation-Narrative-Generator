@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Calls the Vertex AI endpoint (Gemma 2 2B-it) to generate narrative text.
 // Never throws — returns null on any auth/network/timeout/shape failure so
 // callers can fall back to the existing templated content.

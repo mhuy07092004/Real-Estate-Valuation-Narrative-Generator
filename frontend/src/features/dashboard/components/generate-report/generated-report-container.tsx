@@ -1,3 +1,4 @@
+// Authors: Minh Huy Loi, The Long Tran
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useAuth } from '../../../auth/hooks/use-auth'

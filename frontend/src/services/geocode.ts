@@ -1,3 +1,4 @@
+// Author: Minh Phan
 // Address geocoding — routed through our own backend (`/api/geocode`)
 // rather than calling Google directly from the browser. Geocoding API
 // rejects referrer-restricted keys outright, so it can't safely share the

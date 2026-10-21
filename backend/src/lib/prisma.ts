@@ -1,3 +1,4 @@
+// Author: Minh Phan
 import { PrismaClient } from '@prisma/client'
 
 // tsx watch re-runs this module on every file change; without a

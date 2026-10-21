@@ -1,3 +1,4 @@
+// Author: Minh Phan
 import { useEffect, useRef, useState } from 'react'
 import { buttonVariants } from '../button/button'
 

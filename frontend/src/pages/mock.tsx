@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 export default function MockPage() {
   return (
     <div className="flex flex-1 items-center justify-center px-6 py-16 text-center">

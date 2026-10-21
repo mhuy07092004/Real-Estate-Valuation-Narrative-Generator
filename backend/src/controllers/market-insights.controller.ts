@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // HTTP handler for the named-field market data shape, reused across all 4
 // role-specific routes (agent/valuer "Market Insights", buyer/investor
 // "Suburb Explorer") — they request identical data under different URLs.

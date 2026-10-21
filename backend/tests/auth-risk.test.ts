@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { expect, test } from 'vitest'
 import {
   isLoginCaptchaRequired,

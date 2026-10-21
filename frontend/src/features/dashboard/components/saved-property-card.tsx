@@ -1,3 +1,4 @@
+// Authors: Minh Huy Loi, The Long Tran
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '../../../components/ui/button/button'
 import { Card } from '../../../components/ui/card/card'

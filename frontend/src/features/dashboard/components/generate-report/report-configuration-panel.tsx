@@ -1,3 +1,4 @@
+// Authors: The Long Tran, Minh Huy Loi
 import { useParams } from 'react-router-dom'
 import { Card, CardTitle } from '../../../../components/ui/card/card'
 import { useAsyncData } from '../../../../hooks/use-async-data'

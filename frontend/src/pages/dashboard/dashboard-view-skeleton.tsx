@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 /** Suspense fallback for lazy-loaded role dashboards — mirrors RoleDashboardView's layout to avoid content jump. */
 export function DashboardViewSkeleton() {
   return (

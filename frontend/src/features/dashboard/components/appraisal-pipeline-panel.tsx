@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { Link } from 'react-router-dom'
 import { Card } from '../../../components/ui/card/card'
 import type { DashboardPipelineCopy } from '../utils/dashboard-copy'

@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../../features/auth/hooks/use-auth'

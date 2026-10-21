@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """Unit tests for the silver cleaning rules. Run: python -m unittest data_ai/pipeline/test_cleaning.py"""
 
 import sys

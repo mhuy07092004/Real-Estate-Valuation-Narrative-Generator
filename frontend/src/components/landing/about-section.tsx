@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import type { ReactNode } from 'react'
 import { Card, CardFeatureList, CardTitle } from '../ui/card/card'
 import { DropCardList, type DropCardItem } from '../ui/drop-card/drop-card'

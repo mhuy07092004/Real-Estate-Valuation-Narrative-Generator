@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Deliberately NOT behind requireAuth — this is the whole point of a share
 // link: a client with no Relaive account can view one report using only the
 // unguessable token in the URL. See getPublicReport's own comment for what

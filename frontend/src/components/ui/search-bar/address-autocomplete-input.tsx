@@ -1,3 +1,4 @@
+// Author: The Long Tran
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { AddressSearch } from './address-search'
 import { getAddressSuggestions, type AddressSuggestion } from '../../../services/autocomplete'

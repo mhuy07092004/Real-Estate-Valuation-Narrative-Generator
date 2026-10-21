@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useEffect, useState } from 'react'
 import { Card } from '../../../components/ui/card/card'
 import { PriceTrendChart } from '../../../components/ui/chart/price-trend-chart'

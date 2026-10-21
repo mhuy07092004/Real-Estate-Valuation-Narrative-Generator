@@ -1,3 +1,4 @@
+// Author: Hoang Thanh Truc Nguyen
 import { describe, expect, test } from 'vitest'
 import { loginSchema, forgotPasswordSchema, refreshTokenSchema, updateProfileSchema } from '../src/validators/auth.validator.js'
 import { registrationSchema, sendOtpSchema } from '../src/validators/registration.validator.js'

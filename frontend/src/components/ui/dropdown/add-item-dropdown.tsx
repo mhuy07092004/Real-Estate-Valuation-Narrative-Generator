@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useRef, useState } from 'react'
 import { useClickOutside } from '../../../hooks/use-click-outside'
 

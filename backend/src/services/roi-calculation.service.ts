@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Pure investment-property mortgage math for the investor ROI calculator —
 // no database access, stateless in, stateless out. Standard formulas:
 // amortized loan repayments, gross/net rental yield, cash flow, cash-on-cash

@@ -1,3 +1,4 @@
+// Author: The Long Tran
 import type { NextFunction, Request, RequestHandler, Response } from 'express'
 
 // Express 4 does not catch promise rejections thrown out of an async route

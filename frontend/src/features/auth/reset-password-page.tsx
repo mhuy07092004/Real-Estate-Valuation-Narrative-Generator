@@ -1,3 +1,4 @@
+// Author: The Long Tran
 import { Navbar } from '../../components/ui/navbar/navbar'
 import { Button } from '../../components/ui/button/button'
 import { AuthLayout } from './components/auth-layout'

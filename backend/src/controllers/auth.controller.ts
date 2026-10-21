@@ -1,3 +1,4 @@
+// Authors: The Long Tran, Minh Huy Loi
 import type { Request, Response } from 'express'
 import { ZodError } from 'zod'
 import { verifyAccessToken } from '../services/jwt.service.js'

@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Market Insights / Suburb Explorer endpoint — one handler, mounted at 4
 // different full paths in routes/index.ts (agent/valuer "market-insights",
 // buyer/investor "suburb-explorer" — all 4 request identical data).

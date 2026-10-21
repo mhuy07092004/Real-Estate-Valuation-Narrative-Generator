@@ -1,3 +1,4 @@
+// Author: The Long Tran
 import { API_BASE_URL } from './api-client'
 
 export const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024

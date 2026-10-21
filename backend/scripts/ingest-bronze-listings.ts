@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // One-off real-data import: reads data_ai/bronze_listings.csv (real sold
 // NSW listings scraped from domain.com.au) and inserts them as real
 // Property + ComparableSale rows. Ports the cleaning rules already proven

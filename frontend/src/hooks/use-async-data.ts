@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useEffect, useState } from 'react'
 
 export type AsyncDataState<T> = {

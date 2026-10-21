@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Mounted at /api/investor/roi-calculation.
 import { Router } from 'express'
 import { requireAuth } from '../middleware/require-auth.js'

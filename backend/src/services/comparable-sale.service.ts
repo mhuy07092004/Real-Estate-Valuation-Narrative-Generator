@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Data-access + matching logic for ComparableSale — reference data, not
 // owned by a user. Filters to the subject's suburb first, then ranks by
 // property-type match and beds/bathrooms/parking closeness.

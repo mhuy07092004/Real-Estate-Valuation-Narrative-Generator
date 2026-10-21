@@ -1,3 +1,4 @@
+// Author: Minh Phan
 import type { Request, Response } from 'express'
 import { ZodError } from 'zod'
 import { findAddressSuggestions, AutocompleteError } from '../services/autocomplete.service.js'

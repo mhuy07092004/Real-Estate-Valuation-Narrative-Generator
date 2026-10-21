@@ -1,3 +1,4 @@
+// Author: Hoang Thanh Truc Nguyen
 import { describe, expect, test, vi } from 'vitest'
 
 vi.mock('../src/config/env.js', () => ({

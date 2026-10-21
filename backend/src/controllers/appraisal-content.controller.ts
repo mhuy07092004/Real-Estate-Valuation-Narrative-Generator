@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // HTTP handlers for the wizard's small static content endpoints — the
 // stepper's step list and the property-type options. No schema needed,
 // content doesn't depend on any user/request data (steps only vary by

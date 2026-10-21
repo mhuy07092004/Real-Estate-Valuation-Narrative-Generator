@@ -1,3 +1,4 @@
+// Author: Hoang Thanh Truc Nguyen
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 vi.mock('../src/lib/prisma.js', () => ({

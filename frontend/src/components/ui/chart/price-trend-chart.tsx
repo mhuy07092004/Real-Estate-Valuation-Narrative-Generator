@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useId, useState } from 'react'
 
 export type PriceTrendPoint = {

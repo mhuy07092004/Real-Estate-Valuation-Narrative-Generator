@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """Silver transform: bronze.listings -> silver.listings_clean + silver.listings_rejects.
 
 Every bronze row is either cleaned into silver.listings_clean or recorded in

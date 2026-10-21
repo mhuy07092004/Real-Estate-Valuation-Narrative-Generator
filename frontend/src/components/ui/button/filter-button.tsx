@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
 function FunnelIcon() {

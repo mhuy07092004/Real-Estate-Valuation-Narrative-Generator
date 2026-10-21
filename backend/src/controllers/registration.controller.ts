@@ -1,3 +1,4 @@
+// Authors: The Long Tran, Minh Phan
 import type { Request, Response } from 'express'
 import { ZodError } from 'zod'
 import { registerUser } from '../services/registration.service.js'

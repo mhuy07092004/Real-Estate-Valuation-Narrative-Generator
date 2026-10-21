@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Sends the report share link to a client's inbox via SendGrid. Reuses the
 // same share token/URL that "Get Shareable Link" produces (see
 // report.service.ts's getOrCreateShareToken) — email is just another

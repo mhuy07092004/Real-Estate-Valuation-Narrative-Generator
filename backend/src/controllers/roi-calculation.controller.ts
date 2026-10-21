@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // HTTP handler for the investor ROI & Cash Flow calculator — stateless,
 // no persistence here (results are attached to a Report only when the
 // investor saves a generated report, see report.service.ts/createReport).

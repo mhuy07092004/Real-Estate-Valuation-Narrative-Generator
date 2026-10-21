@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 type WelcomeCardProps = {
   name: string
   subtitle: string

@@ -1,3 +1,4 @@
+// Author: The Long Tran
 import type { NextFunction, Request, Response } from 'express'
 import { verifyAccessToken } from '../services/jwt.service.js'
 

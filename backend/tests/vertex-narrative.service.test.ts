@@ -1,3 +1,4 @@
+// Author: Hoang Thanh Truc Nguyen
 import { describe, expect, test, vi } from 'vitest'
 
 describe('generateNarrativeViaVertex - no credentials available', () => {

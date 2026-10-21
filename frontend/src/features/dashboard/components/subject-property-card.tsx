@@ -1,3 +1,4 @@
+// Authors: Minh Huy Loi, The Long Tran
 import { Button } from '../../../components/ui/button/button'
 import { BedIcon, BathIcon } from '../../../components/ui/property-card/property-card'
 import type { SubjectProperty } from '../../../services/common'

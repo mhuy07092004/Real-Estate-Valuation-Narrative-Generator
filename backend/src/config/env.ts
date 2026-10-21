@@ -1,3 +1,4 @@
+// Authors: Minh Phan, The Long Tran
 import 'dotenv/config'
 
 export const env = {

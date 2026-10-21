@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """Scores generated narrative text against the real reference narrative_text
 using ROUGE-L. Works on any file produced by generate_baseline.py's format
 (pair_id, prompt, reference, generated) -- run once now on the baseline

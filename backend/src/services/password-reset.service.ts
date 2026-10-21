@@ -1,3 +1,4 @@
+// Author: The Long Tran
 import { createHash, randomBytes } from 'node:crypto'
 import bcrypt from 'bcryptjs'
 import { prisma } from '../lib/prisma.js'

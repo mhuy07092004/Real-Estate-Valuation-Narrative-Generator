@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // HTTP handlers for the wizard's report-content endpoints (templates,
 // executive summary, narrative preview, agent recommendations,
 // disclaimer). Returns raw JSON directly, no envelope, matching the

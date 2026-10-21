@@ -1,3 +1,4 @@
+// Author: Hoang Thanh Truc Nguyen
 import { describe, expect, test } from 'vitest'
 import { calculateRoi, type RoiCalculationInput } from '../src/services/roi-calculation.service.js'
 

@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes } from 'react'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'link' | 'outline'

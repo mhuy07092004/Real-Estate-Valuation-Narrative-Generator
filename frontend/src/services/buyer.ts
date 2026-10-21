@@ -1,3 +1,4 @@
+// Authors: Minh Huy Loi, The Long Tran
 // Buyer types + HTTP service — affordability, property search/saved, reports.
 
 import type { PropertyCardData } from '../components/ui/property-card/property-card'

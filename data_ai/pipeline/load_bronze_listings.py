@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """Bronze loader: data_ai/bronze_listings.csv -> bronze.listings.
 
 Bronze is raw and append-only. Every CSV column lands as text exactly as

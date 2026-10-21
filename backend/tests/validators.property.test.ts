@@ -1,3 +1,4 @@
+// Author: Hoang Thanh Truc Nguyen
 import { describe, expect, test } from 'vitest'
 import { createSavedPropertySchema } from '../src/validators/saved-property.validator.js'
 import { geocodeQuerySchema } from '../src/validators/geocode.validator.js'

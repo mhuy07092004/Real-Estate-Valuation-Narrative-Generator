@@ -1,3 +1,4 @@
+// Author: Minh Phan
 import type { AmenityCategory } from '../../../services/places'
 import { CATEGORY_COLOR, CATEGORY_LABEL } from './amenity-markers'
 

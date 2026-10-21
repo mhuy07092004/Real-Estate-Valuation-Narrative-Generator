@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """
 Single entry point for scaling the three external-data ingestion scripts
 (ingestion/domain_suburb_insights_ingest.py, ingestion/sqm_vacancy_rate_ingest.py,

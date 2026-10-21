@@ -1,3 +1,4 @@
+// Authors: The Long Tran, Minh Huy Loi
 // Agent types + HTTP service — CRM client list, reports, notifications.
 
 import { API_BASE_URL, fetchJson, getAccessToken } from './api-client'

@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { lazy } from 'react'
 import { DASHBOARD_ROLES, type DashboardRole } from '../../features/dashboard/utils/dashboard-role'
 

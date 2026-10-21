@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import type { ComparableSale } from '../../../services/common'
 
 function BedIcon() {

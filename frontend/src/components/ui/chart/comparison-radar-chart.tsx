@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useMediaQuery } from '../../../hooks/use-media-query'
 import {
   Legend,

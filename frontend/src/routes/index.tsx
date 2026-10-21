@@ -1,3 +1,4 @@
+// Authors: Minh Huy Loi, The Long Tran
 import { Route, Routes, useParams, Navigate } from 'react-router-dom'
 import Landing from '../pages/Landing'
 import SignInPageRoute from '../pages/signin'

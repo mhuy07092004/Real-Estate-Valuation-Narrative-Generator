@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import type { UserRole } from '../../../types/auth'
 
 const STORAGE_KEY = 'relaive_dashboard_role'

@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useEffect, type RefObject } from 'react'
 
 /** Attaches outside-click and Escape-key listeners while `enabled` is true. */

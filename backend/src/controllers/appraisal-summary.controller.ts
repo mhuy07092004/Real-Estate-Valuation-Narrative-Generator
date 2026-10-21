@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // HTTP handler for the wizard's step-5 appraisal summary — the real
 // estimatedValue/priceRange computation, replacing the old independent
 // mock formula. Reuses comparable-sale.service's findComparablesInSuburb

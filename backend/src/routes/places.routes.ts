@@ -1,3 +1,4 @@
+// Author: Minh Phan
 import { Router } from 'express'
 import { getNearbyPlaces } from '../controllers/places.controller.js'
 import { getAddressSuggestions } from '../controllers/autocomplete.controller.js'

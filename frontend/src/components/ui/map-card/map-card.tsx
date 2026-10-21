@@ -1,3 +1,4 @@
+// Author: Minh Phan
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { APIProvider, Map, Marker, useMap } from '@vis.gl/react-google-maps'
 import { AddressAutocompleteInput } from '../search-bar/address-autocomplete-input'

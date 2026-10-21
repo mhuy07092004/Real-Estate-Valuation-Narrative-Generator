@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import type { DashboardActionIconKey, DashboardStatIconKey } from '../../../services/dashboard'
 import type { DashboardRole } from './dashboard-role'
 

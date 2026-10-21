@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Static wizard-chrome endpoints — steps and property types — mounted at
 // /api/appraisal alongside comparable-sales and market-intelligence-overview.
 import { Router } from 'express'

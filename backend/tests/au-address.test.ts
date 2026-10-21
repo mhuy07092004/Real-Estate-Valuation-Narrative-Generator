@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { describe, expect, test } from 'vitest'
 import { parseAuAddress } from '../src/utils/au-address.js'
 

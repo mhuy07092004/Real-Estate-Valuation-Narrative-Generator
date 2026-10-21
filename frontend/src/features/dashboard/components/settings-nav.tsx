@@ -1,3 +1,4 @@
+// Authors: Minh Huy Loi, Thi Tuong Vy Tran
 import type { ReactElement, SVGProps } from 'react'
 import { BellIcon, HelpCircleIcon, LogOutIcon, UserIcon } from '../../../components/ui/navbar/dashboard-navbar-icons'
 

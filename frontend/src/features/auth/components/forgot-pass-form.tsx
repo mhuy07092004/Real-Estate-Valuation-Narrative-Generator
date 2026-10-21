@@ -1,3 +1,4 @@
+// Authors: The Long Tran, Minh Huy Loi
 import { useState, type FormEvent } from 'react'
 import { Button } from '../../../components/ui/button/button'
 import { Input } from '../../../components/ui/input/input'

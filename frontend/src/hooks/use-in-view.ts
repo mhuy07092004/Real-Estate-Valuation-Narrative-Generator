@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useEffect, useRef, useState } from 'react'
 
 export type UseInViewOptions = {

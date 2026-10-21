@@ -1,3 +1,4 @@
+// Authors: Minh Huy Loi, The Long Tran
 // Shared subscription plan pricing/data — single source of truth for the
 // landing Plans section (`components/landing/plans-page/plan-price.tsx`) and the
 // dashboard Settings > Subscription section (`features/dashboard/components/settings-page.tsx`).

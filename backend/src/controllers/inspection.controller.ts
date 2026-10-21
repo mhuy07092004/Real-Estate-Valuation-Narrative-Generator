@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // HTTP handlers for Inspection. Returns raw JSON matching BuyerInspection
 // directly (no { success, data } envelope) — confirmed against buyer.ts's
 // fetchJson usage, which types these calls as BuyerInspection[]/BuyerInspection

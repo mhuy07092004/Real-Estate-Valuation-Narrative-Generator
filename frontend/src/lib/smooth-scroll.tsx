@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useEffect } from 'react'
 import { ReactLenis, useLenis } from 'lenis/react'
 import type { ReactNode } from 'react'

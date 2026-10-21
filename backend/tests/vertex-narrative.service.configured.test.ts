@@ -1,3 +1,4 @@
+// Author: Hoang Thanh Truc Nguyen
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 const getAccessTokenMock = vi.fn().mockResolvedValue({ token: 'fake-access-token' })

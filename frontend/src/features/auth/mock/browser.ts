@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { setupWorker } from 'msw/browser'
 import { dashboardHandlers } from '../../dashboard/mock/handlers'
 import { authHandlers } from './handlers'

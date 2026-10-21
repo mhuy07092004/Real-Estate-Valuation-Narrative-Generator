@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useEffect, useState } from 'react'
 
 /** Tracks a CSS media query (e.g. `(min-width: 1024px)`). */

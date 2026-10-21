@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { MapCard } from '../ui/map-card/map-card'
 import { SectionShell } from './section-shell'
 

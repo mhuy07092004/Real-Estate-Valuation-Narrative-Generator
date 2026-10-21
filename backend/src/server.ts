@@ -1,3 +1,4 @@
+// Author: Minh Phan
 import { createApp } from './app.js'
 import { env } from './config/env.js'
 

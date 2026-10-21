@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 /** Shared check so GSAP-driven UI (page transitions, etc.) can skip motion when requested. */
 export function prefersReducedMotion(): boolean {
   return (

@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Exports real, backend-grounded inputs for the SCP-425 fine-tuning
 // distillation dataset (see .claude/plans and data_ai/docs/scp425_plan.md).
 //

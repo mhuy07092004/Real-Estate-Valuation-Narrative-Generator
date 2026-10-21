@@ -1,3 +1,4 @@
+// Author: The Long Tran
 import { z } from 'zod'
 import { registrationSchema } from './registration.validator.js'
 

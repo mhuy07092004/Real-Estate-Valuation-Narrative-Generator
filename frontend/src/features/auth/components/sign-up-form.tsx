@@ -1,3 +1,4 @@
+// Authors: Minh Huy Loi, The Long Tran
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../../../components/ui/button/button'

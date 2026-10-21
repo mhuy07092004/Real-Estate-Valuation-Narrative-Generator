@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Calls an external ML price-prediction service to estimate a property's
 // value. Never throws — returns null on any config/network/timeout/shape
 // failure so callers can fall back to the existing comparable-sales average.

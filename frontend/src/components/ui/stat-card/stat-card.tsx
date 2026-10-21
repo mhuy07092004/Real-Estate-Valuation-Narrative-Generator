@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import type { ReactNode } from 'react'
 
 type StatTone = 'blue' | 'teal' | 'orange' | 'sky'

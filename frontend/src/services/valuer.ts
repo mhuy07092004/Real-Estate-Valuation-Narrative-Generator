@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 // Valuer types + HTTP service — evidence centre, valuation cases, notifications.
 
 import { fetchJson } from './api-client'

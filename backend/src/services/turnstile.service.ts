@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { env } from '../config/env.js'
 
 const VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify'

@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """Shared database connection for the medallion pipeline scripts.
 
 Reads DATABASE_URL from the environment, falling back to backend/.env so the

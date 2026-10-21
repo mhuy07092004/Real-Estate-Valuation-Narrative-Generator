@@ -1,3 +1,4 @@
+// Author: Minh Phan
 import type { ZodError } from 'zod'
 
 // Shared by geocode.controller.ts and places.controller.ts. Flattens a

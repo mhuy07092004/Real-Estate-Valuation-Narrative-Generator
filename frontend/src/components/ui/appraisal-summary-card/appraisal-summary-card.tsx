@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import type { AppraisalSummary } from '../../../services/common'
 
 type AppraisalSummaryCardProps = {

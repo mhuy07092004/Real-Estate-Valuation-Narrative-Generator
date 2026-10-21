@@ -1,3 +1,4 @@
+// Authors: Minh Huy Loi, The Long Tran
 import { useId, useState } from 'react'
 import { Input } from '../input/input'
 import { BUTTON_FONT_CLASS } from '../button/button'

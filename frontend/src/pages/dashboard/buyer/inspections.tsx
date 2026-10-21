@@ -1,3 +1,4 @@
+// Authors: Minh Huy Loi, The Long Tran
 import { useEffect, useMemo, useState, type ReactElement } from 'react'
 import { createPortal } from 'react-dom'
 import dayjs from 'dayjs'

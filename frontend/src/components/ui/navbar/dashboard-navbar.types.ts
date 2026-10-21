@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import type { ReactElement, SVGProps } from 'react'
 import type { DashboardRole } from '../../../features/dashboard/utils/dashboard-role'
 

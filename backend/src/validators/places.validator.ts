@@ -1,3 +1,4 @@
+// Author: Minh Phan
 import { z } from 'zod'
 
 export const nearbyPlacesQuerySchema = z.object({

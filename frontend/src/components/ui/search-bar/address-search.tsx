@@ -1,3 +1,4 @@
+// Authors: Minh Huy Loi, Minh Phan
 import type { KeyboardEventHandler } from 'react'
 
 type AddressSearchProps = {

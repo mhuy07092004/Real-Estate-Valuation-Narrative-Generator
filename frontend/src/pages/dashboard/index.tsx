@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { Suspense, useEffect, type ReactNode } from 'react'
 import { Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '../../components/ui/button/button'

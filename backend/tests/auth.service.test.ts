@@ -1,3 +1,4 @@
+// Author: Hoang Thanh Truc Nguyen
 import { afterEach, describe, expect, test, vi } from 'vitest'
 
 vi.mock('../src/services/user.service.js', () => ({

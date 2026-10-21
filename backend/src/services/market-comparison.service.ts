@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // BACKEND-117: investor Market Comparison data — the radar-chart page that
 // used to be a fully hardcoded 3-suburb array. Real data now exists on
 // MarketIntelligence for a subset of suburbs (Domain/SQM/ABS scrapes via

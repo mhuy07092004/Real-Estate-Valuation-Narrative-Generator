@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { useRef } from 'react'
 import { gsap, useGSAP } from '../../../lib/gsap'
 

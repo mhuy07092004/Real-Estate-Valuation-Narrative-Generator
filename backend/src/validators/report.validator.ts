@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Request-body validation for creating a Report — matches
 // persistGeneratedReport's payload shape (common.ts). clientName/clientEmail
 // are optional since a report can be saved without a client attached.

@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 // Adaptive captcha scoring. A captcha is a tax on every honest user, so it is
 // only demanded once a request starts looking automated: repeated failures
 // against one account, repeated failures from one IP, a burst of attempts from

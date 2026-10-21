@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """Generates baseline (zero-shot, untrained) Gemma 2 2B-it output for every
 prompt in the test split, so we have something to compare the fine-tuned
 model against later. Run this BEFORE training touches anything.

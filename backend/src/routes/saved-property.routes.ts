@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // SavedProperty endpoints. Two routers since the read side is mounted at 4
 // different role-specific paths (same handler, per-page URL convention —
 // see routes/index.ts) while create/delete share one path, not per-role.

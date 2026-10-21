@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """Bronze -> silver cleaning rules for sold listings.
 
 Pure functions, no database or network access, so they can be unit-tested and

@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 export function formatShortName(fullName: string) {
   const parts = fullName.trim().split(/\s+/).filter(Boolean)
   if (parts.length === 0) return 'User'

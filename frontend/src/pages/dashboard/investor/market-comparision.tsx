@@ -1,3 +1,4 @@
+// Authors: Minh Huy Loi, Thi Tuong Vy Tran
 import { useEffect, useState } from 'react'
 import { Card } from '../../../components/ui/card/card'
 import { ComparisonRadarChart } from '../../../components/ui/chart/comparison-radar-chart'

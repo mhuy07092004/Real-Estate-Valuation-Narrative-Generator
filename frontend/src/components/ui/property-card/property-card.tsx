@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { Button } from '../button/button'
 
 export type PropertyRangeStatus = 'within_range' | 'below_range' | 'above_range'

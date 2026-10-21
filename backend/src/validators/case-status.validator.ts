@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Request-body validation for updating a valuer case — a partial update,
 // address or status or both. addressLine only ever updates the street
 // line (propertyAddressLine), not suburb/state/postcode, avoiding the

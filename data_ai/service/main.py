@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """FastAPI price-prediction service.
 
 Matches the contract backend/src/services/price-prediction.service.ts already

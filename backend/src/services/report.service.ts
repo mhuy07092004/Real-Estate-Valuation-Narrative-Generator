@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Data-access layer for Report — the only file allowed to query the
 // database directly for this feature. Every function is scoped by
 // ownerUserId so a caller can never read or write another user's reports.

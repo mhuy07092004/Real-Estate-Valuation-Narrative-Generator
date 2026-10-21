@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { Card, CardTitle } from '../../../components/ui/card/card'
 
 export type InsightBadgeTone = 'teal' | 'orange' | 'blue'

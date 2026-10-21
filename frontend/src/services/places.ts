@@ -1,3 +1,4 @@
+// Author: Minh Phan
 // Nearby-amenities lookup — routed through our own backend (`/api/places/nearby`)
 // for the same reason services/geocode.ts is: Google's Places API rejects
 // referrer-restricted keys, so it can't be called with the browser-side

@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { type ReactNode, useRef } from 'react'
 
 export function InteractiveCard({

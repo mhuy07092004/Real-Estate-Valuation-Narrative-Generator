@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // HTTP handlers for SavedProperty. GET returns raw JSON matching the
 // frontend's BuyerSavedProperty/InvestorSavedProperty/AgentSavedProperty/
 // ValuerSavedEvidence types directly (all four structurally identical),

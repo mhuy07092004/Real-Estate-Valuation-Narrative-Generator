@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Inspection endpoints — list, create, full-checklist update — all behind
 // requireAuth since every inspection is owned by a specific buyer.
 import { Router } from 'express'

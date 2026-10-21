@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 type SectionDividerProps = {
   label: string
   className?: string

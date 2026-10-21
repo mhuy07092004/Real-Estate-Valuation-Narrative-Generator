@@ -1,3 +1,4 @@
+// Author: Minh Phan
 // Address suggestions — routed through our own backend (`/api/places/autocomplete`)
 // for the same reason geocode.ts and places.ts are: Places API (New) rejects
 // referrer-restricted keys, so it can't be called with the browser-side

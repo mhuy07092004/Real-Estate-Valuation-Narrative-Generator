@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """Serving load: silver.listings_clean -> the app's properties + comparable_sales.
 
 Replaces the scraped rows in both tables with the clean, de-duplicated sales in

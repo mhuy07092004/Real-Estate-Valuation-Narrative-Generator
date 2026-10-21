@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { ForgotPassPage } from '../features/auth/forgot-pass-page'
 
 export default function ForgotPasswordPageRoute() {

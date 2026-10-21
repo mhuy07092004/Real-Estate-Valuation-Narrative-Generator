@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // Data-access layer for Inspection — the only file allowed to query the
 // database directly for this feature. Every function is scoped by
 // ownerUserId so a caller can never read, create, or update another

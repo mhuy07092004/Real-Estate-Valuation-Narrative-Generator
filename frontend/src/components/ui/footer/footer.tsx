@@ -1,3 +1,4 @@
+// Authors: Minh Huy Loi, Thi Tuong Vy Tran
 const LEGAL_LINKS = [
   { label: 'Terms of Services', href: '/policy/terms' },
   { label: 'Privacy Policy', href: '/policy/privacy' },

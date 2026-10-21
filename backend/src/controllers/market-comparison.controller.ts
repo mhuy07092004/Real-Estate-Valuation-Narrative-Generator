@@ -1,3 +1,4 @@
+// Author: The Long Tran
 import type { Request, Response } from 'express'
 import { getMarketComparisonSuburbs } from '../services/market-comparison.service.js'
 

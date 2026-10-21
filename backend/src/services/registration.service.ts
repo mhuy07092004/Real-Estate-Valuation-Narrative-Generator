@@ -1,3 +1,4 @@
+// Authors: Minh Phan, Minh Huy Loi
 import bcrypt from 'bcryptjs'
 import { env } from '../config/env.js'
 import { DuplicateEmailError, toFrontendUser, type AuthResponseData } from '../types/auth.types.js'

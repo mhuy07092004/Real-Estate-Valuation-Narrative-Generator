@@ -1,3 +1,4 @@
+// Authors: Hoang Thanh Truc Nguyen, Minh Phan
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 vi.mock('../src/config/env.js', () => ({

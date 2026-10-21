@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // HTTP handlers reshaping Report rows into each role's existing list-page
 // shape. Read-only — reuses report.service's listReportsByOwnerAndRole,
 // no new data-access needed. Every handler filters to its own role's

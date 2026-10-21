@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import { Navbar } from '../../components/ui/navbar/navbar'
 import { AuthLayout } from './components/auth-layout'
 import { OnboardingSlider } from './components/onboarding-slider'

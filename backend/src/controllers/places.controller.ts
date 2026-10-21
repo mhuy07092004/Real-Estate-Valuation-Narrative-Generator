@@ -1,3 +1,4 @@
+// Author: Minh Phan
 import type { Request, Response } from 'express'
 import { ZodError } from 'zod'
 import { findNearbyAmenities, PlacesError } from '../services/places.service.js'

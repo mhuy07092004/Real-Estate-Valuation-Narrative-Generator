@@ -1,3 +1,4 @@
+// Author: Minh Phan
 import { env } from '../config/env.js'
 
 export type AmenityCategory = 'school' | 'grocery' | 'park' | 'transit' | 'healthcare' | 'dining' | 'other'

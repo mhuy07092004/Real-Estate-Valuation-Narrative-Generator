@@ -1,3 +1,4 @@
+// Author: Minh Huy Loi
 import type { ColumnDef } from '@tanstack/react-table'
 import type { InvestorReportItem } from '../../../services/investor'
 import { DataTable, type DataTableTab } from './data-table'

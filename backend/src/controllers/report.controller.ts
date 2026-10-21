@@ -1,3 +1,4 @@
+// Author: The Long Tran
 // HTTP handlers for the Report API. Follows the { success, data } /
 // { success, message, errors } envelope, matching PersistedReport/
 // ApiResponse usage in common.ts and StoredReportRow usage in agent.ts

@@ -1,3 +1,4 @@
+// Author: Minh Phan
 import { useEffect, useRef } from 'react'
 import { useMap } from '@vis.gl/react-google-maps'
 

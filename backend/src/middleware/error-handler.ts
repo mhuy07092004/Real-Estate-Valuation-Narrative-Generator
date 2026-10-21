@@ -1,3 +1,4 @@
+// Author: Minh Phan
 import type { NextFunction, Request, Response } from 'express'
 
 export function notFoundHandler(req: Request, res: Response) {

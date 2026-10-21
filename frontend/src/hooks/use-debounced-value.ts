@@ -1,3 +1,4 @@
+// Author: The Long Tran
 import { useEffect, useState } from 'react'
 
 /** Returns `value`, but delayed until it's been stable for `delayMs`. */

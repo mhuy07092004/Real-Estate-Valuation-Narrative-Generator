@@ -1,3 +1,4 @@
+# Author: The Long Tran
 """Merges a trained LoRA adapter into the Gemma 2 2B-it base model and
 saves the full merged model, ready to upload as a Vertex AI Model resource.
 
