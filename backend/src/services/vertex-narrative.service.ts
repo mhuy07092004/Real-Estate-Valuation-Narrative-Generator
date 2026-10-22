@@ -15,7 +15,9 @@ import { GoogleAuth } from 'google-auth-library'
 const PROJECT_ID = process.env.VERTEX_PROJECT_ID ?? '393439107077'
 const REGION = process.env.VERTEX_REGION ?? 'us-central1'
 const ENDPOINT_ID = process.env.VERTEX_ENDPOINT_ID ?? '3931876120915345408'
-const TIMEOUT_MS = 10_000
+// Long enough for a full ~700-token Appraisal Commentary + extra section on
+// the L4 endpoint; anything slower falls back to the templated text.
+const TIMEOUT_MS = 30_000
 
 const auth = new GoogleAuth({ scopes: 'https://www.googleapis.com/auth/cloud-platform' })
 

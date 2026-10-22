@@ -68,6 +68,12 @@ async function findBySuburb(suburb: string, state?: string) {
   )
 }
 
+// The raw row, for callers that need the unformatted numbers (the narrative
+// model's prompt quotes them exactly as it saw them in training).
+export function findMarketIntelligenceRow(suburb: string, state?: string) {
+  return findBySuburb(suburb, state)
+}
+
 // Named-field shape for agent/valuer "Market Insights" and buyer/investor
 // "Suburb Explorer" — all four frontend types are structurally identical.
 export async function getMarketInsightsForSuburb(suburbQuery: string) {

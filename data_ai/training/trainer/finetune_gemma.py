@@ -66,7 +66,11 @@ def main() -> None:
         gradient_accumulation_steps=args.grad_accum,
         learning_rate=args.learning_rate, bf16=True,
         logging_steps=10, eval_strategy="no", save_strategy="epoch",
-        report_to="none", max_seq_length=1024, packing=False,
+        report_to="none", max_seq_length=1536, packing=False,
+        # The ~300-word narratives ran a T4 (16 GB) out of memory; recomputing
+        # activations in the backward pass trades some speed for memory.
+        gradient_checkpointing=True,
+        gradient_checkpointing_kwargs={"use_reentrant": False},
     )
 
     trainer = SFTTrainer(

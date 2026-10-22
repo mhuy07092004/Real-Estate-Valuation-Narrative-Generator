@@ -6,29 +6,25 @@
 // Step 1 shows) and market-intelligence.service's suburb lookup — no new
 // data source needed.
 import { findComparablesInSuburb } from './comparable-sale.service.js'
-import { getMarketIntelligenceOverviewForSuburb } from './market-intelligence.service.js'
+import { findMarketIntelligenceRow, getMarketIntelligenceOverviewForSuburb } from './market-intelligence.service.js'
+import {
+    buildNarrativePrompt,
+    COMMENTARY_HEADING,
+    parseNarrativeSections,
+    uniqueComparables,
+    type NarrativeAffordabilityInput,
+    type NarrativeRoiInput,
+} from './narrative-prompt.js'
 import { predictPropertyPrice } from './price-prediction.service.js'
 import { generateNarrativeViaVertex } from './vertex-narrative.service.js'
 
 export type ReportRole = 'agent' | 'valuer' | 'buyer' | 'investor'
 
-// Mirrors data_ai/scripts/prepare_finetune_dataset.py's ROLE_LABEL /
-// REPORT_TYPE_LABEL exactly — the fine-tune learned to change tone and
-// content based on these two sentences, so production has to send the
-// same wording or the model is off-distribution from training.
-const ROLE_LABEL: Record<ReportRole, string> = {
-    agent: 'real estate agent',
-    valuer: 'certified practising valuer',
-    buyer: "buyer's advocate",
-    investor: 'property investment advisor',
-}
+// Same cap as the training export (backend/scripts/export-narrative-training-inputs.ts).
+const MAX_PROMPT_COMPARABLES = 5
 
-const REPORT_TYPE_LABEL: Record<ReportRole, string> = {
-    agent: 'Vendor Appraisal',
-    valuer: 'Bank Valuation',
-    buyer: 'Buyer Report',
-    investor: 'Investment Report',
-}
+// Room for the longest trained answer (about 350 words plus headings).
+const NARRATIVE_MAX_TOKENS = 700
 
 export type ReportTemplate = {
     id: string
@@ -173,7 +169,17 @@ async function buildRealEvidence(subject: SubjectInput) {
     }
 }
 
-export async function buildExecutiveSummary(subject: SubjectInput, role: ReportRole) {
+// Calculator inputs and results the buyer/investor entered in the wizard's
+// Step 3. The narrative model was trained on prompts that always carried
+// them, so they are passed through to its prompt unchanged.
+export type NarrativeExtras = {
+    roi?: NarrativeRoiInput | null
+    affordability?: NarrativeAffordabilityInput | null
+}
+
+type ReportSection = { title: string; paragraphs: { text: string; highlight?: boolean }[][] }
+
+export async function buildExecutiveSummary(subject: SubjectInput, role: ReportRole, extras: NarrativeExtras = {}) {
     const evidence = await buildRealEvidence(subject)
 
     if (evidence.comparables.length === 0) {
@@ -195,13 +201,14 @@ export async function buildExecutiveSummary(subject: SubjectInput, role: ReportR
         ? `The primary comparable — ${evidence.primaryComparable.property.addressLine} (sold ${formatCurrency(evidence.primaryComparable.soldPrice)}) — is the strongest evidence for this estimate given its similarity to the subject property.`
         : 'No single comparable stands out as a primary anchor for this estimate.'
 
-    const vertexParagraphs = await tryVertexExecutiveSummary(subject, role, evidence, midpointText, growthText)
-    if (vertexParagraphs) {
+    const narrative = await tryVertexNarrative(subject, role, evidence, extras)
+    if (narrative) {
         return {
             title: '1. EXECUTIVE SUMMARY',
-            paragraphs: vertexParagraphs,
+            paragraphs: narrative.commentary,
             observationTitle,
             observationMessage,
+            ...(narrative.extraSection ? { extraSection: narrative.extraSection } : {}),
         }
     }
 
@@ -228,47 +235,70 @@ export async function buildExecutiveSummary(subject: SubjectInput, role: ReportR
     }
 }
 
-// Connection-test integration (2026-09-12): tries the live Vertex AI
-// endpoint (base Gemma 2 9B-it, not fine-tuned yet) before falling back to
-// the templated paragraphs above. Returns null on any failure so the
+// Tries the fine-tuned narrative model on Vertex AI before falling back to
+// the templated paragraphs above. The prompt is built in exactly the
+// training format (see narrative-prompt.ts), so a buyer/investor report
+// without its Step 3 calculator inputs skips the model rather than sending
+// it a prompt shape it never saw. Returns null on any failure so the
 // templated path is always the safety net.
-async function tryVertexExecutiveSummary(
+async function tryVertexNarrative(
     subject: SubjectInput,
     role: ReportRole,
     evidence: Awaited<ReturnType<typeof buildRealEvidence>>,
-    midpointText: string,
-    growthText: string,
-): Promise<{ text: string }[][] | null> {
+    extras: NarrativeExtras,
+): Promise<{ commentary: { text: string }[][]; extraSection?: ReportSection } | null> {
     if (evidence.comparables.length === 0) return null
+    if (role === 'investor' && !extras.roi) return null
+    if (role === 'buyer' && !extras.affordability) return null
 
-    const comparableLines = evidence.comparables
-        .slice(0, 5)
-        .map((c) => `- ${c.property.addressLine}: ${formatCurrency(c.soldPrice)}`)
-        .join('\n')
+    const market = await findMarketIntelligenceRow(subject.suburb, subject.state)
+    if (!market) return null
 
-    const prompt = [
-        `You are a professional ${ROLE_LABEL[role]} preparing the narrative sections of a ${REPORT_TYPE_LABEL[role]} report.`,
-        ``,
-        `Property: ${subject.street}, ${subject.suburb} ${subject.state ?? ''} — ${subject.propertyType ?? 'property'}, ${subject.bedrooms ?? '?'} bed / ${subject.bathrooms ?? '?'} bath / ${subject.parking ?? '?'} car, ${subject.landSizeSqm ?? 'unknown'} sqm`,
-        `Estimated value: ${midpointText} (range ${evidence.priceRangeText})`,
-        `Suburb annual growth: ${growthText}`,
-        ``,
-        `Comparable sales:`,
-        comparableLines,
-        ``,
-        `Write only the Executive Summary section (2 short paragraphs), grounded strictly in the data above. Do not invent any figures not present above.`,
-    ].join('\n')
+    const comparables = uniqueComparables(
+        evidence.comparables.map((c) => ({
+            address: c.property.addressLine,
+            soldPrice: c.soldPrice,
+            soldDate: c.soldDate,
+            bedrooms: c.property.bedrooms,
+            bathrooms: c.property.bathrooms,
+            parking: c.property.parking,
+            areaSqm: c.property.areaSqm,
+        })),
+    ).slice(0, MAX_PROMPT_COMPARABLES)
 
-    const text = await generateNarrativeViaVertex(prompt)
-    if (!text) return null
+    const prompt = buildNarrativePrompt({
+        role,
+        subject: {
+            street: subject.street,
+            suburb: subject.suburb,
+            state: subject.state ?? '',
+            postcode: subject.postcode ?? '',
+            propertyType: subject.propertyType,
+            bedrooms: subject.bedrooms,
+            bathrooms: subject.bathrooms,
+            parking: subject.parking,
+            areaSqm: subject.landSizeSqm,
+        },
+        estimatedValue: evidence.midpoint,
+        comparables,
+        market,
+        roi: extras.roi,
+        affordability: extras.affordability,
+    })
 
-    const paragraphs = text
-        .split(/\n\s*\n/)
-        .map((p) => p.trim())
-        .filter((p) => p.length > 0)
-        .map((p) => [{ text: p }])
+    const answer = await generateNarrativeViaVertex(prompt, NARRATIVE_MAX_TOKENS)
+    if (!answer) return null
 
-    return paragraphs.length > 0 ? paragraphs : null
+    const sections = parseNarrativeSections(answer)
+    const commentary = sections.find((section) => section.heading === COMMENTARY_HEADING) ?? sections[0]
+    if (!commentary) return null
+    const extra = sections.find((section) => section !== commentary)
+
+    const toParagraphs = (paragraphs: string[]) => paragraphs.map((text) => [{ text }])
+    return {
+        commentary: toParagraphs(commentary.paragraphs),
+        ...(extra ? { extraSection: { title: `5. ${extra.heading}`, paragraphs: toParagraphs(extra.paragraphs) } } : {}),
+    }
 }
 
 export async function buildNarrativePreview(subject: SubjectInput, templateTitle: string) {

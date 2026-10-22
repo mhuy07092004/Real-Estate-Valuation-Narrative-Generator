@@ -76,6 +76,11 @@ export function AffordabilityPanel({ onBack, onContinue }: AffordabilityPanelPro
           estimatedBorrowingCapacity: response.estimatedBorrowingCapacity,
           maxLoanAmount: response.maxLoanAmount,
           repaymentToIncomePct: response.repaymentToIncomePct,
+          inputs: {
+            yourAnnualIncome: form.yourAnnualIncome,
+            partnerAnnualIncome: form.partnerAnnualIncome,
+            availableDeposit: form.availableDeposit,
+          },
         })
       })
       .catch((error: Error) => {

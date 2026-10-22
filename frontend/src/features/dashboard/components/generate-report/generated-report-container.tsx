@@ -140,7 +140,19 @@ export function GeneratedReportContainer({
     [selectedTemplate?.id],
   )
   const { data: appraisalSummary } = useAsyncData(getAppraisalSummary, [])
-  const { data: executiveSummary } = useAsyncData(() => getExecutiveSummary(reportRole), [reportRole])
+  const { data: executiveSummary } = useAsyncData(
+    () => getExecutiveSummary(reportRole, roiForDisplay, affordabilityForDisplay),
+    [
+      reportRole,
+      roiForDisplay?.inputs?.purchasePrice,
+      roiForDisplay?.inputs?.deposit,
+      roiForDisplay?.inputs?.interestRate,
+      roiForDisplay?.inputs?.weeklyRent,
+      affordabilityForDisplay?.inputs?.yourAnnualIncome,
+      affordabilityForDisplay?.inputs?.partnerAnnualIncome,
+      affordabilityForDisplay?.inputs?.availableDeposit,
+    ],
+  )
   const { data: agentRecommendations } = useAsyncData(getAgentRecommendations, [])
   const { data: appraisalDisclaimer } = useAsyncData(getAppraisalDisclaimer, [])
   const { data: comparableSales } = useAsyncData(getComparableSales, [])
@@ -263,7 +275,18 @@ export function GeneratedReportContainer({
       title: executiveSummary.title.replace(/^\d+\.\s*/, ''),
       paragraphs: executiveSummary.paragraphs,
     },
-    ...(reportRole === 'investor' && growthOutlook
+    // The model's own Growth Outlook / Affordability Assessment replaces the
+    // short templated one when it wrote one.
+    ...(executiveSummary.extraSection && (reportRole === 'investor' || reportRole === 'buyer')
+      ? [
+          {
+            id: reportRole === 'investor' ? 'growth-outlook' : 'affordability-outlook',
+            title: executiveSummary.extraSection.title.replace(/^\d+\.\s*/, ''),
+            paragraphs: executiveSummary.extraSection.paragraphs,
+          },
+        ]
+      : []),
+    ...(reportRole === 'investor' && growthOutlook && !executiveSummary.extraSection
       ? [
           {
             id: 'growth-outlook',
@@ -272,7 +295,7 @@ export function GeneratedReportContainer({
           },
         ]
       : []),
-    ...(reportRole === 'buyer' && affordabilityOutlook
+    ...(reportRole === 'buyer' && affordabilityOutlook && !executiveSummary.extraSection
       ? [
           {
             id: 'affordability-outlook',

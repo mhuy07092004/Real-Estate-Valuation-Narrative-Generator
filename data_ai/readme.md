@@ -107,7 +107,7 @@ Unit tests for the cleaning rules: `python -m unittest data_ai/pipeline/test_cle
    cd ..\backend
    npx tsx scripts/export-narrative-training-inputs.ts       # writes data_ai/docs/fixtures/narrative_dataset_inputs.jsonl
    ```
-2. `narrative_training_pairs.jsonl` pairs each row with a hand-written narrative grounded only in that row's numbers. It's already in the repo; regenerate it only if the inputs change.
+2. `narrative_training_pairs.jsonl` pairs each row with an LLM-written narrative grounded only in that row's numbers: an Appraisal Commentary of about 225 words in four paragraphs, plus a Growth Outlook (investor) or Affordability Assessment (buyer) of about 100 words. Every figure in every narrative was checked by script against that row's own prompt. It's already in the repo; regenerate it only if the inputs change.
 3. Split (fixed seed 42, stratified 80/10/10 by role) and format as chat examples:
    ```powershell
    cd ..\data_ai

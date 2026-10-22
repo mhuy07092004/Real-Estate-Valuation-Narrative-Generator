@@ -39,7 +39,7 @@ OUTPUT_FILE = Path(__file__).resolve().parent.parent / "docs" / "fixtures" / "fi
     "EVAL_OUTPUT", "test_baseline_gemma2b.jsonl"
 )
 
-MAX_TOKENS = 300
+MAX_TOKENS = 700  # matches the backend; the longest trained answer is about 350 words
 RETRIES = 3
 RETRY_DELAY_SECONDS = 5
 
@@ -85,7 +85,7 @@ def call_endpoint(prompt: str, token: str) -> str | None:
 
     for attempt in range(1, RETRIES + 1):
         try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
+            with urllib.request.urlopen(req, timeout=60) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
                 return extract_message_content(data)
         except urllib.error.HTTPError as e:

@@ -12,6 +12,7 @@ import {
     getAgentRecommendations,
     getAppraisalDisclaimer,
     getReportTemplateForRole,
+    type NarrativeExtras,
     type ReportRole,
 } from '../services/report-content.service.js'
 import { parseAuAddress } from '../utils/au-address.js'
@@ -53,6 +54,64 @@ function readSubjectQuery(req: Request) {
     return { address, propertyType, bedrooms, bathrooms, parking, landSizeSqm }
 }
 
+function allDefined<T extends Record<string, number | undefined>>(fields: T): { [K in keyof T]: number } | null {
+    return Object.values(fields).every((value) => value !== undefined) ? (fields as { [K in keyof T]: number }) : null
+}
+
+// The buyer's / investor's Step 3 calculator inputs and results, sent along
+// so the narrative model gets the same prompt shape it was trained on.
+// Either group is dropped unless every field it needs is present.
+function readNarrativeExtras(req: Request): NarrativeExtras {
+    const q = req.query
+    const roiFields = {
+        purchasePrice: parseOptionalNumber(q.roiPurchasePrice),
+        deposit: parseOptionalNumber(q.roiDeposit),
+        interestRate: parseOptionalNumber(q.roiInterestRate),
+        weeklyRent: parseOptionalNumber(q.roiWeeklyRent),
+        grossYieldPct: parseOptionalNumber(q.roiGrossYieldPct),
+        netYieldPct: parseOptionalNumber(q.roiNetYieldPct),
+        monthlyCashFlow: parseOptionalNumber(q.roiMonthlyCashFlow),
+    }
+    const affordabilityFields = {
+        yourAnnualIncome: parseOptionalNumber(q.affordabilityAnnualIncome),
+        availableDeposit: parseOptionalNumber(q.affordabilityDeposit),
+        estimatedBorrowingCapacity: parseOptionalNumber(q.affordabilityEstimatedBorrowingCapacity),
+        maxLoanAmount: parseOptionalNumber(q.affordabilityMaxLoanAmount),
+        repaymentToIncomePct: parseOptionalNumber(q.affordabilityRepaymentToIncomePct),
+    }
+    const roi = allDefined(roiFields)
+    const affordability = allDefined(affordabilityFields)
+
+    return {
+        roi: roi
+            ? {
+                  inputs: {
+                      purchasePrice: roi.purchasePrice,
+                      deposit: roi.deposit,
+                      interestRate: roi.interestRate,
+                      weeklyRent: roi.weeklyRent,
+                  },
+                  grossYieldPct: roi.grossYieldPct,
+                  netYieldPct: roi.netYieldPct,
+                  monthlyCashFlow: roi.monthlyCashFlow,
+                  cashOnCashReturnPct: parseOptionalNumber(q.roiCashOnCashReturnPct) ?? null,
+              }
+            : null,
+        affordability: affordability
+            ? {
+                  inputs: {
+                      yourAnnualIncome: affordability.yourAnnualIncome,
+                      partnerAnnualIncome: parseOptionalNumber(q.affordabilityPartnerIncome),
+                      availableDeposit: affordability.availableDeposit,
+                  },
+                  estimatedBorrowingCapacity: affordability.estimatedBorrowingCapacity,
+                  maxLoanAmount: affordability.maxLoanAmount,
+                  repaymentToIncomePct: affordability.repaymentToIncomePct,
+              }
+            : null,
+    }
+}
+
 export async function getExecutiveSummary(req: Request, res: Response) {
     const { address, propertyType, bedrooms, bathrooms, parking, landSizeSqm } = readSubjectQuery(req)
     const role = req.query.role
@@ -71,6 +130,7 @@ export async function getExecutiveSummary(req: Request, res: Response) {
     const summary = await buildExecutiveSummary(
         { ...parsed, propertyType, bedrooms, bathrooms, parking, landSizeSqm },
         isReportRole(role) ? role : 'agent',
+        readNarrativeExtras(req),
     )
     res.json(summary)
 }

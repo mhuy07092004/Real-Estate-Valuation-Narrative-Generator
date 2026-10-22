@@ -9,8 +9,10 @@ transformers/peft/trl on Vertex AI Training).
 The prompt mirrors what report-content.service.ts actually has available when
 it builds a report today: subject property facts, comparables, suburb market
 stats, and (buyer/investor only) affordability/ROI figures. The completion is
-the real narrative_text (Executive Summary, + Growth Outlook for investor or
-Affordability Assessment for buyer).
+the real narrative_text (Appraisal Commentary, + Growth Outlook for investor or
+Affordability Assessment for buyer). Repeated comparables (the same sale
+exported twice) are dropped so each sale appears once, matching the
+deduplicated sales the app now serves.
 
 Usage: python prepare_finetune_dataset.py
 Output: data_ai/docs/fixtures/finetune_ready/{train,val,test}.jsonl
@@ -40,15 +42,35 @@ REPORT_TYPE_LABEL = {
 }
 
 SECTIONS_REQUIRED = {
-    "agent": "the Executive Summary section",
-    "valuer": "the Executive Summary section",
-    "buyer": "the Executive Summary section and the Affordability Assessment section",
-    "investor": "the Executive Summary section and the Growth Outlook section",
+    "agent": "the Appraisal Commentary section",
+    "valuer": "the Appraisal Commentary section",
+    "buyer": "the Appraisal Commentary section and the Affordability Assessment section",
+    "investor": "the Appraisal Commentary section and the Growth Outlook section",
 }
 
 
 def money(n: float) -> str:
     return f"${round(n):,}"
+
+
+def num(x: float, ndigits: int | None = None) -> str:
+    """Prints a number the way the backend's narrative-prompt.ts does: optionally
+    rounded, with a trailing ".0" dropped, so 29.0 and 29 both print as "29"."""
+    value = float(round(x, ndigits) if ndigits is not None else x)
+    text = f"{value}"
+    return text[:-2] if text.endswith(".0") else text
+
+
+def unique_comparables(comparables: list[dict]) -> list[dict]:
+    """Drops repeats of the same sale (same address, price and date), keeping order."""
+    seen = set()
+    unique = []
+    for c in comparables:
+        key = (c["address"], c["soldPrice"], c["soldDate"][:10])
+        if key not in seen:
+            seen.add(key)
+            unique.append(c)
+    return unique
 
 
 def load_inputs() -> dict[tuple[str, str], dict]:
@@ -78,7 +100,7 @@ def build_prompt(row: dict) -> str:
         "",
         "Comparable sales:",
     ]
-    for c in row["comparables"]:
+    for c in unique_comparables(row["comparables"]):
         sold_date = c["soldDate"][:10]
         lines.append(
             f"- {c['address']}: {money(c['soldPrice'])}, sold {sold_date}, "
@@ -90,12 +112,12 @@ def build_prompt(row: dict) -> str:
     lines += [
         "",
         f"Market data for {subj['suburb']}:",
-        f"- Median price: {money(m['medianPrice'])} ({m['medianPriceGrowthPct']}% annual growth, "
-        f"{round(m['monthlyGrowthPct'], 1)}% monthly)",
-        f"- Median days on market: {m['daysOnMarket']}",
-        f"- Rental yield: {round(m['rentalYieldPct'], 2)}%",
-        f"- Auction clearance rate: {m['auctionClearanceRatePct']}%",
-        f"- Vacancy rate: {round(m['vacancyRatePct'], 2)}%",
+        f"- Median price: {money(m['medianPrice'])} ({num(m['medianPriceGrowthPct'])}% annual growth, "
+        f"{num(m['monthlyGrowthPct'], 1)}% monthly)",
+        f"- Median days on market: {num(m['daysOnMarket'])}",
+        f"- Rental yield: {num(m['rentalYieldPct'], 2)}%",
+        f"- Auction clearance rate: {num(m['auctionClearanceRatePct'], 1)}%",
+        f"- Vacancy rate: {num(m['vacancyRatePct'], 2)}%",
     ]
 
     if role == "investor" and row.get("roi"):
@@ -106,14 +128,14 @@ def build_prompt(row: dict) -> str:
             "Financing assumptions:",
             f"- Purchase price: {money(inputs_['purchasePrice'])}",
             f"- Deposit: {money(inputs_['deposit'])}",
-            f"- Loan interest rate: {inputs_['interestRate']}%",
+            f"- Loan interest rate: {num(inputs_['interestRate'])}%",
             f"- Estimated weekly rent: {money(inputs_['weeklyRent'])}",
             "",
             "ROI figures (calculated, do not recompute):",
-            f"- Gross rental yield: {round(roi['grossYieldPct'], 2)}%",
-            f"- Net rental yield: {round(roi['netYieldPct'], 2)}%",
+            f"- Gross rental yield: {num(roi['grossYieldPct'], 2)}%",
+            f"- Net rental yield: {num(roi['netYieldPct'], 2)}%",
             f"- Monthly cash flow: {money(roi['monthlyCashFlow'])}",
-            f"- Cash-on-cash return: {round(roi['cashOnCashReturnPct'], 2)}%",
+            f"- Cash-on-cash return: {num(roi['cashOnCashReturnPct'], 2)}%",
         ]
 
     if role == "buyer" and row.get("affordability"):
@@ -129,7 +151,7 @@ def build_prompt(row: dict) -> str:
             "Affordability figures (calculated, do not recompute):",
             f"- Estimated borrowing capacity: {money(aff['estimatedBorrowingCapacity'])}",
             f"- Maximum loan amount: {money(aff['maxLoanAmount'])}",
-            f"- Repayment as % of income: {aff['repaymentToIncomePct']}%",
+            f"- Repayment as % of income: {num(aff['repaymentToIncomePct'])}%",
         ]
 
     lines += [

@@ -71,6 +71,9 @@ export type RoiPersistResult = {
   netYieldPct: number
   monthlyCashFlow: number
   cashOnCashReturnPct: number | null
+  // The Step 3 form values behind the result. The narrative model needs them
+  // in its prompt; absent on a reopened report, which only saves the results.
+  inputs?: { purchasePrice: number; deposit: number; interestRate: number; weeklyRent: number }
 }
 
 const ROI_RESULT_STORAGE_KEY = 'relaive_roi_result'
@@ -104,6 +107,8 @@ export type AffordabilityPersistResult = {
   estimatedBorrowingCapacity: number
   maxLoanAmount: number
   repaymentToIncomePct: number
+  // Same as RoiPersistResult.inputs, for the buyer's affordability form.
+  inputs?: { yourAnnualIncome: number; partnerAnnualIncome: number; availableDeposit: number }
 }
 
 const AFFORDABILITY_RESULT_STORAGE_KEY = 'relaive_affordability_result'
@@ -646,13 +651,42 @@ export type ExecutiveSummary = {
   paragraphs: ExecutiveSummarySegment[][]
   observationTitle: string
   observationMessage: string
+  // The model's Growth Outlook / Affordability Assessment, when it wrote one.
+  extraSection?: { title: string; paragraphs: ExecutiveSummarySegment[][] }
 }
 
-export function getExecutiveSummary(role?: string): Promise<ExecutiveSummary> {
+// Buyer/investor reports also send their Step 3 calculator inputs and
+// results: the narrative model was trained on prompts that included them.
+export function getExecutiveSummary(
+  role?: string,
+  roi?: RoiPersistResult | null,
+  affordability?: AffordabilityPersistResult | null,
+): Promise<ExecutiveSummary> {
   const path = withAppraisalContext('/api/appraisal/executive-summary')
-  if (!role) return fetchJson(path)
+  const query = new URLSearchParams()
+  if (role) query.set('role', role)
+  if (roi?.inputs) {
+    query.set('roiPurchasePrice', String(roi.inputs.purchasePrice))
+    query.set('roiDeposit', String(roi.inputs.deposit))
+    query.set('roiInterestRate', String(roi.inputs.interestRate))
+    query.set('roiWeeklyRent', String(roi.inputs.weeklyRent))
+    query.set('roiGrossYieldPct', String(roi.grossYieldPct))
+    query.set('roiNetYieldPct', String(roi.netYieldPct))
+    query.set('roiMonthlyCashFlow', String(roi.monthlyCashFlow))
+    if (roi.cashOnCashReturnPct !== null) query.set('roiCashOnCashReturnPct', String(roi.cashOnCashReturnPct))
+  }
+  if (affordability?.inputs) {
+    query.set('affordabilityAnnualIncome', String(affordability.inputs.yourAnnualIncome))
+    query.set('affordabilityPartnerIncome', String(affordability.inputs.partnerAnnualIncome))
+    query.set('affordabilityDeposit', String(affordability.inputs.availableDeposit))
+    query.set('affordabilityEstimatedBorrowingCapacity', String(affordability.estimatedBorrowingCapacity))
+    query.set('affordabilityMaxLoanAmount', String(affordability.maxLoanAmount))
+    query.set('affordabilityRepaymentToIncomePct', String(affordability.repaymentToIncomePct))
+  }
+  const suffix = query.toString()
+  if (!suffix) return fetchJson(path)
   const separator = path.includes('?') ? '&' : '?'
-  return fetchJson(`${path}${separator}role=${encodeURIComponent(role)}`)
+  return fetchJson(`${path}${separator}${suffix}`)
 }
 
 export type AgentRecommendationIconKey = 'campaign' | 'presentation' | 'marketing'

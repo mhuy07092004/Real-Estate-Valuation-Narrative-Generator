@@ -127,6 +127,12 @@ export function RoiAnalysisPanel({ onBack, onContinue }: RoiAnalysisPanelProps) 
           netYieldPct: response.netYieldPct,
           monthlyCashFlow: response.monthlyCashFlow,
           cashOnCashReturnPct: response.cashOnCashReturnPct,
+          inputs: {
+            purchasePrice: form.purchasePrice,
+            deposit: form.deposit,
+            interestRate: form.interestRate,
+            weeklyRent: form.weeklyRent,
+          },
         })
       })
       .catch((error: Error) => {
