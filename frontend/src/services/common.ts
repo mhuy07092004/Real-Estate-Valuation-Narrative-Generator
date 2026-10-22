@@ -173,6 +173,14 @@ export type PersistedReport = {
   affordabilityEstimatedBorrowingCapacity: number | null
   affordabilityMaxLoanAmount: number | null
   affordabilityRepaymentToIncomePct: number | null
+  priceRangeLow: number | null
+  priceRangeHigh: number | null
+  // The exact Executive Summary (+ extra section) text this report was
+  // saved with. null for older reports saved before this existed, or if
+  // save failed to attach it.
+  sections: { id: string; title: string; paragraphs: ExecutiveSummarySegment[][] }[] | null
+  comparables: unknown[] | null
+  strategyCards: unknown[] | null
 }
 
 export async function getPersistedReport(reportId: string): Promise<PersistedReport> {

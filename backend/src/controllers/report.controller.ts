@@ -47,7 +47,18 @@ export async function getReport(req: Request, res: Response) {
         return
     }
 
-    res.json({ success: true, data: row })
+    // sectionsJson etc. are stored as raw JSON strings; parse them here so
+    // a reopened report can show the exact text/figures it was saved with
+    // instead of the caller re-deriving them from the *JsonJson columns.
+    res.json({
+        success: true,
+        data: {
+            ...row,
+            sections: safeJsonParse(row.sectionsJson),
+            comparables: safeJsonParse(row.comparablesJson),
+            strategyCards: safeJsonParse(row.strategyCardsJson),
+        },
+    })
 }
 
 /** Agent-only: mints (or returns the existing) public share link for a

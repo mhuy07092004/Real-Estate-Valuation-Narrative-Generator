@@ -133,6 +133,14 @@ export function GeneratedReportContainer({
   const roiForDisplay = reportRole === 'investor' ? resolveRoiForDisplay(savedReport) : null
   const affordabilityForDisplay = reportRole === 'buyer' ? resolveAffordabilityForDisplay(savedReport) : null
 
+  // A reopened report (saved under this feature) carries its own exact
+  // Executive Summary text. Reuse it instead of calling the model again —
+  // otherwise the same report would read differently depending on whether
+  // the model happens to be deployed right now.
+  const savedExecutiveSection = savedReport?.sections?.find((s) => s.id === 'executive-summary') ?? null
+  const savedExtraSection =
+    savedReport?.sections?.find((s) => s.id === 'growth-outlook' || s.id === 'affordability-outlook') ?? null
+
   const { data: selectedTemplate } = useAsyncData(() => getReportTemplate(reportRole), [reportRole])
 
   const { data: narrativePreview } = useAsyncData(
@@ -141,9 +149,13 @@ export function GeneratedReportContainer({
   )
   const { data: appraisalSummary } = useAsyncData(getAppraisalSummary, [])
   const { data: executiveSummary } = useAsyncData(
-    () => getExecutiveSummary(reportRole, roiForDisplay, affordabilityForDisplay),
+    () =>
+      savedExecutiveSection
+        ? Promise.resolve(null)
+        : getExecutiveSummary(reportRole, roiForDisplay, affordabilityForDisplay),
     [
       reportRole,
+      savedExecutiveSection,
       roiForDisplay?.inputs?.purchasePrice,
       roiForDisplay?.inputs?.deposit,
       roiForDisplay?.inputs?.interestRate,
@@ -157,13 +169,20 @@ export function GeneratedReportContainer({
   const { data: appraisalDisclaimer } = useAsyncData(getAppraisalDisclaimer, [])
   const { data: comparableSales } = useAsyncData(getComparableSales, [])
   const { data: growthOutlook } = useAsyncData(
-    () => (reportRole === 'investor' ? getGrowthOutlook(roiForDisplay) : Promise.resolve(null)),
-    [reportRole, roiForDisplay?.grossYieldPct, roiForDisplay?.netYieldPct, roiForDisplay?.monthlyCashFlow, roiForDisplay?.cashOnCashReturnPct],
+    () =>
+      reportRole === 'investor' && !savedExtraSection
+        ? getGrowthOutlook(roiForDisplay)
+        : Promise.resolve(null),
+    [reportRole, savedExtraSection, roiForDisplay?.grossYieldPct, roiForDisplay?.netYieldPct, roiForDisplay?.monthlyCashFlow, roiForDisplay?.cashOnCashReturnPct],
   )
   const { data: affordabilityOutlook } = useAsyncData(
-    () => (reportRole === 'buyer' ? getAffordabilityOutlook(affordabilityForDisplay) : Promise.resolve(null)),
+    () =>
+      reportRole === 'buyer' && !savedExtraSection
+        ? getAffordabilityOutlook(affordabilityForDisplay)
+        : Promise.resolve(null),
     [
       reportRole,
+      savedExtraSection,
       affordabilityForDisplay?.estimatedBorrowingCapacity,
       affordabilityForDisplay?.maxLoanAmount,
       affordabilityForDisplay?.repaymentToIncomePct,
@@ -238,12 +257,12 @@ export function GeneratedReportContainer({
     !selectedTemplate ||
     !narrativePreview ||
     !appraisalSummary ||
-    !executiveSummary ||
+    (!savedExecutiveSection && !executiveSummary) ||
     !agentRecommendations ||
     !appraisalDisclaimer ||
     !comparableSales ||
-    (reportRole === 'investor' && !growthOutlook) ||
-    (reportRole === 'buyer' && !affordabilityOutlook)
+    (reportRole === 'investor' && !savedExtraSection && !growthOutlook) ||
+    (reportRole === 'buyer' && !savedExtraSection && !affordabilityOutlook)
   ) {
     return (
       <div className="rounded-2xl border border-black/5 bg-white px-5 py-8 text-sm text-relaive-gray">
@@ -269,42 +288,47 @@ export function GeneratedReportContainer({
     },
   ]
 
-  const sections: GeneratedReportSection[] = [
-    {
-      id: 'executive-summary',
-      title: executiveSummary.title.replace(/^\d+\.\s*/, ''),
-      paragraphs: executiveSummary.paragraphs,
-    },
-    // The model's own Growth Outlook / Affordability Assessment replaces the
-    // short templated one when it wrote one.
-    ...(executiveSummary.extraSection && (reportRole === 'investor' || reportRole === 'buyer')
-      ? [
-          {
-            id: reportRole === 'investor' ? 'growth-outlook' : 'affordability-outlook',
-            title: executiveSummary.extraSection.title.replace(/^\d+\.\s*/, ''),
-            paragraphs: executiveSummary.extraSection.paragraphs,
-          },
-        ]
-      : []),
-    ...(reportRole === 'investor' && growthOutlook && !executiveSummary.extraSection
-      ? [
-          {
-            id: 'growth-outlook',
-            title: growthOutlook.title.replace(/^\d+\.\s*/, ''),
-            paragraphs: growthOutlook.paragraphs,
-          },
-        ]
-      : []),
-    ...(reportRole === 'buyer' && affordabilityOutlook && !executiveSummary.extraSection
-      ? [
-          {
-            id: 'affordability-outlook',
-            title: affordabilityOutlook.title.replace(/^\d+\.\s*/, ''),
-            paragraphs: affordabilityOutlook.paragraphs,
-          },
-        ]
-      : []),
-  ]
+  // A reopened report shows exactly the sections it was saved with. A
+  // freshly-generated one builds them live from whatever the model (or the
+  // template fallback) just returned.
+  const sections: GeneratedReportSection[] = savedExecutiveSection
+    ? [savedExecutiveSection, ...(savedExtraSection ? [savedExtraSection] : [])]
+    : [
+        {
+          id: 'executive-summary',
+          title: executiveSummary!.title.replace(/^\d+\.\s*/, ''),
+          paragraphs: executiveSummary!.paragraphs,
+        },
+        // The model's own Growth Outlook / Affordability Assessment replaces
+        // the short templated one when it wrote one.
+        ...(executiveSummary!.extraSection && (reportRole === 'investor' || reportRole === 'buyer')
+          ? [
+              {
+                id: reportRole === 'investor' ? 'growth-outlook' : 'affordability-outlook',
+                title: executiveSummary!.extraSection.title.replace(/^\d+\.\s*/, ''),
+                paragraphs: executiveSummary!.extraSection.paragraphs,
+              },
+            ]
+          : []),
+        ...(reportRole === 'investor' && growthOutlook && !executiveSummary!.extraSection
+          ? [
+              {
+                id: 'growth-outlook',
+                title: growthOutlook.title.replace(/^\d+\.\s*/, ''),
+                paragraphs: growthOutlook.paragraphs,
+              },
+            ]
+          : []),
+        ...(reportRole === 'buyer' && affordabilityOutlook && !executiveSummary!.extraSection
+          ? [
+              {
+                id: 'affordability-outlook',
+                title: affordabilityOutlook.title.replace(/^\d+\.\s*/, ''),
+                paragraphs: affordabilityOutlook.paragraphs,
+              },
+            ]
+          : []),
+      ]
 
   const averagePrice = comparableSales.length
     ? Math.round(comparableSales.reduce((sum, comp) => sum + comp.price, 0) / comparableSales.length)
